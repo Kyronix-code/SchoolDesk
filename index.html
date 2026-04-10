@@ -231,6 +231,7 @@ let currentUser = null;
 let selectedClass = null;
 let selectedDate = getTodayStr();
 let selectedSubject = null;
+let selectedLesson = 1; // 1 or 2 (for duplicate subjects same day)
 
 // ===================== JSONBIN API =====================
 async function binGet(id) {
@@ -633,6 +634,13 @@ function buildGradesPage() {
         <option value="${getTodayStr()}">Loading...</option>
       </select>
       ${subSel}
+      <span id="lesson-select-wrap" style="display:none;">
+        <label>Lesson:</label>
+        <select id="grade-lesson-select" onchange="selectedLesson=parseInt(this.value);refreshGradesTable()" style="padding:8px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
+          <option value="1">Lesson 1</option>
+          <option value="2">Lesson 2</option>
+        </select>
+      </span>
     </div>
     <div class="table-card" style="margin-bottom:16px;">
       <div class="table-header"><h3>Lesson Info</h3></div>
@@ -654,16 +662,43 @@ function buildGradesPage() {
   </div>`;
 }
 
+function getLessonKey(date) {
+  // Returns date key with lesson suffix if lesson > 1
+  return selectedLesson > 1 ? `${date}-L${selectedLesson}` : date;
+}
+
+function countSubjInDay(cls, date, subj) {
+  // Count how many times subj appears in schedule for this day
+  const d = new Date(date);
+  const dayKeyMap = {1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
+  const dk = dayKeyMap[d.getDay()];
+  if(!dk) return 1;
+  const wkStart = getWeekStart(d);
+  const weekSched = SCHEDULE[cls]?.[wkStart];
+  const lessons = (weekSched&&weekSched[dk]) || (SCHEDULE[cls]?.[dk]) || [];
+  return lessons.filter(l =>
+    l.sub===subj || l.sub.toLowerCase().includes(subj.toLowerCase()) || subj.toLowerCase().includes(l.sub.toLowerCase())
+  ).length;
+}
+
 function refreshGradesTable() {
   const cls=selectedClass;
   const date=selectedDate||getTodayStr();
   if(!selectedSubject) selectedSubject=getSubjects()[0]||'';
   const subj=selectedSubject;
-  populateDateSelect('grade-date-select', cls, date, 'selectedDate=this.value;refreshGradesTable()');
+  populateDateSelect('grade-date-select', cls, date, 'selectedDate=this.value;selectedLesson=1;refreshGradesTable()');
+
+  // Show/hide lesson selector based on how many times subj appears that day
+  const count = countSubjInDay(cls, date, subj);
+  const wrap = document.getElementById('lesson-select-wrap');
+  if(wrap) wrap.style.display = count >= 2 ? 'inline-flex' : 'none';
+  if(count < 2) selectedLesson = 1;
+
+  const lessonKey = getLessonKey(date);
   const students=DB.classes[cls]||[];
   const el=document.getElementById('grades-table-title');
-  if(el) el.textContent=`${cls} · ${subj} · ${formatDate(date)}`;
-  const li=LESSON_INFO[cls]&&LESSON_INFO[cls][subj]&&LESSON_INFO[cls][subj][date]?LESSON_INFO[cls][subj][date]:{};
+  if(el) el.textContent=`${cls} · ${subj} · ${formatDate(date)}${selectedLesson>1?' (Lesson '+selectedLesson+')':''}`;
+  const li=LESSON_INFO[cls]&&LESSON_INFO[cls][subj]&&LESSON_INFO[cls][subj][lessonKey]?LESSON_INFO[cls][subj][lessonKey]:{};
   const tEl=document.getElementById('lesson-topic');
   const hEl=document.getElementById('lesson-homework');
   if(tEl) tEl.value=li.topic||'';
@@ -672,7 +707,7 @@ function refreshGradesTable() {
   if(!tbl) return;
   tbl.innerHTML=`<thead><tr><th>Student</th><th>Grade (1-10)</th></tr></thead><tbody>
     ${students.map((st,i)=>{
-      const g=GRADES[cls]&&GRADES[cls][st]&&GRADES[cls][st][subj]&&GRADES[cls][st][subj][date]?GRADES[cls][st][subj][date]:'';
+      const g=GRADES[cls]&&GRADES[cls][st]&&GRADES[cls][st][subj]&&GRADES[cls][st][subj][lessonKey]?GRADES[cls][st][subj][lessonKey]:'';
       return `<tr><td><div class="td-flex"><div class="avatar av-blue">${initials(st)}</div>${st}</div></td>
         <td><div style="display:flex;align-items:center;gap:6px;">
           <input class="grade-input" type="number" min="1" max="10" value="${g}" id="gi-${i}" placeholder="—">
@@ -691,24 +726,23 @@ async function doSaveGrades() {
   const cls=selectedClass;
   const date=selectedDate||getTodayStr();
   const subj=selectedSubject||getSubjects()[0]||'';
+  const lessonKey=getLessonKey(date);
   if(!GRADES[cls]) GRADES[cls]={};
   (DB.classes[cls]||[]).forEach((st,i)=>{
     const v=document.getElementById('gi-'+i)?.value;
     if(!GRADES[cls][st]) GRADES[cls][st]={};
     if(!GRADES[cls][st][subj]) GRADES[cls][st][subj]={};
     if(v && parseInt(v)>=1 && parseInt(v)<=10){
-      // Save grade
-      GRADES[cls][st][subj][date]=parseInt(v);
+      GRADES[cls][st][subj][lessonKey]=parseInt(v);
     } else {
-      // Delete grade if empty or 0
-      delete GRADES[cls][st][subj][date];
+      delete GRADES[cls][st][subj][lessonKey];
     }
   });
   const topic=document.getElementById('lesson-topic')?.value||'';
   const hw=document.getElementById('lesson-homework')?.value||'';
   if(!LESSON_INFO[cls]) LESSON_INFO[cls]={};
   if(!LESSON_INFO[cls][subj]) LESSON_INFO[cls][subj]={};
-  LESSON_INFO[cls][subj][date]={topic,homework:hw};
+  LESSON_INFO[cls][subj][lessonKey]={topic,homework:hw};
   await saveGradesDB();
   flashSave();
 }
@@ -957,7 +991,9 @@ function renderDiaryWeek() {
         </tr></thead>
         <tbody>
           ${schedule.length?schedule.map((lesson,i)=>{
-            const g=GRADES[cls]&&GRADES[cls][studentName]&&GRADES[cls][studentName][lesson.sub]?GRADES[cls][studentName][lesson.sub][dateStr]:'';
+            const subjGrades=GRADES[cls]&&GRADES[cls][studentName]&&GRADES[cls][studentName][lesson.sub]?GRADES[cls][studentName][lesson.sub]:{};
+            const g=subjGrades[dateStr]||'';
+            const g2=subjGrades[dateStr+'-L2']||'';
             const info=LESSON_INFO[cls]&&LESSON_INFO[cls][lesson.sub]&&LESSON_INFO[cls][lesson.sub][dateStr]?LESSON_INFO[cls][lesson.sub][dateStr]:{};
             const hasInfo=info.topic||info.homework;
             const infoId='info-'+dateStr+'-'+i;
@@ -973,7 +1009,10 @@ function renderDiaryWeek() {
                   ${info.homework?`<div style="font-size:11px;color:var(--amber);margin-top:2px;">✏️ ${info.homework}</div>`:''}
                 </div>
               </td>
-              <td style="padding:8px 12px;text-align:center;">${g?`<span class="badge badge-${g}">${g}</span>`:'<span style="color:var(--text3);font-size:12px;">—</span>'}</td>
+              <td style="padding:8px 12px;text-align:center;">
+                ${g?`<span class="badge badge-${g}">${g}</span>`:'<span style="color:var(--text3);font-size:12px;">—</span>'}
+                ${g2?`<span class="badge badge-${g2}" style="margin-left:4px;">${g2}</span>`:''}
+              </td>
             </tr>`;
           }).join(''):`<tr><td colspan="3" style="padding:12px;font-size:12px;color:var(--text3);text-align:center;">No lessons scheduled</td></tr>`}
         </tbody>
@@ -1006,7 +1045,12 @@ function renderMyGrades() {
   const rows=Object.entries(subjectGrades).map(([subj,dates])=>{
     const vals=Object.values(dates);
     const avg=vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length).toFixed(1):'—';
-    const entries=Object.entries(dates).map(([d,g])=>`<span style="font-size:11px;color:var(--text2);margin-right:8px;">${formatDate(d)}: <span class="badge badge-${g}">${g}</span></span>`).join('');
+    const entries=Object.entries(dates).map(([d,g])=>{
+      const isLesson2=d.endsWith('-L2');
+      const displayDate=isLesson2?d.replace('-L2',''):d;
+      const label=isLesson2?`${formatDate(displayDate)} (L2)`:`${formatDate(displayDate)}`;
+      return `<span style="font-size:11px;color:var(--text2);margin-right:8px;">${label}: <span class="badge badge-${g}">${g}</span></span>`;
+    }).join('');
     return `<tr><td>${subj}</td><td>${entries}</td><td><span class="badge badge-${Math.round(parseFloat(avg))}">${avg}</span></td></tr>`;
   }).join('');
   document.getElementById('my-grades-content').innerHTML=`<div class="table-card"><table>
@@ -1792,6 +1836,13 @@ async function migrateOldData() {
 // ===================== INIT =====================
 (async()=>{
   await loadAll();
+  // Only migrate if DB is completely empty (first time)
+  if (!DB.users || Object.keys(DB.users).length === 0) {
+    await migrateOldData();
+    migrateScheduleFormat();
+    await Promise.all([saveSchool(), saveScheduleDB()]);
+    await loadAll();
+  }
 })();
 </script>
 </body>
