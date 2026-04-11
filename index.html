@@ -5,6 +5,28 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>School Management System</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Armenian:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script>
+// Early functions needed by inline onclick handlers
+function setRole(r) {
+  document.querySelectorAll('.role-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['teacher','student','parent','admin'][i]===r);
+  });
+  window._currentRole = r;
+}
+function showRegister() {
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('register-screen').classList.remove('hidden');
+}
+function showLogin() {
+  document.getElementById('register-screen').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+}
+// Apply saved theme immediately to avoid flash
+(function(){
+  const t=localStorage.getItem('theme')||'dark';
+  document.documentElement.setAttribute('data-theme',t);
+})();
+</script>
 <style>
 :root {
   --bg:#0f1117;--surface:#161b27;--surface2:#1e2535;--surface3:#252d3d;
@@ -171,16 +193,74 @@ select:focus{border-color:var(--accent);}
       <div class="role-tab" onclick="setRole('parent')">Parent</div>
       <div class="role-tab" onclick="setRole('admin')">Admin</div>
     </div>
-    <div class="form-group">
-      <label>Username</label>
-      <input type="text" id="username" placeholder="Enter username...">
+    <!-- LOGIN FORM -->
+    <div id="login-form">
+      <div class="form-group">
+        <label>Username (Email)</label>
+        <input type="text" id="username" placeholder="Enter email...">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      </div>
+      <button class="login-btn" onclick="doLogin()">Sign In</button>
+      <div class="error-msg" id="login-error"></div>
+      <div style="text-align:center;margin-top:14px;">
+        <span style="font-size:13px;color:var(--text2);">New student? </span>
+        <button onclick="showRegister()" style="background:transparent;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;">Register here</button>
+      </div>
     </div>
-    <div class="form-group">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <!-- REGISTER FORM -->
+    <div id="register-form" style="display:none;">
+      <div style="margin-bottom:16px;">
+        <button onclick="showLogin()" style="background:transparent;border:none;color:var(--text2);font-size:13px;cursor:pointer;font-family:inherit;">← Back to login</button>
+      </div>
+      <h3 style="font-size:15px;font-weight:600;margin-bottom:16px;">Create Student Account</h3>
+      <div class="form-group">
+        <label>Email (will be your username)</label>
+        <input type="email" id="reg-email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>Password <span style="font-size:11px;color:var(--text3);">(must contain: Uppercase, lowercase, number, symbol e.g. Aabbcc#123)</span></label>
+        <input type="password" id="reg-pass" placeholder="Aabbcc#123">
+      </div>
+      <div class="form-group">
+        <label>Confirm Password</label>
+        <input type="password" id="reg-pass2" placeholder="Repeat password">
+      </div>
+      <div class="form-group">
+        <label>Captcha: What is <span id="captcha-q" style="font-weight:600;color:var(--accent);"></span>?</label>
+        <input type="number" id="reg-captcha" placeholder="Your answer">
+      </div>
+      <button class="login-btn" onclick="doRegister()">Create Account</button>
+      <div class="error-msg" id="reg-error"></div>
     </div>
-    <button class="login-btn" onclick="doLogin()">Sign In</button>
-    <div class="error-msg" id="login-error"></div>
+    <!-- ADD CHILD FORM -->
+    <div id="add-child-form" style="display:none;">
+      <div style="margin-bottom:16px;text-align:center;">
+        <div class="icon" style="width:44px;height:44px;font-size:20px;">✅</div>
+        <h3 style="font-size:15px;font-weight:600;margin-top:8px;">Account created!</h3>
+        <p style="font-size:12px;color:var(--text2);margin-top:4px;">Now add your child(ren). You can add more later.</p>
+      </div>
+      <div id="children-list" style="margin-bottom:14px;"></div>
+      <div class="form-card" style="padding:14px;margin-bottom:12px;" id="child-add-box">
+        <div class="form-group">
+          <label>Child's Full Name</label>
+          <input type="text" id="child-name" placeholder="Ani Hakobyan">
+        </div>
+        <div class="form-group">
+          <label>ID Number (Հanrаин hаmаrаnishn)</label>
+          <input type="text" id="child-id" placeholder="1234567890">
+        </div>
+        <div class="form-group">
+          <label>Date of Birth (DD.MM.YYYY)</label>
+          <input type="text" id="child-dob" placeholder="10.10.2010" maxlength="10">
+        </div>
+        <button class="btn btn-primary" onclick="addChild()" style="width:100%;">+ Add Child</button>
+      </div>
+      <div class="error-msg" id="child-error"></div>
+      <button class="login-btn" onclick="finishRegistration()" id="finish-reg-btn" style="opacity:0.5;" disabled>Continue to Login →</button>
+    </div>
   </div>
 </div>
 
@@ -494,6 +574,10 @@ function getSubjects(user) {
 
 // ===================== AUTH =====================
 let currentRole = 'teacher';
+let captchaAnswer = 0;
+let pendingUser = null; // temp storage during registration
+let pendingChildren = [];
+
 function setRole(r) {
   currentRole=r;
   document.querySelectorAll('.role-tab').forEach((t,i)=>{
@@ -501,8 +585,160 @@ function setRole(r) {
   });
 }
 
+function showRegister() {
+  document.getElementById('login-form').style.display='none';
+  document.getElementById('register-form').style.display='block';
+  // Generate captcha
+  const a=Math.floor(Math.random()*9)+1, b=Math.floor(Math.random()*9)+1;
+  captchaAnswer=a+b;
+  document.getElementById('captcha-q').textContent=`${a} + ${b}`;
+}
+
+function showLogin() {
+  document.getElementById('register-form').style.display='none';
+  document.getElementById('add-child-form').style.display='none';
+  document.getElementById('login-form').style.display='block';
+  document.getElementById('reg-error').textContent='';
+  document.getElementById('login-error').textContent='';
+}
+
+function validatePassword(pass) {
+  if (pass.length < 8) return 'Password must be at least 8 characters';
+  if (!/[A-Z]/.test(pass)) return 'Password must contain at least one uppercase letter';
+  if (!/[a-z]/.test(pass)) return 'Password must contain at least one lowercase letter';
+  if (!/[0-9]/.test(pass)) return 'Password must contain at least one number';
+  if (!/[^A-Za-z0-9]/.test(pass)) return 'Password must contain at least one symbol (#, @, !, etc.)';
+  return null;
+}
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim().toLowerCase();
+  const pass = document.getElementById('reg-pass').value;
+  const pass2 = document.getElementById('reg-pass2').value;
+  const captcha = parseInt(document.getElementById('reg-captcha').value);
+  const err = document.getElementById('reg-error');
+  err.textContent='';
+
+  if (!email || !email.includes('@')) { err.textContent='Enter a valid email.'; return; }
+  if (pass !== pass2) { err.textContent='Passwords do not match.'; return; }
+  const passErr = validatePassword(pass);
+  if (passErr) { err.textContent=passErr; return; }
+  if (captcha !== captchaAnswer) { err.textContent='Incorrect captcha answer.'; return; }
+
+  // Check if email already used
+  const allUsers = DB.users || {};
+  const emailKey = email + '_student';
+  if (allUsers[emailKey] || allUsers[email]) { err.textContent='This email is already registered.'; return; }
+
+  // Store pending user
+  pendingUser = { email, pass, emailKey };
+  pendingChildren = [];
+
+  // Show add child form
+  document.getElementById('register-form').style.display='none';
+  document.getElementById('add-child-form').style.display='block';
+  renderChildrenList();
+}
+
+function renderChildrenList() {
+  const list = document.getElementById('children-list');
+  if (!pendingChildren.length) { list.innerHTML=''; return; }
+  list.innerHTML = pendingChildren.map((c,i)=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--surface2);border-radius:8px;margin-bottom:8px;">
+      <div>
+        <div style="font-size:13px;font-weight:500;">${c.name}</div>
+        <div style="font-size:11px;color:var(--text2);">${c.dob} · ID: ${c.idNum}</div>
+      </div>
+      <button onclick="removeChild(${i})" style="background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:16px;">✕</button>
+    </div>`).join('');
+  const btn = document.getElementById('finish-reg-btn');
+  btn.disabled = false;
+  btn.style.opacity = '1';
+}
+
+function removeChild(i) {
+  pendingChildren.splice(i,1);
+  renderChildrenList();
+  if (!pendingChildren.length) {
+    document.getElementById('finish-reg-btn').disabled=true;
+    document.getElementById('finish-reg-btn').style.opacity='0.5';
+  }
+}
+
+function addChild() {
+  const name = document.getElementById('child-name').value.trim();
+  const idNum = document.getElementById('child-id').value.trim();
+  const dob = document.getElementById('child-dob').value.trim();
+  const err = document.getElementById('child-error');
+  err.textContent='';
+
+  if (!name) { err.textContent='Enter child name.'; return; }
+  if (!idNum) { err.textContent='Enter ID number.'; return; }
+  if (!/^\d{2}\.\d{2}\.\d{4}$/.test(dob)) { err.textContent='Date must be DD.MM.YYYY format.'; return; }
+
+  pendingChildren.push({name, idNum, dob});
+  document.getElementById('child-name').value='';
+  document.getElementById('child-id').value='';
+  document.getElementById('child-dob').value='';
+  err.textContent='';
+  renderChildrenList();
+}
+
+async function finishRegistration() {
+  if (!pendingUser || !pendingChildren.length) return;
+
+  showLoading('Creating account...');
+
+  // Find matching students in DB by name+dob or just save pending for admin approval
+  const matchedStudentNames = [];
+  pendingChildren.forEach(child => {
+    // Search all classes for this student by name
+    Object.entries(DB.classes||{}).forEach(([cls, students]) => {
+      students.forEach(st => {
+        if (st.toLowerCase() === child.name.toLowerCase()) {
+          matchedStudentNames.push({name: st, cls});
+        }
+      });
+    });
+  });
+
+  // Save parent account with children info
+  if (!DB.users) DB.users={};
+  DB.users[pendingUser.emailKey] = {
+    role: 'parent',
+    name: pendingChildren[0].name + ''s Parent',
+    pass: pendingUser.pass,
+    children: pendingChildren,
+    matchedStudents: matchedStudentNames,
+    pendingApproval: matchedStudentNames.length === 0,
+    registeredAt: new Date().toISOString(),
+  };
+
+  // Also save pending registration for admin notification
+  if (!DB.pendingRegistrations) DB.pendingRegistrations = [];
+  DB.pendingRegistrations.push({
+    email: pendingUser.email,
+    key: pendingUser.emailKey,
+    children: pendingChildren,
+    matchedStudents: matchedStudentNames,
+    registeredAt: new Date().toISOString(),
+  });
+
+  await saveSchool();
+  hideLoading();
+
+  // Show success and go to login
+  document.getElementById('add-child-form').innerHTML=`
+    <div style="text-align:center;padding:20px 0;">
+      <div style="font-size:40px;margin-bottom:12px;">🎉</div>
+      <h3 style="font-size:16px;font-weight:600;margin-bottom:8px;">Registration Complete!</h3>
+      <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">You can now sign in with your email and password.<br>Select <b>Parent</b> tab when logging in.</p>
+      <button class="login-btn" onclick="showLogin()">Go to Login →</button>
+    </div>`;
+}
+
 function doLogin() {
-  const u = document.getElementById('username').value.trim();
+  const u = document.getElementById('username').value.trim().toLowerCase();
   const p = document.getElementById('password').value.trim();
   const err = document.getElementById('login-error');
 
@@ -520,8 +756,10 @@ function doLogin() {
   const users = DB.users||{};
   let found = null, foundKey = null;
   for (const [key, val] of Object.entries(users)) {
-    const loginKey = key.replace(/_t$/,'').replace(/_s$/,'');
-    if (loginKey===u && val.role===currentRole && val.pass===p) {
+    // Normalize key for comparison
+    const loginKey = key.replace(/_t$|_student$/,'').toLowerCase();
+    const uLower = u.toLowerCase();
+    if ((loginKey===uLower || key.toLowerCase()===uLower) && val.role===currentRole && val.pass===p) {
       found=val; foundKey=key; break;
     }
   }
@@ -998,6 +1236,12 @@ function getMonthsForYear(ayStr) {
 }
 
 function buildDiaryPage() {
+  // If parent with multiple children, show child selector
+  if (currentUser.role==='parent' && currentUser.children && currentUser.children.length>1) {
+    const childSel = currentUser.children.map((c,i)=>`<option value="${i}">${c.name}</option>`).join('');
+    // Store selected child index
+    if (window._parentChildIdx===undefined) window._parentChildIdx=0;
+  }
   const now=new Date();
   const curMonth=now.getMonth();
   const curYear=now.getFullYear();
@@ -1073,10 +1317,38 @@ function onDiaryMonthChange() {
   renderDiaryWeek();
 }
 
+function getParentStudentInfo() {
+  if (currentUser.role !== 'parent') return {name: currentUser.name, cls: currentUser.class};
+  // New registration style - use children array
+  if (currentUser.children && currentUser.children.length) {
+    const idx = window._parentChildIdx||0;
+    const child = currentUser.children[idx];
+    // Find class in DB
+    let foundCls = null;
+    Object.entries(DB.classes||{}).forEach(([cls,students])=>{
+      if (students.some(s=>s.toLowerCase()===child.name.toLowerCase())) foundCls=cls;
+    });
+    return {name: child.name, cls: foundCls};
+  }
+  // Old style
+  return {name: currentUser.studentName, cls: currentUser.studentClass};
+}
+
 function renderDiary() {
-  const studentName=currentUser.role==='parent'?currentUser.studentName:currentUser.name;
-  const cls=currentUser.role==='parent'?currentUser.studentClass:currentUser.class;
-  document.getElementById('diary-sub').textContent=`${studentName} · Class ${cls}`;
+  const {name: studentName, cls} = getParentStudentInfo();
+  // Child selector for parent with multiple children
+  const diarySubEl = document.getElementById('diary-sub');
+  if (currentUser.role==='parent' && currentUser.children && currentUser.children.length>1) {
+    diarySubEl.innerHTML = currentUser.children.map((c,i)=>
+      `<button onclick="window._parentChildIdx=${i};renderDiary()" style="margin-right:8px;padding:5px 14px;border-radius:8px;border:1px solid var(--border);background:${(window._parentChildIdx||0)===i?'var(--accent)':'transparent'};color:${(window._parentChildIdx||0)===i?'#fff':'var(--text2)'};cursor:pointer;font-size:13px;font-family:inherit;">${c.name}</button>`
+    ).join('');
+  } else {
+    diarySubEl.textContent=`${studentName} · Class ${cls||'—'}`;
+  }
+  if (!cls) {
+    document.getElementById('diary-content').innerHTML='<div style="text-align:center;padding:40px;color:var(--text3);">No class assigned yet. Please contact admin.</div>';
+    return;
+  }
   window._diaryStudent=studentName;
   window._diaryCls=cls;
   onDiaryMonthChange();
@@ -1230,7 +1502,32 @@ function buildAdminDashboard() {
         }).join('')}
       </tbody></table>
     </div>
+    ${(DB.pendingRegistrations||[]).length>0?`
+    <div class="table-card" style="margin-top:16px;border-color:rgba(245,158,11,0.4);">
+      <div class="table-header"><h3>🔔 New Registrations (${(DB.pendingRegistrations||[]).length})</h3></div>
+      <table><thead><tr><th>Email</th><th>Children</th><th>Registered</th><th></th></tr></thead><tbody>
+        ${(DB.pendingRegistrations||[]).map((r,i)=>`<tr>
+          <td style="font-size:12px;">${r.email}</td>
+          <td>${r.children.map(c=>`<div style="font-size:12px;">${c.name} (${c.dob})</div>`).join('')}</td>
+          <td style="font-size:11px;color:var(--text2);">${new Date(r.registeredAt).toLocaleDateString()}</td>
+          <td><button class="btn btn-primary" style="font-size:11px;" onclick="approveRegistration(${i})">✓ Approve</button></td>
+        </tr>`).join('')}
+      </tbody></table>
+    </div>`:''}
   </div>`;
+}
+
+async function approveRegistration(idx) {
+  const reg = (DB.pendingRegistrations||[])[idx];
+  if (!reg) return;
+  // Mark as approved
+  if (DB.users[reg.key]) DB.users[reg.key].pendingApproval = false;
+  DB.pendingRegistrations.splice(idx,1);
+  showLoading('Saving...');
+  await saveSchool();
+  hideLoading();
+  flashSave();
+  showPage('admin-dashboard');
 }
 
 function showAdminClassDetail(cls) {
