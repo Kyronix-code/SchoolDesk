@@ -59,6 +59,7 @@ body{font-family:'Noto Sans Armenian',sans-serif;background:var(--bg);color:var(
 .stat-card .sc-sub{font-size:11px;color:var(--text2);margin-top:4px;}
 .stat-card.accent{border-color:rgba(79,142,247,0.3);}
 .stat-card.red{border-color:rgba(239,68,68,0.3);}
+.stat-card.amber{border-color:rgba(245,158,11,0.3);}
 .table-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius2);overflow:hidden;margin-bottom:20px;}
 .table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
 .table-header h3{font-size:14px;font-weight:600;}
@@ -545,8 +546,9 @@ function buildApp() {
       <div class="nav-item" onclick="showPage('students')" data-page="students"><span class="ni">👥</span> Students</div>
       <div class="nav-item" onclick="showPage('notify')" data-page="notify"><span class="ni">🔔</span> Notifications</div>
       <div class="nav-item" onclick="showPage('thematic')" data-page="thematic"><span class="ni">📅</span> Thematic Plan</div>
+      ${currentUser.homeroom?`<div class="nav-item" onclick="showPage('homeroom-absences')" data-page="homeroom-absences"><span class="ni">📋</span> Absences (${currentUser.homeroom})</div>`:''}
     `;
-    main.innerHTML=buildDashboard()+buildGradesPage()+buildAttendancePage()+buildStudentsPage()+buildNotifyPage()+buildThematicPage();
+    main.innerHTML=buildDashboard()+buildGradesPage()+buildAttendancePage()+buildStudentsPage()+buildNotifyPage()+buildThematicPage()+buildHomeroomAbsencesPage();
     refreshGradesTable();
     refreshAttTable();
     showPage('dashboard');
@@ -573,6 +575,7 @@ function showPage(id) {
     'students':  ()=>{ const o=document.getElementById('page-students');  if(o) o.outerHTML=buildStudentsPage(); },
     'notify':    ()=>{ const o=document.getElementById('page-notify');    if(o) o.outerHTML=buildNotifyPage(); },
     'thematic':  ()=>{ const o=document.getElementById('page-thematic');  if(o) o.outerHTML=buildThematicPage(); renderThematicTable(); },
+    'homeroom-absences': ()=>{ const o=document.getElementById('page-homeroom-absences'); if(o) o.outerHTML=buildHomeroomAbsencesPage(); },
     'admin-dashboard': ()=>{ const o=document.getElementById('page-admin-dashboard'); if(o) o.outerHTML=buildAdminDashboard(); },
     'admin-teachers':  ()=>{ const o=document.getElementById('page-admin-teachers');  if(o) o.outerHTML=buildAdminTeachers(); },
     'admin-students':  ()=>{ const o=document.getElementById('page-admin-students');  if(o) o.outerHTML=buildAdminStudents(); },
@@ -588,30 +591,126 @@ function showPage(id) {
 // ===================== TEACHER - DASHBOARD =====================
 function buildDashboard() {
   const today=getTodayStr();
+  const homeroom=currentUser.homeroom||null;
   let absent=0;
   (currentUser.classes||[]).forEach(cls=>{
     if(ATTENDANCE[cls]&&ATTENDANCE[cls][today]) Object.values(ATTENDANCE[cls][today]).forEach(v=>{if(v==='absent')absent++;});
   });
   const total=(currentUser.classes||[]).reduce((s,cls)=>s+(DB.classes[cls]||[]).length,0);
+
+  // Homeroom section
+  let homeroomHtml='';
+  if(homeroom && DB.classes[homeroom]) {
+    const students=DB.classes[homeroom]||[];
+    // Count total absences per student for the whole year
+    const attData=ATTENDANCE[homeroom]||{};
+    const absCounts={};
+    students.forEach(st=>absCounts[st]=0);
+    Object.values(attData).forEach(dayData=>{
+      Object.entries(dayData).forEach(([st,v])=>{
+        if(v==='absent'&&absCounts[st]!==undefined) absCounts[st]++;
+      });
+    });
+    homeroomHtml=`
+    <div class="table-card" style="margin-bottom:20px;">
+      <div class="table-header">
+        <h3>🏠 Homeroom: ${homeroom}</h3>
+        <button class="btn btn-ghost" onclick="showPage('homeroom-absences')">📋 All Absences</button>
+      </div>
+      <table><thead><tr><th>Student</th><th>Today</th><th>Total Absences (year)</th><th>Grades</th></tr></thead><tbody>
+        ${students.map(st=>{
+          const todayAtt=ATTENDANCE[homeroom]&&ATTENDANCE[homeroom][today]?ATTENDANCE[homeroom][today][st]:null;
+          const totalAbs=absCounts[st]||0;
+          // Collect all grades for this student
+          const allSubjGrades=GRADES[homeroom]&&GRADES[homeroom][st]?GRADES[homeroom][st]:{};
+          const avgArr=Object.values(allSubjGrades).flatMap(d=>Object.values(d).filter(v=>typeof v==='number'));
+          const avg=avgArr.length?(avgArr.reduce((a,b)=>a+b,0)/avgArr.length).toFixed(1):'—';
+          return `<tr style="cursor:pointer;" onclick="showStudentDetail('${homeroom}','${st.replace(/'/g,"\'")}')">
+            <td><div class="td-flex"><div class="avatar av-purple">${initials(st)}</div><b>${st}</b></div></td>
+            <td>${todayAtt?`<span class="badge badge-${todayAtt}">${todayAtt==='present'?'Present':todayAtt==='absent'?'Absent':'Late'}</span>`:'<span style="color:var(--text3)">—</span>'}</td>
+            <td>${totalAbs>0?`<span class="badge badge-absent">${totalAbs} absent</span>`:'<span class="badge badge-present">0</span>'}</td>
+            <td>${avg!=='—'?`<span class="badge badge-${Math.round(parseFloat(avg))}">${avg}</span>`:avg}</td>
+          </tr>`;
+        }).join('')}
+      </tbody></table>
+    </div>`;
+  }
+
   return `<div class="page" id="page-dashboard">
     <div class="page-title">Dashboard</div>
-    <div class="page-sub">${currentUser.name} &middot; ${currentUser.subject}</div>
+    <div class="page-sub">${currentUser.name} &middot; ${currentUser.subject}${homeroom?` &middot; Homeroom: ${homeroom}`:''}</div>
     <div class="stats-row">
       <div class="stat-card accent"><div class="sc-label">My Classes</div><div class="sc-val">${(currentUser.classes||[]).length}</div><div class="sc-sub">${(currentUser.classes||[]).join(', ')}</div></div>
-      <div class="stat-card"><div class="sc-label">Total Students</div><div class="sc-val">${total}</div><div class="sc-sub">Across all classes</div></div>
+      <div class="stat-card"><div class="sc-label">Total Students</div><div class="sc-val">${total}</div></div>
       <div class="stat-card red"><div class="sc-label">Absent Today</div><div class="sc-val">${absent}</div><div class="sc-sub">Students</div></div>
     </div>
+    ${homeroomHtml}
     <div class="table-card">
-      <div class="table-header"><h3>My Classes</h3></div>
+      <div class="table-header"><h3>My Teaching Classes</h3></div>
       <table><thead><tr><th>Class</th><th>Students</th><th>Absent Today</th></tr></thead><tbody>
         ${(currentUser.classes||[]).map(cls=>{
           const sts=DB.classes[cls]||[];
           const abs=ATTENDANCE[cls]&&ATTENDANCE[cls][today]?Object.values(ATTENDANCE[cls][today]).filter(v=>v==='absent').length:0;
-          return `<tr><td><b>${cls}</b></td><td>${sts.length} students</td><td>${abs>0?`<span class="badge badge-absent">${abs} absent</span>`:'<span class="badge badge-present">All present</span>'}</td></tr>`;
+          return `<tr><td><b>${cls}</b></td><td>${sts.length}</td><td>${abs>0?`<span class="badge badge-absent">${abs} absent</span>`:'<span class="badge badge-present">All present</span>'}</td></tr>`;
         }).join('')}
       </tbody></table>
     </div>
   </div>`;
+}
+
+function showStudentDetail(cls, st) {
+  // Build student detail view inline
+  const allSubjGrades=GRADES[cls]&&GRADES[cls][st]?GRADES[cls][st]:{};
+  const attData=ATTENDANCE[cls]||{};
+  let absCount=0, lateCount=0;
+  const absDates=[];
+  Object.entries(attData).forEach(([date,dayData])=>{
+    if(dayData[st]==='absent'){absCount++;absDates.push({date,val:'absent'});}
+    if(dayData[st]==='late'){lateCount++;absDates.push({date,val:'late'});}
+  });
+  absDates.sort((a,b)=>b.date.localeCompare(a.date));
+
+  const gradesHtml=Object.entries(allSubjGrades).map(([subj,dates])=>{
+    const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
+    const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
+    const entries=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
+      const isL2=d.endsWith('-L2');
+      return `<span style="font-size:11px;color:var(--text2);margin-right:6px;">${formatDate(isL2?d.replace('-L2',''):d)}${isL2?' (L2)':''}: <span class="badge badge-${g}">${g}</span></span>`;
+    }).join('');
+    return `<tr><td style="font-weight:500;">${subj}</td><td>${entries||'—'}</td><td><span class="badge badge-${Math.round(parseFloat(avg))}">${avg}</span></td></tr>`;
+  }).join('');
+
+  const absHtml=absDates.slice(0,20).map(({date,val})=>`<tr>
+    <td>${formatDate(date)}</td>
+    <td><span class="badge badge-${val}">${val==='absent'?'Absent':'Late'}</span></td>
+  </tr>`).join('');
+
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+  modal.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius2);width:100%;max-width:700px;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <div>
+        <h2 style="font-size:18px;font-weight:600;">${st}</h2>
+        <p style="font-size:13px;color:var(--text2);">Class ${cls}</p>
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text2);cursor:pointer;font-family:inherit;">✕ Close</button>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;">
+      <div class="stat-card red"><div class="sc-label">Absent</div><div class="sc-val">${absCount}</div></div>
+      <div class="stat-card amber"><div class="sc-label">Late</div><div class="sc-val">${lateCount}</div></div>
+      <div class="stat-card accent"><div class="sc-label">Subjects</div><div class="sc-val">${Object.keys(allSubjGrades).length}</div></div>
+    </div>
+    <div class="table-card" style="margin-bottom:16px;">
+      <div class="table-header"><h3>Grades by Subject</h3></div>
+      <table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>${gradesHtml||'<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px;">No grades yet</td></tr>'}</tbody></table>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Absences & Late (last 20)</h3></div>
+      <table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>${absHtml||'<tr><td colspan="2" style="text-align:center;color:var(--text3);padding:20px;">No absences</td></tr>'}</tbody></table>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
 }
 
 // ===================== TEACHER - GRADES =====================
@@ -1063,26 +1162,124 @@ function renderMyGrades() {
 function buildAdminDashboard() {
   const teachers=Object.values(DB.users||{}).filter(u=>u.role==='teacher');
   const students=Object.values(DB.users||{}).filter(u=>u.role==='student');
-  const classes=Object.keys(DB.classes||{});
+  const classes=Object.keys(DB.classes||{}).sort();
+  const today=getTodayStr();
+
+  // Count total absences today across school
+  let totalAbsentToday=0;
+  classes.forEach(cls=>{
+    if(ATTENDANCE[cls]&&ATTENDANCE[cls][today])
+      Object.values(ATTENDANCE[cls][today]).forEach(v=>{ if(v==='absent') totalAbsentToday++; });
+  });
+
   return `<div class="page" id="page-admin-dashboard">
     <div class="page-title">Admin Dashboard</div>
     <div class="page-sub">School overview</div>
     <div class="stats-row">
       <div class="stat-card accent"><div class="sc-label">Teachers</div><div class="sc-val">${teachers.length}</div></div>
-      <div class="stat-card"><div class="sc-label">Students</div><div class="sc-val">${students.length}</div></div>
+      <div class="stat-card"><div class="sc-label">Students (accounts)</div><div class="sc-val">${students.length}</div></div>
       <div class="stat-card"><div class="sc-label">Classes</div><div class="sc-val">${classes.length}</div></div>
+      <div class="stat-card red"><div class="sc-label">Absent Today</div><div class="sc-val">${totalAbsentToday}</div><div class="sc-sub">Across school</div></div>
     </div>
+
     <div class="table-card">
-      <div class="table-header"><h3>Teachers</h3></div>
-      <table><thead><tr><th>Name</th><th>Subject</th><th>Classes</th></tr></thead><tbody>
-        ${teachers.map(t=>`<tr>
-          <td><div class="td-flex"><div class="avatar av-blue">${initials(t.name)}</div>${t.name}</div></td>
-          <td>${t.subject||'—'}</td>
-          <td>${(t.classes||[]).join(', ')||'—'}</td>
-        </tr>`).join('')}
+      <div class="table-header"><h3>All Classes — click to view details</h3></div>
+      <table><thead><tr><th>Class</th><th>Students</th><th>Homeroom Teacher</th><th>Absent Today</th><th></th></tr></thead><tbody>
+        ${classes.map(cls=>{
+          const sts=DB.classes[cls]||[];
+          const abs=ATTENDANCE[cls]&&ATTENDANCE[cls][today]?Object.values(ATTENDANCE[cls][today]).filter(v=>v==='absent').length:0;
+          const homeroomTeacher=Object.values(DB.users||{}).find(u=>u.role==='teacher'&&u.homeroom===cls);
+          return `<tr style="cursor:pointer;" onclick="showAdminClassDetail('${cls}')">
+            <td><b>${cls}</b></td>
+            <td>${sts.length} students</td>
+            <td>${homeroomTeacher?`<div class="td-flex"><div class="avatar av-blue">${initials(homeroomTeacher.name)}</div>${homeroomTeacher.name}</div>`:'<span style="color:var(--text3)">—</span>'}</td>
+            <td>${abs>0?`<span class="badge badge-absent">${abs} absent</span>`:'<span class="badge badge-present">All present</span>'}</td>
+            <td><button class="btn btn-ghost" style="font-size:11px;" onclick="event.stopPropagation();showAdminAbsences('${cls}')">📋 Absences</button></td>
+          </tr>`;
+        }).join('')}
       </tbody></table>
     </div>
   </div>`;
+}
+
+function showAdminClassDetail(cls) {
+  const students=DB.classes[cls]||[];
+  const today=getTodayStr();
+  const attData=ATTENDANCE[cls]||{};
+
+  const rows=students.map(st=>{
+    const todayAtt=attData[today]?attData[today][st]:null;
+    let absCount=0;
+    Object.values(attData).forEach(d=>{ if(d[st]==='absent') absCount++; });
+    const allSubjGrades=GRADES[cls]&&GRADES[cls][st]?GRADES[cls][st]:{};
+    const avgArr=Object.values(allSubjGrades).flatMap(d=>Object.values(d).filter(v=>typeof v==='number'));
+    const avg=avgArr.length?(avgArr.reduce((a,b)=>a+b,0)/avgArr.length).toFixed(1):'—';
+    return `<tr style="cursor:pointer;" onclick="showStudentDetail('${cls}','${st.replace(/'/g,"\'")}')" title="Click for full details">
+      <td><div class="td-flex"><div class="avatar av-purple">${initials(st)}</div>${st}</div></td>
+      <td>${todayAtt?`<span class="badge badge-${todayAtt}">${todayAtt==='present'?'Present':todayAtt==='absent'?'Absent':'Late'}</span>`:'—'}</td>
+      <td>${absCount>0?`<span class="badge badge-absent">${absCount}</span>`:'<span class="badge badge-present">0</span>'}</td>
+      <td>${avg!=='—'?`<span class="badge badge-${Math.round(parseFloat(avg))}">${avg}</span>`:avg}</td>
+    </tr>`;
+  }).join('');
+
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+  modal.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius2);width:100%;max-width:800px;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:18px;font-weight:600;">Class ${cls} — ${students.length} students</h2>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text2);cursor:pointer;font-family:inherit;">✕ Close</button>
+    </div>
+    <div class="table-card">
+      <div class="table-header"><h3>Students — click for full profile</h3></div>
+      <table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th><th>Avg Grade</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
+}
+
+function showAdminAbsences(cls) {
+  const attData=ATTENDANCE[cls]||{};
+  const students=DB.classes[cls]||[];
+
+  // Build absence summary per student
+  const summary={};
+  students.forEach(st=>summary[st]={absent:0,late:0,dates:[]});
+  Object.entries(attData).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,dayData])=>{
+    Object.entries(dayData).forEach(([st,v])=>{
+      if(!summary[st]) return;
+      if(v==='absent'){summary[st].absent++;summary[st].dates.push({date,val:'absent'});}
+      if(v==='late'){summary[st].late++;summary[st].dates.push({date,val:'late'});}
+    });
+  });
+
+  const rows=students.filter(st=>summary[st].absent>0||summary[st].late>0)
+    .sort((a,b)=>(summary[b].absent+summary[b].late)-(summary[a].absent+summary[a].late))
+    .map(st=>{
+      const last=summary[st].dates[0];
+      return `<tr>
+        <td><div class="td-flex"><div class="avatar av-purple">${initials(st)}</div>${st}</div></td>
+        <td><span class="badge badge-absent">${summary[st].absent}</span></td>
+        <td><span class="badge badge-late">${summary[st].late}</span></td>
+        <td style="font-size:12px;color:var(--text2);">${last?formatDate(last.date):'—'}</td>
+      </tr>`;
+    }).join('');
+
+  const modal=document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.7);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;';
+  modal.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border2);border-radius:var(--radius2);width:100%;max-width:600px;padding:24px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;">
+      <h2 style="font-size:18px;font-weight:600;">Absences — Class ${cls}</h2>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text2);cursor:pointer;font-family:inherit;">✕ Close</button>
+    </div>
+    <div class="table-card">
+      <table><thead><tr><th>Student</th><th>Absent</th><th>Late</th><th>Last absence</th></tr></thead>
+      <tbody>${rows||'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">No absences recorded</td></tr>'}</tbody></table>
+    </div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e=>{ if(e.target===modal) modal.remove(); });
 }
 
 // ===================== ADMIN - TEACHERS =====================
@@ -1128,6 +1325,7 @@ function buildAdminTeachers() {
               <div><label style="font-size:11px;color:var(--text2);">Password</label><input id="te-pass-${key}" value="${t.pass}" style="width:100%;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-top:4px;"></div>
               <div><label style="font-size:11px;color:var(--text2);">Subject(s)</label><input id="te-subj-${key}" value="${t.subject||''}" style="width:100%;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-top:4px;"></div>
               <div><label style="font-size:11px;color:var(--text2);">Classes (comma separated)</label><input id="te-cls-${key}" value="${(t.classes||[]).join(', ')}" style="width:100%;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-top:4px;"></div>
+              <div><label style="font-size:11px;color:var(--text2);">Homeroom Class (դասadir)</label><input id="te-homeroom-${key}" value="${t.homeroom||''}" style="width:100%;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);font-size:13px;font-family:inherit;outline:none;margin-top:4px;" placeholder="e.g. 6A"></div>
             </div>
             <div style="display:flex;gap:8px;">
               <button class="btn btn-primary" onclick="saveTeacherEdit('${key}')">✓ Save</button>
@@ -1151,8 +1349,9 @@ async function saveTeacherEdit(key) {
   const pass=document.getElementById('te-pass-'+key).value.trim();
   const subj=document.getElementById('te-subj-'+key).value.trim();
   const cls=document.getElementById('te-cls-'+key).value.split(',').map(s=>s.trim()).filter(Boolean);
+  const homeroom=document.getElementById('te-homeroom-'+key).value.trim();
   if(!name||!pass){alert('Name and password required.');return;}
-  DB.users[key]={...DB.users[key],name,pass,subject:subj,classes:cls};
+  DB.users[key]={...DB.users[key],name,pass,subject:subj,classes:cls,homeroom:homeroom||null};
   showLoading('Saving...');
   await saveSchool();
   hideLoading();
@@ -1167,9 +1366,10 @@ async function addTeacher() {
   const subj=document.getElementById('t-subj').value.trim();
   const cls=document.getElementById('t-cls').value.split(',').map(s=>s.trim()).filter(Boolean);
   if(!name||!user||!pass){alert('Name, username, and password are required.');return;}
+  const homeroom=document.getElementById('t-homeroom')?.value.trim()||null;
   const key=user+'_t';
   if(!DB.users) DB.users={};
-  DB.users[key]={role:'teacher',name,pass,subject:subj,classes:cls};
+  DB.users[key]={role:'teacher',name,pass,subject:subj,classes:cls,homeroom:homeroom||null};
   showLoading('Saving...');
   await saveSchool();
   hideLoading();
@@ -1634,6 +1834,37 @@ async function copyWeekSchedule() {
   hideLoading();
   flashSave();
   alert('Week schedule copied successfully!');
+}
+
+// ===================== HOMEROOM ABSENCES =====================
+function buildHomeroomAbsencesPage() {
+  const homeroom=currentUser.homeroom||null;
+  if(!homeroom) return '<div class="page" id="page-homeroom-absences"></div>';
+  const students=DB.classes[homeroom]||[];
+  const attData=ATTENDANCE[homeroom]||{};
+  const summary={};
+  students.forEach(st=>summary[st]={absent:0,late:0,dates:[]});
+  Object.entries(attData).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,dayData])=>{
+    Object.entries(dayData).forEach(([st,v])=>{
+      if(!summary[st]) return;
+      if(v==='absent'){summary[st].absent++;summary[st].dates.push({date,val:'absent'});}
+      if(v==='late'){summary[st].late++;summary[st].dates.push({date,val:'late'});}
+    });
+  });
+  const rows=students.map(st=>`<tr style="cursor:pointer;" onclick="showStudentDetail('${homeroom}','${st.replace(/'/g,"\'")}')">
+    <td><div class="td-flex"><div class="avatar av-purple">${initials(st)}</div>${st}</div></td>
+    <td><span class="badge badge-absent">${summary[st].absent}</span></td>
+    <td><span class="badge badge-late">${summary[st].late}</span></td>
+    <td style="font-size:12px;color:var(--text2);">${summary[st].dates[0]?formatDate(summary[st].dates[0].date):'—'}</td>
+  </tr>`).join('');
+  return `<div class="page" id="page-homeroom-absences">
+    <div class="page-title">📋 Absences — Class ${homeroom}</div>
+    <div class="page-sub">Full year absence record · click student for full profile</div>
+    <div class="table-card">
+      <table><thead><tr><th>Student</th><th>Absent (total)</th><th>Late (total)</th><th>Last absence</th></tr></thead>
+      <tbody>${rows}</tbody></table>
+    </div>
+  </div>`;
 }
 
 // ===================== THEMATIC PLAN =====================
