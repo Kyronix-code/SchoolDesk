@@ -8,9 +8,16 @@
 <style>
 :root {
   --bg:#0f1117;--surface:#161b27;--surface2:#1e2535;--surface3:#252d3d;
-  --border:#2a3347;--border2:#354060;--accent:#4f8ef7;--accent2:#7c3aed;
+  --border:#2a3347;--border2:#354060;--accent:#2563eb;--accent2:#7c3aed;
   --green:#22c55e;--amber:#f59e0b;--red:#ef4444;
   --text:#e8eaf0;--text2:#8b93a8;--text3:#555f77;
+  --radius:10px;--radius2:14px;
+}
+[data-theme="light"] {
+  --bg:#023E8A;--surface:#0353a4;--surface2:#0466c8;--surface3:#0077b6;
+  --border:#0096c7;--border2:#00b4d8;--accent:#90e0ef;--accent2:#caf0f8;
+  --green:#52b788;--amber:#ffd60a;--red:#ff6b6b;
+  --text:#ffffff;--text2:#caf0f8;--text3:#90e0ef;
   --radius:10px;--radius2:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -29,7 +36,7 @@ body{font-family:'Noto Sans Armenian',sans-serif;background:var(--bg);color:var(
 .form-group label{display:block;font-size:12px;color:var(--text2);margin-bottom:6px;}
 .form-group input{width:100%;padding:10px 14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;font-family:inherit;outline:none;transition:border 0.2s;}
 .form-group input:focus{border-color:var(--accent);}
-.login-btn{width:100%;padding:11px;background:linear-gradient(135deg,var(--accent),#3b70d4);border:none;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
+.login-btn{width:100%;padding:11px;background:var(--accent);border:none;border-radius:var(--radius);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:8px;}
 .login-btn:hover{opacity:0.9;}
 .error-msg{font-size:12px;color:var(--red);text-align:center;margin-top:8px;min-height:16px;}
 #app-screen{display:flex;min-height:100vh;}
@@ -42,7 +49,7 @@ body{font-family:'Noto Sans Armenian',sans-serif;background:var(--bg);color:var(
 .nav-section{font-size:10px;color:var(--text3);padding:8px 8px 4px;text-transform:uppercase;letter-spacing:0.08em;}
 .nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:all 0.15s;margin-bottom:2px;}
 .nav-item:hover{background:var(--surface2);color:var(--text);}
-.nav-item.active{background:linear-gradient(135deg,rgba(79,142,247,0.15),rgba(124,58,237,0.1));color:var(--accent);}
+.nav-item.active{background:var(--surface2);color:var(--accent);border-left:3px solid var(--accent);padding-left:7px;}
 .nav-item .ni{font-size:16px;width:20px;text-align:center;}
 .sidebar-footer{padding:14px;border-top:1px solid var(--border);}
 .logout-btn{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;transition:all 0.15s;}
@@ -187,12 +194,18 @@ select:focus{border-color:var(--accent);}
       </svg>
     </button>
     <span class="brand">🏫 SchoolDesk</span>
-    <span id="mobile-user-name" style="font-size:12px;color:var(--text2);"></span>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span id="mobile-user-name" style="font-size:12px;color:var(--text2);"></span>
+      <button onclick="toggleTheme()" id="theme-btn-mobile" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:5px 10px;color:var(--text2);cursor:pointer;font-size:14px;" title="Toggle theme">🌙</button>
+    </div>
   </div>
   <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
-      <div class="brand">🏫 SchoolDesk</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div class="brand">🏫 SchoolDesk</div>
+        <button onclick="toggleTheme()" id="theme-btn" style="background:transparent;border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text2);cursor:pointer;font-size:14px;" title="Toggle theme">🌙</button>
+      </div>
       <div class="user-info" id="sidebar-user"></div>
       <div class="user-role" id="sidebar-role"></div>
     </div>
@@ -439,6 +452,24 @@ function showLoading(txt='Loading...') {
 function hideLoading() {
   document.getElementById('loading-overlay').classList.add('hidden');
 }
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const newTheme = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('theme', newTheme);
+  const icon = isLight ? '🌙' : '☀️';
+  document.getElementById('theme-btn')?.setAttribute('style', document.getElementById('theme-btn').getAttribute('style'));
+  document.querySelectorAll('#theme-btn,#theme-btn-mobile').forEach(btn=>{ if(btn) btn.textContent=icon; });
+}
+
+function applyTheme() {
+  const saved = localStorage.getItem('theme') || 'dark';
+  document.documentElement.setAttribute('data-theme', saved);
+  const icon = saved === 'light' ? '☀️' : '🌙';
+  document.querySelectorAll('#theme-btn,#theme-btn-mobile').forEach(btn=>{ if(btn) btn.textContent=icon; });
+}
+
 function flashSave() {
   const f=document.getElementById('save-flash');
   f.classList.add('show');
@@ -2065,6 +2096,7 @@ async function migrateOldData() {
 }
 
 // ===================== INIT =====================
+applyTheme();
 (async()=>{
   await loadAll();
   // Only migrate if DB is completely empty (first time)
