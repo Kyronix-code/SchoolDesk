@@ -537,17 +537,19 @@ function buildNav(){
   }else if(CU.role==='teacher'){
     const hr=CU.homeroom?`<div class="nav-item" onclick="showPage('homeroom')" data-p="homeroom">🏠 Homeroom (${CU.homeroom})</div>`:'';
     nav.innerHTML=`
+      <div class="sb-sec">Overview</div>
+      <div class="nav-item active" onclick="showPage('t-dash')" data-p="t-dash">📊 Dashboard</div>
       <div class="sb-sec">Teaching</div>
-      <div class="nav-item active" onclick="showPage('grades')" data-p="grades">📝 Grades</div>
+      <div class="nav-item" onclick="showPage('grades')" data-p="grades">📝 Grades</div>
       <div class="nav-item" onclick="showPage('attendance')" data-p="attendance">📋 Attendance</div>
       <div class="sb-sec">Other</div>
       <div class="nav-item" onclick="showPage('students')" data-p="students">👥 Students</div>
       ${hr}
     `;
-    main.innerHTML=buildGrades()+buildAttendance()+buildStudents()+(CU.homeroom?buildHomeroom():'');
+    main.innerHTML=buildTeacherDash()+buildGrades()+buildAttendance()+buildStudents()+(CU.homeroom?buildHomeroom():'');
     refreshGradeTable();
     refreshAttTable();
-    showPage('grades');
+    showPage('t-dash');
   }else{
     nav.innerHTML=`
       <div class="sb-sec">My Diary</div>
@@ -571,6 +573,7 @@ function showPage(id){
     'adm-dash':()=>{const o=$('adm-dash');if(o)o.outerHTML=buildAdmDash();},
     'adm-pending':()=>{const o=$('adm-pending');if(o)o.outerHTML=buildAdmPending();updatePendingCount();},
     'homeroom':()=>{const o=$('homeroom');if(o)o.outerHTML=buildHomeroom();},
+    't-dash':()=>{const o=$('t-dash');if(o)o.outerHTML=buildTeacherDash();},
   };
   if(rebuilds[id])rebuilds[id]();
   const pg=$(id);if(pg)pg.classList.add('active');
@@ -578,6 +581,63 @@ function showPage(id){
 }
 
 // ===================== TEACHER - GRADES =====================
+function buildTeacherDash(){
+  const today=getTodayStr();
+  const classes=CU.classes||[];
+  let absentToday=0;
+  classes.forEach(cls=>{
+    if(ATT[cls]&&ATT[cls][today])Object.values(ATT[cls][today]).forEach(v=>{if(v==='absent')absentToday++;});
+  });
+  const totalStudents=classes.reduce((s,cls)=>s+(DB.classes[cls]||[]).length,0);
+  const hr=CU.homeroom;
+  let hrHtml='';
+  if(hr&&DB.classes[hr]){
+    const sts=DB.classes[hr]||[];
+    const attData=ATT[hr]||{};
+    const absCounts={};
+    sts.forEach(st=>{absCounts[st]=0;});
+    Object.values(attData).forEach(day=>{
+      Object.entries(day).forEach(([st,v])=>{if(v==='absent'&&absCounts[st]!==undefined)absCounts[st]++;});
+    });
+    const rows=sts.map(st=>{
+      const todayAtt=attData[today]?attData[today][st]:null;
+      const attBadge=todayAtt?'<span class="badge b-'+todayAtt+'">'+(todayAtt==='present'?'Present':todayAtt==='absent'?'Absent':'Late')+'</span>':'—';
+      const absBadge=absCounts[st]>0?'<span class="badge b-absent">'+absCounts[st]+'</span>':'<span class="badge b-present">0</span>';
+      const safeSt=st.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<tr style="cursor:pointer;" onclick="showStudentModal(\''+hr+'\',\''+safeSt+'\')">'
+        +'<td><div class="tf"><div class="av av-p">'+initials(st)+'</div><b>'+st+'</b></div></td>'
+        +'<td>'+attBadge+'</td>'
+        +'<td>'+absBadge+'</td>'
+        +'</tr>';
+    }).join('');
+    hrHtml='<div class="card" style="margin-bottom:16px;">'
+      +'<div class="card-head"><h3>🏠 Homeroom — '+hr+'</h3></div>'
+      +'<table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th></tr></thead>'
+      +'<tbody>'+rows+'</tbody></table></div>';
+  }
+  const clsRows=classes.map(cls=>{
+    const sts=DB.classes[cls]||[];
+    const abs=ATT[cls]&&ATT[cls][today]?Object.values(ATT[cls][today]).filter(v=>v==='absent').length:0;
+    const absBadge=abs>0?'<span class="badge b-absent">'+abs+' absent</span>':'<span class="badge b-present">All present</span>';
+    return '<tr><td><b>'+cls+'</b></td><td>'+sts.length+'</td><td>'+absBadge+'</td></tr>';
+  }).join('');
+  return '<div class="page" id="t-dash">'
+    +'<div class="ptitle">Dashboard</div>'
+    +'<div class="psub">'+CU.name+' · '+(CU.subject||'')+'</div>'
+    +'<div class="stats-row">'
+    +'<div class="stat-card"><div class="sl">My Classes</div><div class="sv">'+classes.length+'</div><div class="ss">'+classes.join(', ')+'</div></div>'
+    +'<div class="stat-card"><div class="sl">Total Students</div><div class="sv">'+totalStudents+'</div></div>'
+    +'<div class="stat-card"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red);">'+absentToday+'</div></div>'
+    +'</div>'
+    +hrHtml
+    +'<div class="card">'
+    +'<div class="card-head"><h3>My Classes</h3></div>'
+    +'<table><thead><tr><th>Class</th><th>Students</th><th>Absent Today</th></tr></thead>'
+    +'<tbody>'+clsRows+'</tbody></table></div>'
+    +'</div>';
+}
+
+
 function buildGrades(){
   const subjs=getSubjs();
   const subSel=subjs.length>1?`<label>Subject:</label>
@@ -1190,16 +1250,30 @@ function buildAdmStudents(){
   return`<div class="page" id="adm-students">
     <div class="ptitle">Student Accounts</div>
     <div class="form-card">
-      <h3>Add Student Account</h3>
-      <div class="form-row">
-        <div class="ff"><label>Full Name</label><input id="sn" placeholder="Ani Hakobyan"></div>
-        <div class="ff"><label>Username</label><input id="su" placeholder="ani.hakobyan"></div>
+      <h3>Add Student Accounts</h3>
+      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Student 1</p>
+        <div class="form-row">
+          <div class="ff"><label>Full Name</label><input id="sn" placeholder="Ani Hakobyan"></div>
+          <div class="ff"><label>Username</label><input id="su" placeholder="ani.hakobyan"></div>
+        </div>
+        <div class="form-row">
+          <div class="ff"><label>Password</label><input id="sp" placeholder="Password"></div>
+          <div class="ff"><label>Class</label><select id="sc">${classOpts}</select></div>
+        </div>
       </div>
-      <div class="form-row">
-        <div class="ff"><label>Password</label><input id="sp" placeholder="Password"></div>
-        <div class="ff"><label>Class</label><select id="sc">${classOpts}</select></div>
+      <div style="margin-bottom:14px;">
+        <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Student 2 (optional)</p>
+        <div class="form-row">
+          <div class="ff"><label>Full Name</label><input id="sn2" placeholder="Aram Petrosyan"></div>
+          <div class="ff"><label>Username</label><input id="su2" placeholder="aram.petrosyan"></div>
+        </div>
+        <div class="form-row">
+          <div class="ff"><label>Password</label><input id="sp2" placeholder="Password"></div>
+          <div class="ff"><label>Class</label><select id="sc2">${classOpts}</select></div>
+        </div>
       </div>
-      <button class="btn btn-p" onclick="addStudent()">+ Add</button>
+      <button class="btn btn-p" onclick="addStudent()">+ Add Student(s)</button>
     </div>
     <div class="card">
       <div class="card-head"><h3>Accounts (${students.length})</h3></div>
@@ -1238,9 +1312,11 @@ async function saveStudent(k){
 }
 async function addStudent(){
   const n=$('sn')?.value.trim(),u=$('su')?.value.trim(),p=$('sp')?.value.trim(),c=$('sc')?.value;
-  if(!n||!u||!p){alert('All fields required.');return;}
+  const n2=$('sn2')?.value.trim(),u2=$('su2')?.value.trim(),p2=$('sp2')?.value.trim(),c2=$('sc2')?.value;
+  if(!n||!u||!p){alert('Name, username and password required for Student 1.');return;}
   if(!DB.users)DB.users={};
   DB.users[u]={role:'student',name:n,pass:p,class:c};
+  if(n2&&u2&&p2)DB.users[u2]={role:'student',name:n2,pass:p2,class:c2};
   showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-students');
 }
 async function delStudent(k){
