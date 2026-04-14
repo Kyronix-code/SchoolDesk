@@ -1,1621 +1,1224 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hy">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <title>SchoolDesk</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
-:root{
-  --bg:#0f1117;--surface:#1a1f2e;--surface2:#222840;--surface3:#2a3150;
-  --border:#2e3656;--accent:#4f8ef7;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;
-  --text:#e8eaf0;--text2:#8b93a8;--text3:#4a5270;--r:10px;--r2:14px;
-}
-[data-theme=light]{
-  --bg:#023E8A;--surface:#0353a4;--surface2:#0466c8;--surface3:#0077b6;
-  --border:#0096c7;--accent:#90e0ef;--green:#52b788;--amber:#ffd60a;--red:#ff6b6b;
-  --text:#ffffff;--text2:#caf0f8;--text3:#90e0ef;
-}
-.hidden{display:none!important;}
-a{color:var(--accent);}
-
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+:root{--bg:#0d1117;--surf:#161b27;--surf2:#1e2535;--surf3:#252d3d;--bdr:#2a3347;--acc:#4f8ef7;--grn:#22c55e;--amb:#f59e0b;--red:#ef4444;--txt:#e8eaf0;--txt2:#8b93a8;--txt3:#4a5270;--r:10px;--r2:14px}
+[data-theme=light]{--bg:#023E8A;--surf:#0353a4;--surf2:#0466c8;--surf3:#0077b6;--bdr:#0096c7;--acc:#caf0f8;--grn:#52b788;--amb:#ffd60a;--red:#ff6b6b;--txt:#fff;--txt2:#caf0f8;--txt3:#90e0ef}
+.h{display:none!important}
 /* AUTH */
-.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse at 30% 40%,#1a2540,var(--bg) 60%);}
-.auth-box{width:380px;background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:2rem;}
-.auth-logo{text-align:center;margin-bottom:1.5rem;}
-.auth-logo .ico{width:52px;height:52px;background:var(--accent);border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:10px;}
-.auth-logo h1{font-size:20px;font-weight:700;}
-.auth-logo p{font-size:13px;color:var(--text2);margin-top:4px;}
-.role-tabs{display:flex;gap:4px;background:var(--surface2);border-radius:var(--r);padding:4px;margin-bottom:1.2rem;}
-.role-tab{flex:1;text-align:center;padding:7px;border-radius:8px;font-size:13px;cursor:pointer;color:var(--text2);transition:.2s;}
-.role-tab.active{background:var(--surface3);color:var(--text);font-weight:600;}
-.fg{margin-bottom:12px;}
-.fg label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;}
-.fg input{width:100%;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r);color:var(--text);font-size:14px;font-family:inherit;outline:none;}
-.fg input:focus{border-color:var(--accent);}
-.btn-main{width:100%;padding:11px;background:var(--accent);border:none;border-radius:var(--r);color:#fff;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;margin-top:6px;}
-.btn-main:hover{opacity:.9;}
-.err{font-size:12px;color:var(--red);text-align:center;margin-top:8px;min-height:16px;}
-.link-btn{background:none;border:none;color:var(--accent);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0;}
-.auth-footer{text-align:center;margin-top:12px;font-size:13px;color:var(--text2);}
-
-/* APP */
-#app{display:flex;min-height:100vh;}
-.sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;}
-.sb-head{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
-.sb-head .brand{font-size:15px;font-weight:700;display:flex;justify-content:space-between;align-items:center;}
-.sb-head .uname{font-size:12px;color:var(--text2);margin-top:3px;}
-.sb-head .urole{display:inline-block;margin-top:5px;font-size:10px;padding:2px 8px;background:var(--surface3);border-radius:20px;color:var(--accent);font-family:monospace;}
-.sb-nav{flex:1;padding:10px 8px;}
-.sb-sec{font-size:10px;color:var(--text3);padding:8px 8px 4px;text-transform:uppercase;letter-spacing:.08em;}
-.nav-item{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;font-size:13px;color:var(--text2);cursor:pointer;transition:.15s;margin-bottom:2px;}
-.nav-item:hover{background:var(--surface2);color:var(--text);}
-.nav-item.active{background:var(--surface2);color:var(--accent);border-left:3px solid var(--accent);padding-left:7px;}
-.sb-foot{padding:12px;border-top:1px solid var(--border);}
-.btn-out{width:100%;padding:8px;background:transparent;border:1px solid var(--border);border-radius:8px;color:var(--text2);font-size:12px;cursor:pointer;font-family:inherit;}
-.btn-out:hover{border-color:var(--red);color:var(--red);}
-.main{flex:1;overflow-y:auto;}
-.page{padding:24px 28px;display:none;}
-.page.active{display:block;}
-.ptitle{font-size:22px;font-weight:700;margin-bottom:4px;}
-.psub{font-size:13px;color:var(--text2);margin-bottom:20px;}
-
+.aw{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.ab{width:100%;max-width:380px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);padding:28px}
+.al{text-align:center;margin-bottom:20px}
+.al .ic{width:50px;height:50px;background:var(--acc);border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:8px}
+.al h1{font-size:19px;font-weight:700}
+.al p{font-size:12px;color:var(--txt2);margin-top:3px}
+.rtabs{display:flex;gap:3px;background:var(--surf2);border-radius:8px;padding:3px;margin-bottom:16px}
+.rtab{flex:1;text-align:center;padding:6px 4px;border-radius:6px;font-size:12px;cursor:pointer;color:var(--txt2);transition:.15s}
+.rtab.on{background:var(--surf3);color:var(--txt);font-weight:600}
+.fg{margin-bottom:11px}
+.fg label{display:block;font-size:12px;color:var(--txt2);margin-bottom:4px}
+.fg input,.fg select{width:100%;padding:9px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none}
+.fg input:focus,.fg select:focus{border-color:var(--acc)}
+.bmain{width:100%;padding:11px;background:var(--acc);border:none;border-radius:8px;color:#0d1117;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;margin-top:4px}
+.bmain:hover{opacity:.88}
+.er{font-size:12px;color:var(--red);text-align:center;margin-top:6px;min-height:16px}
+.lb{background:none;border:none;color:var(--acc);font-size:13px;cursor:pointer;font-family:inherit;text-decoration:underline;padding:0}
+.af{text-align:center;margin-top:10px;font-size:13px;color:var(--txt2)}
+/* APP LAYOUT */
+#app{display:flex;min-height:100vh}
+.sb{width:216px;flex-shrink:0;background:var(--surf);border-right:1px solid var(--bdr);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sbh{padding:16px 14px;border-bottom:1px solid var(--bdr)}
+.sbh .brand{font-size:14px;font-weight:700;display:flex;justify-content:space-between;align-items:center}
+.sbh .un{font-size:11px;color:var(--txt2);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sbh .ur{display:inline-block;margin-top:4px;font-size:10px;padding:2px 7px;background:var(--surf3);border-radius:20px;color:var(--acc)}
+.sbn{flex:1;padding:8px 6px}
+.sbs{font-size:10px;color:var(--txt3);padding:6px 8px 3px;text-transform:uppercase;letter-spacing:.07em}
+.ni{display:flex;align-items:center;gap:8px;padding:8px 9px;border-radius:8px;font-size:13px;color:var(--txt2);cursor:pointer;margin-bottom:1px;transition:.12s;user-select:none}
+.ni:hover{background:var(--surf2);color:var(--txt)}
+.ni.on{background:var(--surf2);color:var(--acc);border-left:3px solid var(--acc);padding-left:6px}
+.sbf{padding:10px;border-top:1px solid var(--bdr)}
+.bout{width:100%;padding:7px;background:transparent;border:1px solid var(--bdr);border-radius:8px;color:var(--txt2);font-size:12px;cursor:pointer;font-family:inherit}
+.bout:hover{border-color:var(--red);color:var(--red)}
+.mn{flex:1;overflow-y:auto}
+.pg{padding:22px 26px;display:none}
+.pg.on{display:block}
+.pt{font-size:21px;font-weight:700;margin-bottom:3px}
+.ps{font-size:13px;color:var(--txt2);margin-bottom:18px}
 /* MOBILE */
-.mob-head{display:none;align-items:center;justify-content:space-between;padding:12px 16px;background:var(--surface);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:50;}
-.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:98;}
-@media(max-width:768px){
-  #app{flex-direction:column;}
-  .mob-head{display:flex;}
-  .sidebar{position:fixed;top:0;left:-240px;width:240px;height:100vh;z-index:99;transition:left .25s;}
-  .sidebar.open{left:0;}
-  .mob-overlay.open{display:block;}
-  .page{padding:14px 12px;}
-  .stats-row{grid-template-columns:repeat(2,1fr)!important;}
+.mh{display:none;align-items:center;justify-content:space-between;padding:11px 14px;background:var(--surf);border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:50}
+.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:98}
+@media(max-width:720px){
+  #app{flex-direction:column}
+  .mh{display:flex}
+  .sb{position:fixed;top:0;left:-230px;height:100vh;z-index:99;transition:left .22s;width:216px}
+  .sb.op{left:0}
+  .ov.op{display:block}
+  .pg{padding:14px 12px}
+  .sr{flex-direction:column;align-items:flex-start}
+  .srow{grid-template-columns:repeat(2,1fr)!important}
 }
-
 /* COMPONENTS */
-.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:16px;}
-.stat-card .sl{font-size:11px;color:var(--text3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.05em;}
-.stat-card .sv{font-size:26px;font-weight:700;}
-.stat-card .ss{font-size:11px;color:var(--text2);margin-top:3px;}
-.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);overflow:hidden;margin-bottom:16px;}
-.card-head{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
-.card-head h3{font-size:14px;font-weight:600;}
-table{width:100%;border-collapse:collapse;}
-th{padding:9px 14px;text-align:left;font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--border);font-weight:500;}
-td{padding:11px 14px;font-size:13px;border-bottom:1px solid var(--border);}
-tr:last-child td{border-bottom:none;}
-tr:hover td{background:var(--surface2);}
-.badge{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:500;}
-.b-10,.b-9{background:rgba(34,197,94,.15);color:#4ade80;}
-.b-8,.b-7{background:rgba(79,142,247,.15);color:#7ab3f8;}
-.b-6,.b-5{background:rgba(245,158,11,.15);color:#fbbf24;}
-.b-4,.b-3,.b-2,.b-1{background:rgba(239,68,68,.15);color:#f87171;}
-.b-present{background:rgba(34,197,94,.15);color:#4ade80;}
-.b-absent{background:rgba(239,68,68,.15);color:#f87171;}
-.b-late{background:rgba(245,158,11,.15);color:#fbbf24;}
-.av{width:32px;height:32px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0;}
-.av-b{background:rgba(79,142,247,.2);color:var(--accent);}
-.av-p{background:rgba(124,58,237,.2);color:#a78bfa;}
-.tf{display:flex;align-items:center;gap:9px;}
-.btn{padding:7px 14px;border-radius:8px;font-size:12px;cursor:pointer;font-family:inherit;transition:.15s;font-weight:500;}
-.btn-p{background:var(--accent);border:none;color:#fff;}
-.btn-p:hover{opacity:.85;}
-.btn-g{background:transparent;border:1px solid var(--border);color:var(--text2);}
-.btn-g:hover{border-color:var(--accent);color:var(--accent);}
-.btn-d{background:transparent;border:1px solid var(--red);color:var(--red);}
-.btn-d:hover{background:rgba(239,68,68,.1);}
-.sel-row{display:flex;gap:10px;margin-bottom:16px;align-items:center;flex-wrap:wrap;}
-.sel-row label{font-size:13px;color:var(--text2);}
-select,input[type=date]{padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;}
-select:focus,input[type=date]:focus{border-color:var(--accent);}
-.gi{width:42px;padding:5px;text-align:center;background:var(--surface2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:13px;font-family:monospace;}
-.gi:focus{outline:none;border-color:var(--accent);}
-.att-btn{padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;border:none;transition:.15s;margin-right:5px;}
-.flash{position:fixed;bottom:20px;right:20px;background:var(--green);color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;}
-.flash.show{opacity:1;}
-.loading{position:fixed;inset:0;background:rgba(15,17,23,.8);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
-.loading p{color:var(--text2);font-size:14px;}
-.spin{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.form-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);padding:20px;margin-bottom:16px;}
-.form-card h3{font-size:14px;font-weight:600;margin-bottom:16px;}
-.form-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;margin-bottom:12px;}
-.ff label{display:block;font-size:12px;color:var(--text2);margin-bottom:5px;}
-.ff input,.ff select{width:100%;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;}
-.ff input:focus,.ff select:focus{border-color:var(--accent);}
-.modal-wrap{position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;}
-.modal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r2);width:100%;max-width:700px;padding:24px;}
-.modal h2{font-size:18px;font-weight:600;margin-bottom:16px;}
-.modal-close{background:transparent;border:1px solid var(--border);border-radius:8px;padding:6px 14px;color:var(--text2);cursor:pointer;font-family:inherit;}
-.diary-day-head{padding:10px 16px;background:var(--surface2);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500;}
-.pending-badge{background:rgba(245,158,11,.15);color:#fbbf24;padding:2px 9px;border-radius:20px;font-size:11px;}
+.srow{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:18px}
+.sc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);padding:15px}
+.sc .sl{font-size:11px;color:var(--txt3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em}
+.sc .sv{font-size:26px;font-weight:700}
+.sc .ss{font-size:11px;color:var(--txt2);margin-top:2px}
+.cd{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);overflow:hidden;margin-bottom:14px}
+.cdh{padding:13px 17px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.cdh h3{font-size:14px;font-weight:600}
+table{width:100%;border-collapse:collapse}
+th{padding:8px 13px;text-align:left;font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;border-bottom:1px solid var(--bdr);font-weight:500}
+td{padding:10px 13px;font-size:13px;border-bottom:1px solid var(--bdr)}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--surf2)}
+.badge{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:500}
+.b10,.b9{background:rgba(34,197,94,.15);color:#4ade80}
+.b8,.b7{background:rgba(79,142,247,.15);color:#7ab3f8}
+.b6,.b5{background:rgba(245,158,11,.15);color:#fbbf24}
+.b4,.b3,.b2,.b1{background:rgba(239,68,68,.15);color:#f87171}
+.bp{background:rgba(34,197,94,.15);color:#4ade80}
+.ba{background:rgba(239,68,68,.15);color:#f87171}
+.bl{background:rgba(245,158,11,.15);color:#fbbf24}
+.av{width:30px;height:30px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0}
+.avb{background:rgba(79,142,247,.18);color:var(--acc)}
+.avp{background:rgba(124,58,237,.18);color:#a78bfa}
+.tf{display:flex;align-items:center;gap:8px}
+.btn{padding:6px 13px;border-radius:7px;font-size:12px;cursor:pointer;font-family:inherit;transition:.13s;font-weight:500;border:none}
+.bp2{background:var(--acc);color:#0d1117}
+.bp2:hover{opacity:.85}
+.bg2{background:transparent;border:1px solid var(--bdr)!important;color:var(--txt2)}
+.bg2:hover{border-color:var(--acc)!important;color:var(--acc)}
+.bd2{background:transparent;border:1px solid var(--red)!important;color:var(--red)}
+.bd2:hover{background:rgba(239,68,68,.09)}
+.sr{display:flex;gap:9px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.sr label{font-size:13px;color:var(--txt2)}
+select,input[type=date]{padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none}
+select:focus{border-color:var(--acc)}
+.gi{width:44px;padding:5px;text-align:center;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;font-family:monospace;outline:none}
+.gi:focus{border-color:var(--acc)}
+.ab2{padding:4px 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:500;border:1px solid var(--bdr);background:var(--surf2);color:var(--txt2);margin-right:4px;transition:.12s}
+.ab2.on{border-color:transparent}
+.ab2.p{background:rgba(34,197,94,.15);color:#4ade80;border-color:rgba(34,197,94,.3)}
+.ab2.a{background:rgba(239,68,68,.15);color:#f87171;border-color:rgba(239,68,68,.3)}
+.ab2.l{background:rgba(245,158,11,.15);color:#fbbf24;border-color:rgba(245,158,11,.3)}
+.fl{position:fixed;bottom:18px;right:18px;background:#22c55e;color:#fff;padding:9px 18px;border-radius:8px;font-size:13px;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999}
+.fl.on{opacity:1}
+.ld{position:fixed;inset:0;background:rgba(13,17,23,.82);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:11px}
+.ld p{color:var(--txt2);font-size:13px}
+.sp{width:34px;height:34px;border:3px solid var(--bdr);border-top-color:var(--acc);border-radius:50%;animation:sp .8s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+.fc{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);padding:18px;margin-bottom:14px}
+.fc h3{font-size:13px;font-weight:600;margin-bottom:14px}
+.fr{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-bottom:10px}
+.ff label{display:block;font-size:11px;color:var(--txt2);margin-bottom:4px}
+.ff input,.ff select{width:100%;padding:7px 9px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none}
+.ff input:focus,.ff select:focus{border-color:var(--acc)}
+.mw{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:200;display:flex;align-items:flex-start;justify-content:center;padding:16px;overflow-y:auto}
+.md{background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);width:100%;max-width:680px;padding:22px}
+.ddh{padding:9px 15px;background:var(--surf2);border-bottom:1px solid var(--bdr);display:flex;align-items:center;justify-content:space-between;font-size:13px;font-weight:500}
+.pb{background:rgba(245,158,11,.15);color:#fbbf24;padding:2px 8px;border-radius:20px;font-size:11px}
 </style>
 </head>
 <body>
 
-<!-- AUTH -->
-<div id="auth-wrap" class="auth-wrap">
-  <div class="auth-box">
-    <div class="auth-logo">
-      <div class="ico">🏫</div>
+<div id="aw" class="aw">
+  <div class="ab">
+    <div class="al">
+      <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
       <p>School Management System</p>
     </div>
-
-    <!-- LOGIN FORM -->
-    <div id="login-form">
-      <div class="role-tabs" id="role-tabs">
-        <div class="role-tab active" onclick="setRole('teacher')">Teacher</div>
-        <div class="role-tab" onclick="setRole('student')">Student</div>
-        <div class="role-tab" onclick="setRole('parent')">Parent</div>
-        <div class="role-tab" onclick="setRole('admin')">Admin</div>
+    <div id="lf">
+      <div class="rtabs" id="rtabs">
+        <div class="rtab on" onclick="setRole('teacher')">Teacher</div>
+        <div class="rtab" onclick="setRole('student')">Student</div>
+        <div class="rtab" onclick="setRole('parent')">Parent</div>
+        <div class="rtab" onclick="setRole('admin')">Admin</div>
       </div>
-      <div class="fg"><label>Username (Email)</label><input id="l-user" type="text" placeholder="your@email.com" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <div class="fg"><label>Password</label><input id="l-pass" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-      <button class="btn-main" onclick="doLogin()">Sign In</button>
-      <div class="err" id="l-err"></div>
-      <div class="auth-footer">New student? <button class="link-btn" onclick="showReg()">Register here</button></div>
+      <div class="fg"><label>Username</label><input id="lu" placeholder="username" onkeydown="if(event.key==='Enter')login()"></div>
+      <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
+      <button class="bmain" onclick="login()">Sign In</button>
+      <div class="er" id="le"></div>
+      <div class="af">New student? <button class="lb" onclick="showF('rf')">Register</button></div>
     </div>
-
-    <!-- REGISTER FORM -->
-    <div id="reg-form" class="hidden">
-      <div style="margin-bottom:14px;">
-        <button class="link-btn" onclick="showLogin()" style="color:var(--text2);">← Back to login</button>
-      </div>
-      <div class="fg"><label>Email (will be your username)</label><input id="r-email" type="email" placeholder="your@email.com"></div>
-      <div class="fg">
-        <label>Password <small style="color:var(--text3);">(Uppercase, lowercase, number, symbol e.g. Aabbcc#123)</small></label>
-        <input id="r-pass" type="password" placeholder="Aabbcc#123">
-      </div>
-      <div class="fg"><label>Confirm Password</label><input id="r-pass2" type="password" placeholder="Repeat password"></div>
-      <div class="fg">
-        <label id="captcha-label">Captcha: Loading...</label>
-        <input id="r-captcha" type="text" placeholder="Your answer">
-      </div>
-      <button class="btn-main" onclick="doRegister()">Create Account</button>
-      <div class="err" id="r-err"></div>
+    <div id="rf" class="h">
+      <div style="margin-bottom:12px"><button class="lb" onclick="showF('lf')" style="color:var(--txt2)">← Back</button></div>
+      <div class="fg"><label>Email</label><input id="re" type="email" placeholder="your@email.com"></div>
+      <div class="fg"><label>Password <small style="color:var(--txt3)">(Aa1# required)</small></label><input id="rp" type="password" placeholder="Aabbcc#123"></div>
+      <div class="fg"><label>Confirm Password</label><input id="rp2" type="password" placeholder="Repeat"></div>
+      <div class="fg"><label id="cql">Captcha: ?</label><input id="rca" placeholder="Answer"></div>
+      <button class="bmain" onclick="doReg()">Create Account</button>
+      <div class="er" id="re2"></div>
     </div>
-
-    <!-- PENDING FORM (after register) -->
-    <div id="pending-form" class="hidden">
-      <div style="text-align:center;padding:20px 0;">
-        <div style="font-size:40px;margin-bottom:12px;">⏳</div>
-        <h2 style="font-size:18px;margin-bottom:8px;">Account Pending</h2>
-        <p style="color:var(--text2);font-size:14px;margin-bottom:16px;">Your account is waiting for admin approval. Please enter your student details.</p>
+    <div id="pf" class="h">
+      <div style="text-align:center;padding:12px 0 16px">
+        <div style="font-size:36px;margin-bottom:8px">⏳</div>
+        <h2 style="font-size:16px;margin-bottom:6px">Waiting for approval</h2>
+        <p style="color:var(--txt2);font-size:13px">Please enter your child's details</p>
       </div>
-      <div class="fg"><label>Child's Full Name</label><input id="p-name" type="text" placeholder="Ani Hakobyan"></div>
-      <div class="fg"><label>Public ID Number (Հnrаyin hamaranishn)</label><input id="p-id" type="text" placeholder="12345678"></div>
-      <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="p-dob" type="text" placeholder="10.10.2010"></div>
-      <button class="btn-main" onclick="submitPending()">Submit Details</button>
-      <div class="err" id="p-err"></div>
+      <div class="fg"><label>Child's Full Name</label><input id="pn" placeholder="Ani Hakobyan"></div>
+      <div class="fg"><label>Public ID (Հnr. hamaranishn)</label><input id="pi" placeholder="12345678"></div>
+      <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="pd" placeholder="10.10.2010"></div>
+      <button class="bmain" onclick="subPend()">Submit</button>
+      <div class="er" id="pe"></div>
     </div>
-
-    <!-- APPROVED + ADD ANOTHER CHILD -->
-    <div id="add-child-form" class="hidden">
-      <div style="text-align:center;padding:10px 0 16px;">
-        <div style="font-size:36px;margin-bottom:8px;">✅</div>
-        <h2 style="font-size:16px;margin-bottom:4px;">Details Submitted!</h2>
-        <p style="color:var(--text2);font-size:13px;">Want to add another child?</p>
+    <div id="cf" class="h">
+      <div style="text-align:center;padding:8px 0 14px">
+        <div style="font-size:32px;margin-bottom:6px">✅</div>
+        <h2 style="font-size:15px;margin-bottom:4px">Submitted!</h2>
+        <p style="color:var(--txt2);font-size:12px">Add another child? (optional)</p>
       </div>
-      <div class="fg"><label>Child's Full Name</label><input id="c2-name" type="text" placeholder="Aram Hakobyan"></div>
-      <div class="fg"><label>Public ID Number</label><input id="c2-id" type="text" placeholder="12345679"></div>
-      <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="c2-dob" type="text" placeholder="15.03.2012"></div>
-      <button class="btn-main" onclick="addAnotherChild()">Add Child</button>
-      <div style="margin-top:10px;text-align:center;">
-        <button class="link-btn" onclick="showLogin()">Done → Go to Login</button>
-      </div>
-      <div class="err" id="c2-err"></div>
+      <div class="fg"><label>Child's Full Name</label><input id="cn" placeholder="Aram Hakobyan"></div>
+      <div class="fg"><label>Public ID</label><input id="ci" placeholder="12345679"></div>
+      <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="cd" placeholder="15.03.2012"></div>
+      <button class="bmain" onclick="addChild()">Add Child</button>
+      <div style="text-align:center;margin-top:8px"><button class="lb" onclick="showF('lf')">Done → Login</button></div>
+      <div class="er" id="ce"></div>
     </div>
   </div>
 </div>
 
-<!-- APP -->
-<div id="app" class="hidden">
-  <!-- Mobile Header -->
-  <div class="mob-head">
-    <button onclick="toggleSidebar()" style="background:none;border:none;cursor:pointer;color:var(--text);font-size:20px;">☰</button>
-    <span style="font-size:15px;font-weight:700;">🏫 SchoolDesk</span>
-    <button onclick="toggleTheme()" id="theme-btn-m" style="background:none;border:1px solid var(--border);border-radius:8px;padding:4px 8px;color:var(--text2);cursor:pointer;font-size:14px;">🌙</button>
+<div id="app" class="h">
+  <div class="mh">
+    <button onclick="tgSb()" style="background:none;border:none;cursor:pointer;color:var(--txt);font-size:20px">☰</button>
+    <span style="font-size:14px;font-weight:700">🏫 SchoolDesk</span>
+    <button onclick="tgTheme()" id="tmbtn" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:3px 8px;color:var(--txt2);cursor:pointer;font-size:13px">🌙</button>
   </div>
-  <div class="mob-overlay" id="mob-overlay" onclick="toggleSidebar()"></div>
-
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sb-head">
-      <div class="brand">
-        🏫 SchoolDesk
-        <button onclick="toggleTheme()" id="theme-btn" style="background:none;border:1px solid var(--border);border-radius:8px;padding:3px 8px;color:var(--text2);cursor:pointer;font-size:13px;">🌙</button>
-      </div>
-      <div class="uname" id="sb-name"></div>
-      <div class="urole" id="sb-role"></div>
+  <div class="ov" id="ov" onclick="tgSb()"></div>
+  <div class="sb" id="sb">
+    <div class="sbh">
+      <div class="brand">🏫 SchoolDesk <button onclick="tgTheme()" id="tbtn" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:2px 7px;color:var(--txt2);cursor:pointer;font-size:12px">🌙</button></div>
+      <div class="un" id="sbn"></div>
+      <div class="ur" id="sbr"></div>
     </div>
-    <nav class="sb-nav" id="sb-nav"></nav>
-    <div class="sb-foot">
-      <button class="btn-out" onclick="logout()">← Sign Out</button>
-    </div>
+    <nav class="sbn" id="nav"></nav>
+    <div class="sbf"><button class="bout" onclick="logout()">← Sign Out</button></div>
   </div>
-
-  <!-- Main -->
-  <div class="main" id="main"></div>
+  <div class="mn" id="mn"></div>
 </div>
 
-<div class="loading hidden" id="loading"><div class="spin"></div><p id="loading-txt">Loading...</p></div>
-<div class="flash" id="flash">✓ Saved</div>
+<div class="ld h" id="ld"><div class="sp"></div><p id="ldt">Loading...</p></div>
+<div class="fl" id="fl">✓ Saved</div>
 
 <script>
-// ===================== CONFIG =====================
-const API='$2a$10$Gi.k.77zA4oqHpM7hiWOPu.sz164TIhfB/m5M0o91k2DOfHCi08b6';
-const BIN_SCHOOL='69be81f0b7ec241ddc8bb006';
-const BIN_GRADES='69be81fdaa77b81da90584f9';
-const BIN_ATT='69be81feaa77b81da90584fe';
-const BIN_SCHED='69be81efb7ec241ddc8baffe';
-const ADMIN_PASS='SchoolAdmin2026';
+const AK='$2a$10$Gi.k.77zA4oqHpM7hiWOPu.sz164TIhfB/m5M0o91k2DOfHCi08b6';
+const BS='69be81f0b7ec241ddc8bb006';
+const BG='69be81fdaa77b81da90584f9';
+const BA='69be81feaa77b81da90584fe';
+const BC='69be81efb7ec241ddc8baffe';
+const AP='SchoolAdmin2026';
 
-// ===================== STATE =====================
-let DB={users:{},classes:{}};
-let SCHED={};
-let GRADES={};
-let LESSON_INFO={};
-let ATT={};
-let THEMATIC={};
-let PENDING={};
-let CU=null; // current user
-let selCls=null,selDate='',selSubj=null,selLesson=1;
-let currentRole='teacher';
+let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={};
+let CU=null,sCls=null,sDate='',sSubj=null,sLes=1,cRole='teacher';
 
-// ===================== UTILS =====================
-function $(id){return document.getElementById(id);}
-function initials(n){return(n||'').split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase();}
-function getTodayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function dateToStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-function formatDate(s){if(!s)return'—';const d=new Date(s.replace(/-L2$/,''));const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];return `${d.getDate()} ${M[d.getMonth()]}`;}
-function showLoad(t='Loading...'){$('loading').classList.remove('hidden');$('loading-txt').textContent=t;}
-function hideLoad(){$('loading').classList.add('hidden');}
-function flash(){const f=$('flash');f.classList.add('show');setTimeout(()=>f.classList.remove('show'),2000);}
-function getSubjs(u){return((u||CU).subject||'').split('&').map(s=>s.trim()).filter(Boolean);}
-function getWeekStart(date){const d=new Date(date||new Date());const day=d.getDay();const diff=day===0?-6:1-day;d.setDate(d.getDate()+diff);return dateToStr(d);}
-function dateToLocalStr(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
-
-function getMonthsForYear(ay){
+const $=id=>document.getElementById(id);
+const ini=n=>(n||'').split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+function tod(){const d=new Date();return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function pad(n){return String(n).padStart(2,'0')}
+function d2s(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function fmtD(s){if(!s)return'—';const d=new Date(s.replace(/-L\d$/,''));return d.getDate()+' '+['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]}
+function sLoad(t){$('ld').classList.remove('h');$('ldt').textContent=t||'Loading...'}
+function hLoad(){$('ld').classList.add('h')}
+function flash(){const f=$('fl');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),2000)}
+function subjs(u){return((u||CU).subject||'').split('&').map(s=>s.trim()).filter(Boolean)}
+function wkStart(dt){const d=new Date(dt||new Date());const dy=d.getDay();d.setDate(d.getDate()+(dy===0?-6:1-dy));return d2s(d)}
+function getMonths(ay){
   const[y1,y2]=ay.split('-').map(Number);
   const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
   const r=[];
-  for(let m=8;m<=11;m++)r.push({val:`${y1}-${String(m+1).padStart(2,'0')}`,label:`${M[m]} ${y1}`});
-  for(let m=0;m<=5;m++)r.push({val:`${y2}-${String(m+1).padStart(2,'0')}`,label:`${M[m]} ${y2}`});
+  for(let m=8;m<=11;m++)r.push({v:y1+'-'+pad(m+1),l:M[m]+' '+y1});
+  for(let m=0;m<=5;m++)r.push({v:y2+'-'+pad(m+1),l:M[m]+' '+y2});
   return r;
 }
-function getWeeksOfMonth(monthVal){
-  const[year,month]=monthVal.split('-').map(Number);
-  const days=[];
-  const d=new Date(year,month-1,1);
-  while(d.getMonth()===month-1){if(d.getDay()>=1&&d.getDay()<=5)days.push(new Date(d));d.setDate(d.getDate()+1);}
-  const weeks=[];let week=[];
-  days.forEach(day=>{if(day.getDay()===1&&week.length>0){weeks.push(week);week=[];}week.push(day);});
-  if(week.length)weeks.push(week);
-  return weeks.map((wk,i)=>{
+function getWeeks(mv){
+  const[yr,mo]=mv.split('-').map(Number);
+  const days=[];const d=new Date(yr,mo-1,1);
+  while(d.getMonth()===mo-1){if(d.getDay()>=1&&d.getDay()<=5)days.push(new Date(d));d.setDate(d.getDate()+1)}
+  const wks=[];let wk=[];
+  days.forEach(d=>{if(d.getDay()===1&&wk.length){wks.push(wk);wk=[]}wk.push(d)});
+  if(wk.length)wks.push(wk);
+  const DN=['Mon','Tue','Wed','Thu','Fri'];
+  return wks.map((wk,i)=>{
     const s=wk[0],e=wk[wk.length-1];
-    const fmt=d=>`${d.getDate()}.${String(d.getMonth()+1).padStart(2,'0')}`;
-    return{label:`Week ${i+1}: ${fmt(s)} – ${fmt(e)}`,weekStart:dateToStr(s),days:wk};
+    return{l:'Week '+(i+1)+': '+s.getDate()+'.'+pad(s.getMonth()+1)+' – '+e.getDate()+'.'+pad(e.getMonth()+1),ws:d2s(s),days:wk};
   });
 }
+function curAY(){const n=new Date();const y=n.getFullYear();return n.getMonth()>=8?y+'-'+(y+1):(y-1)+'-'+y}
 
-// ===================== THEME =====================
-function toggleTheme(){
-  const cur=document.documentElement.getAttribute('data-theme')||'dark';
-  const next=cur==='dark'?'light':'dark';
-  document.documentElement.setAttribute('data-theme',next);
-  localStorage.setItem('theme',next);
-  const ico=next==='dark'?'🌙':'☀️';
-  ['theme-btn','theme-btn-m'].forEach(id=>{const el=$(id);if(el)el.textContent=ico;});
+// THEME
+function tgTheme(){
+  const t=document.documentElement.getAttribute('data-theme')||'dark';
+  const nt=t==='dark'?'light':'dark';
+  document.documentElement.setAttribute('data-theme',nt);
+  localStorage.setItem('th',nt);
+  const ic=nt==='dark'?'🌙':'☀️';
+  ['tbtn','tmbtn'].forEach(id=>{const e=$(id);if(e)e.textContent=ic});
 }
-(function applyTheme(){
-  const t=localStorage.getItem('theme')||'dark';
+(function(){
+  const t=localStorage.getItem('th')||'dark';
   document.documentElement.setAttribute('data-theme',t);
-  const ico=t==='dark'?'🌙':'☀️';
-  document.addEventListener('DOMContentLoaded',()=>{
-    ['theme-btn','theme-btn-m'].forEach(id=>{const el=$(id);if(el)el.textContent=ico;});
+  window.addEventListener('DOMContentLoaded',()=>{
+    const ic=t==='dark'?'🌙':'☀️';
+    ['tbtn','tmbtn'].forEach(id=>{const e=$(id);if(e)e.textContent=ic});
   });
 })();
 
-// ===================== SIDEBAR =====================
-function toggleSidebar(){
-  $('sidebar').classList.toggle('open');
-  $('mob-overlay').classList.toggle('open');
-}
+// SIDEBAR
+function tgSb(){$('sb').classList.toggle('op');$('ov').classList.toggle('op')}
+function clSb(){$('sb').classList.remove('op');$('ov').classList.remove('op')}
 
-// ===================== JSONBIN =====================
-async function binGet(id){
-  const r=await fetch(`https://api.jsonbin.io/v3/b/${id}/latest`,{headers:{'X-Master-Key':API}});
+// API
+async function bGet(id){
+  const r=await fetch('https://api.jsonbin.io/v3/b/'+id+'/latest',{headers:{'X-Master-Key':AK}});
   return(await r.json()).record;
 }
-async function binSet(id,data){
-  await fetch(`https://api.jsonbin.io/v3/b/${id}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':API},body:JSON.stringify(data)});
+async function bSet(id,data){
+  await fetch('https://api.jsonbin.io/v3/b/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(data)});
 }
 
-// ===================== LOAD/SAVE =====================
+// LOAD/SAVE
 async function loadAll(){
-  showLoad('Loading...');
+  sLoad('Loading...');
   try{
-    const[school,grades,att,sched]=await Promise.all([
-      binGet(BIN_SCHOOL).catch(()=>null),
-      binGet(BIN_GRADES).catch(()=>null),
-      binGet(BIN_ATT).catch(()=>null),
-      binGet(BIN_SCHED).catch(()=>null),
-    ]);
-    if(school){
-      DB=school;
-      PENDING=school.pending||{};
-    }
-    if(grades){GRADES=grades.grades||{};LESSON_INFO=grades.lessonInfo||{};THEMATIC=grades.thematic||{};}
-    if(att&&typeof att==='object'&&!att.type)ATT=att;
-    if(sched&&typeof sched==='object')SCHED=sched;
-  }catch(e){console.error(e);}
-  // init empty objects
+    const[s,g,a,c]=await Promise.all([bGet(BS).catch(()=>null),bGet(BG).catch(()=>null),bGet(BA).catch(()=>null),bGet(BC).catch(()=>null)]);
+    if(s&&s.users){DB=s;PE=s.pending||{}}
+    if(g){GR=g.grades||{};LI=g.lessonInfo||{}}
+    if(a&&typeof a==='object'&&!a.type)AT=a;
+    if(c&&typeof c==='object')SC=c;
+  }catch(e){console.error(e)}
   Object.keys(DB.classes||{}).forEach(cls=>{
-    if(!GRADES[cls])GRADES[cls]={};
-    if(!ATT[cls])ATT[cls]={};
-    if(!SCHED[cls])SCHED[cls]={};
-    (DB.classes[cls]||[]).forEach(st=>{if(!GRADES[cls][st])GRADES[cls][st]={};});
+    if(!GR[cls])GR[cls]={};
+    if(!AT[cls])AT[cls]={};
+    if(!SC[cls])SC[cls]={};
+    (DB.classes[cls]||[]).forEach(st=>{if(!GR[cls][st])GR[cls][st]={}});
   });
-  hideLoad();
+  hLoad();
 }
-async function saveSchool(){
-  const data={users:DB.users,classes:DB.classes,pending:PENDING};
-  try{await binSet(BIN_SCHOOL,data);}catch(e){console.error(e);}
+async function svSchool(){
+  try{await bSet(BS,{users:DB.users,classes:DB.classes,pending:PE})}catch(e){console.error(e)}
 }
-async function saveGrades(){
-  try{await binSet(BIN_GRADES,{grades:GRADES,lessonInfo:LESSON_INFO,thematic:THEMATIC});}catch(e){console.error(e);}
+async function svGrades(){
+  try{await bSet(BG,{grades:GR,lessonInfo:LI})}catch(e){console.error(e)}
 }
-async function saveAtt(){try{await binSet(BIN_ATT,ATT);}catch(e){console.error(e);}}
-async function saveSched(){
-  // Trim to last 16 weeks per class
-  Object.keys(SCHED).forEach(cls=>{
-    const wks=Object.keys(SCHED[cls]).filter(k=>k.match(/^\d{4}-\d{2}-\d{2}$/)).sort();
-    if(wks.length>16)wks.slice(0,wks.length-16).forEach(w=>delete SCHED[cls][w]);
+async function svAtt(){try{await bSet(BA,AT)}catch(e){console.error(e)}}
+async function svSched(){
+  Object.keys(SC).forEach(cls=>{
+    const wks=Object.keys(SC[cls]).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
+    if(wks.length>16)wks.slice(0,wks.length-16).forEach(w=>delete SC[cls][w]);
   });
-  try{await binSet(BIN_SCHED,SCHED);}catch(e){console.error(e);}
+  try{await bSet(BC,SC)}catch(e){console.error(e)}
 }
 
-// ===================== CAPTCHA =====================
-let captchaAnswer='';
-function genCaptcha(){
-  const a=Math.floor(Math.random()*10)+1,b=Math.floor(Math.random()*10)+1;
-  captchaAnswer=String(a+b);
-  const el=$('captcha-label');if(el)el.textContent=`Captcha: What is ${a} + ${b} ?`;
-}
+// CAPTCHA
+let _ca='';
+function genCap(){const a=Math.floor(Math.random()*9)+1,b=Math.floor(Math.random()*9)+1;_ca=''+(a+b);const el=$('cql');if(el)el.textContent='Captcha: '+a+' + '+b+' = ?'}
 
-// ===================== AUTH =====================
+// AUTH FORMS
+function showF(id){['lf','rf','pf','cf'].forEach(f=>{const e=$(f);if(e)e.classList[f===id?'remove':'add']('h')});if(id==='rf')genCap()}
 function setRole(r){
-  currentRole=r;
-  $('role-tabs').querySelectorAll('.role-tab').forEach((t,i)=>{
-    t.classList.toggle('active',['teacher','student','parent','admin'][i]===r);
-  });
+  cRole=r;
+  $('rtabs').querySelectorAll('.rtab').forEach((t,i)=>{t.classList.toggle('on',['teacher','student','parent','admin'][i]===r)});
 }
-function showReg(){
-  $('login-form').classList.add('hidden');
-  $('reg-form').classList.remove('hidden');
-  genCaptcha();
-}
-function showLogin(){
-  ['reg-form','pending-form','add-child-form'].forEach(id=>{const el=$(id);if(el)el.classList.add('hidden');});
-  $('login-form').classList.remove('hidden');
-}
+function vPass(p){return/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p)&&p.length>=8}
 
-function validatePass(p){
-  return /[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p)&&p.length>=8;
-}
-
-async function doRegister(){
-  const email=$('r-email').value.trim().toLowerCase();
-  const pass=$('r-pass').value.trim();
-  const pass2=$('r-pass2').value.trim();
-  const cap=$('r-captcha').value.trim();
-  const err=$('r-err');
-  err.textContent='';
-  if(!email||!pass){err.textContent='Please fill all fields.';return;}
-  if(!validatePass(pass)){err.textContent='Password must have uppercase, lowercase, number and symbol (e.g. Aabbcc#123).';return;}
-  if(pass!==pass2){err.textContent='Passwords do not match.';return;}
-  if(cap!==captchaAnswer){err.textContent='Captcha is wrong. Try again.';genCaptcha();$('r-captcha').value='';return;}
-  // Check if already exists
-  if(DB.users&&DB.users[email]){err.textContent='This email is already registered.';return;}
-  if(PENDING&&PENDING[email]){err.textContent='This email is already pending approval.';return;}
-  // Save as pending
-  if(!PENDING)PENDING={};
-  PENDING[email]={pass,role:'student',status:'pending',children:[]};
-  showLoad('Saving...');
-  await saveSchool();
-  hideLoad();
-  // Show pending form
-  $('reg-form').classList.add('hidden');
-  $('pending-form').classList.remove('hidden');
-  window._pendingEmail=email;
-}
-
-async function submitPending(){
-  const name=$('p-name').value.trim();
-  const pid=$('p-id').value.trim();
-  const dob=$('p-dob').value.trim();
-  const err=$('p-err');
-  err.textContent='';
-  if(!name||!pid||!dob){err.textContent='Please fill all fields.';return;}
-  if(!/^\d{2}\.\d{2}\.\d{4}$/.test(dob)){err.textContent='Date format must be DD.MM.YYYY';return;}
-  const email=window._pendingEmail;
-  if(!email||!PENDING[email]){err.textContent='Session error. Please try again.';return;}
-  PENDING[email].children.push({name,publicId:pid,dob});
-  showLoad('Saving...');
-  await saveSchool();
-  hideLoad();
-  $('pending-form').classList.add('hidden');
-  $('add-child-form').classList.remove('hidden');
-}
-
-async function addAnotherChild(){
-  const name=$('c2-name').value.trim();
-  const pid=$('c2-id').value.trim();
-  const dob=$('c2-dob').value.trim();
-  const err=$('c2-err');
-  err.textContent='';
-  if(!name||!pid||!dob){err.textContent='Please fill all fields.';return;}
-  if(!/^\d{2}\.\d{2}\.\d{4}$/.test(dob)){err.textContent='Date format must be DD.MM.YYYY';return;}
-  const email=window._pendingEmail;
-  PENDING[email].children.push({name,publicId:pid,dob});
-  showLoad('Saving...');
-  await saveSchool();
-  hideLoad();
-  $('c2-name').value='';$('c2-id').value='';$('c2-dob').value='';
-  err.textContent='';
-  flash();
-}
-
-function doLogin(){
-  const u=$('l-user').value.trim().toLowerCase();
-  const p=$('l-pass').value.trim();
-  const err=$('l-err');
-  err.textContent='';
-  // Admin
-  if(currentRole==='admin'){
-    if(p===ADMIN_PASS){
-      CU={role:'admin',name:'Administrator',username:'admin'};
-      startApp();
-    }else{err.textContent='Incorrect password.';}
-    return;
+function login(){
+  const u=$('lu').value.trim().toLowerCase();
+  const p=$('lp').value.trim();
+  const er=$('le');er.textContent='';
+  if(cRole==='admin'){
+    if(p===AP){CU={role:'admin',name:'Administrator',username:'admin'};startApp()}
+    else er.textContent='Wrong password';return;
   }
-  // Find user
   const users=DB.users||{};
-  let found=null,foundKey=null;
+  let found=null,fk=null;
   for(const[k,v]of Object.entries(users)){
-    const loginKey=k.replace(/_t$/,'').replace(/_s$/,'').toLowerCase();
-    if(loginKey===u&&v.role===currentRole&&v.pass===p){found=v;foundKey=k;break;}
+    const lk=k.replace(/_t$|_s$/,'').toLowerCase();
+    if(lk===u&&v.role===cRole&&v.pass===p){found=v;fk=k;break}
   }
-  if(!found){err.textContent='Incorrect username, password, or role.';return;}
-  CU={...found,username:foundKey};
+  if(!found){er.textContent='Wrong username, password or role';return}
+  CU={...found,username:fk};
   startApp();
 }
 
-function logout(){
-  CU=null;
-  $('app').classList.add('hidden');
-  $('auth-wrap').classList.remove('hidden');
-  $('l-user').value='';$('l-pass').value='';$('l-err').textContent='';
-  showLogin();
+async function doReg(){
+  const e=$('re').value.trim().toLowerCase(),p=$('rp').value.trim(),p2=$('rp2').value.trim(),ca=$('rca').value.trim();
+  const er=$('re2');er.textContent='';
+  if(!e||!p){er.textContent='Fill all fields';return}
+  if(!vPass(p)){er.textContent='Password must have A-Z, a-z, 0-9 and symbol';return}
+  if(p!==p2){er.textContent='Passwords do not match';return}
+  if(ca!==_ca){er.textContent='Wrong captcha';genCap();$('rca').value='';return}
+  if(DB.users&&DB.users[e]){er.textContent='Email already registered';return}
+  if(PE[e]){er.textContent='Email already pending';return}
+  PE[e]={pass:p,status:'pending',children:[]};
+  window._pe=e;
+  sLoad('Saving...');await svSchool();hLoad();
+  showF('pf');
 }
 
-// ===================== APP START =====================
+async function subPend(){
+  const n=$('pn').value.trim(),i=$('pi').value.trim(),d=$('pd').value.trim();
+  const er=$('pe');er.textContent='';
+  if(!n||!i||!d){er.textContent='Fill all fields';return}
+  if(!/^\d{2}\.\d{2}\.\d{4}$/.test(d)){er.textContent='Format: DD.MM.YYYY';return}
+  PE[window._pe].children.push({name:n,publicId:i,dob:d});
+  sLoad('Saving...');await svSchool();hLoad();
+  showF('cf');
+}
+
+async function addChild(){
+  const n=$('cn').value.trim(),i=$('ci').value.trim(),d=$('cd').value.trim();
+  const er=$('ce');er.textContent='';
+  if(!n||!i||!d){er.textContent='Fill all fields';return}
+  if(!/^\d{2}\.\d{2}\.\d{4}$/.test(d)){er.textContent='Format: DD.MM.YYYY';return}
+  PE[window._pe].children.push({name:n,publicId:i,dob:d});
+  sLoad('Saving...');await svSchool();hLoad();
+  $('cn').value='';$('ci').value='';$('cd').value='';
+  flash();
+}
+
+function logout(){
+  CU=null;$('app').classList.add('h');$('aw').classList.remove('h');
+  $('lu').value='';$('lp').value='';$('le').textContent='';showF('lf');
+}
+
+// START APP
 function startApp(){
-  $('auth-wrap').classList.add('hidden');
-  $('app').classList.remove('hidden');
-  $('sb-name').textContent=CU.name;
-  $('sb-role').textContent=CU.role.toUpperCase();
-  selCls=(CU.classes||[])[0]||null;
-  selSubj=getSubjs()[0]||null;
-  selDate=getTodayStr();
-  selLesson=1;
+  $('aw').classList.add('h');$('app').classList.remove('h');
+  $('sbn').textContent=CU.name;$('sbr').textContent=CU.role.toUpperCase();
+  sCls=(CU.classes||[])[0]||Object.keys(DB.classes||{})[0]||null;
+  sSubj=subjs()[0]||null;sDate=tod();sLes=1;
   buildNav();
 }
 
+function showPg(id){
+  clSb();
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  const rb={
+    'dash':()=>{const o=$('dash');if(o){o.outerHTML=buildDash()}},
+    'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
+    'apend':()=>{const o=$('apend');if(o){o.outerHTML=buildAPend()};updPC()},
+    'hr':()=>{const o=$('hr');if(o){o.outerHTML=buildHR()}},
+    'stu':()=>{const o=$('stu');if(o){o.outerHTML=buildStu()}},
+  };
+  if(rb[id])rb[id]();
+  const pg=$(id);if(pg)pg.classList.add('on');
+  document.querySelectorAll('[data-p="'+id+'"]').forEach(n=>n.classList.add('on'));
+}
+
 function buildNav(){
-  const nav=$('sb-nav');
-  const main=$('main');
+  const nav=$('nav'),mn=$('mn');
   if(CU.role==='admin'){
-    nav.innerHTML=`
-      <div class="sb-sec">Overview</div>
-      <div class="nav-item active" onclick="showPage('adm-dash')" data-p="adm-dash">📊 Dashboard</div>
-      <div class="sb-sec">Manage</div>
-      <div class="nav-item" onclick="showPage('adm-teachers')" data-p="adm-teachers">👨‍🏫 Teachers</div>
-      <div class="nav-item" onclick="showPage('adm-students')" data-p="adm-students">👥 Students</div>
-      <div class="nav-item" onclick="showPage('adm-classes')" data-p="adm-classes">🏫 Classes</div>
-      <div class="nav-item" onclick="showPage('adm-sched')" data-p="adm-sched">📅 Schedule</div>
-      <div class="nav-item" onclick="showPage('adm-pending')" data-p="adm-pending">⏳ Pending <span class="pending-badge" id="pending-count"></span></div>
-    `;
-    main.innerHTML=buildAdmDash()+buildAdmTeachers()+buildAdmStudents()+buildAdmClasses()+buildAdmSched()+buildAdmPending();
-    updatePendingCount();
-    showPage('adm-dash');
+    nav.innerHTML='<div class="sbs">Overview</div>'
+      +'<div class="ni on" onclick="showPg(\'adash\')" data-p="adash">📊 Dashboard</div>'
+      +'<div class="sbs">Manage</div>'
+      +'<div class="ni" onclick="showPg(\'atch\')" data-p="atch">👨‍🏫 Teachers</div>'
+      +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'acls\')" data-p="acls">🏫 Classes</div>'
+      +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">📅 Schedule</div>'
+      +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>';
+    mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend();
+    updPC();showPg('adash');
   }else if(CU.role==='teacher'){
-    const hr=CU.homeroom?`<div class="nav-item" onclick="showPage('homeroom')" data-p="homeroom">🏠 Homeroom (${CU.homeroom})</div>`:'';
-    nav.innerHTML=`
-      <div class="sb-sec">Overview</div>
-      <div class="nav-item active" onclick="showPage('t-dash')" data-p="t-dash">📊 Dashboard</div>
-      <div class="sb-sec">Teaching</div>
-      <div class="nav-item" onclick="showPage('grades')" data-p="grades">📝 Grades</div>
-      <div class="nav-item" onclick="showPage('attendance')" data-p="attendance">📋 Attendance</div>
-      <div class="sb-sec">Other</div>
-      <div class="nav-item" onclick="showPage('students')" data-p="students">👥 Students</div>
-      ${hr}
-    `;
-    main.innerHTML=buildTeacherDash()+buildGrades()+buildAttendance()+buildStudents()+(CU.homeroom?buildHomeroom():'');
-    refreshGradeTable();
-    refreshAttTable();
-    showPage('t-dash');
+    const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
+    nav.innerHTML='<div class="sbs">Overview</div>'
+      +'<div class="ni on" onclick="showPg(\'dash\')" data-p="dash">📊 Dashboard</div>'
+      +'<div class="sbs">Teaching</div>'
+      +'<div class="ni" onclick="showPg(\'gr\')" data-p="gr">📝 Grades</div>'
+      +'<div class="ni" onclick="showPg(\'att\')" data-p="att">📋 Attendance</div>'
+      +'<div class="sbs">Other</div>'
+      +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
+      +hr;
+    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'');
+    rfGR();rfAtt();showPg('dash');
   }else{
-    nav.innerHTML=`
-      <div class="sb-sec">My Diary</div>
-      <div class="nav-item active" onclick="showPage('diary')" data-p="diary">📖 Diary</div>
-      <div class="nav-item" onclick="showPage('mygrades')" data-p="mygrades">⭐ My Grades</div>
-    `;
-    main.innerHTML=buildDiary()+buildMyGrades();
-    initDiary();
-    renderMyGrades();
-    showPage('diary');
+    nav.innerHTML='<div class="sbs">Diary</div>'
+      +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">📖 My Diary</div>'
+      +'<div class="ni" onclick="showPg(\'mg\')" data-p="mg">⭐ My Grades</div>';
+    mn.innerHTML=buildDi()+buildMG();
+    initDi();rfMG();showPg('di');
   }
 }
 
-function showPage(id){
-  $('sidebar')&&$('sidebar').classList.remove('open');
-  $('mob-overlay')&&$('mob-overlay').classList.remove('open');
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  // Rebuild dynamic pages
-  const rebuilds={
-    'adm-dash':()=>{const o=$('adm-dash');if(o)o.outerHTML=buildAdmDash();},
-    'adm-pending':()=>{const o=$('adm-pending');if(o)o.outerHTML=buildAdmPending();updatePendingCount();},
-    'homeroom':()=>{const o=$('homeroom');if(o)o.outerHTML=buildHomeroom();},
-    't-dash':()=>{const o=$('t-dash');if(o)o.outerHTML=buildTeacherDash();},
-  };
-  if(rebuilds[id])rebuilds[id]();
-  const pg=$(id);if(pg)pg.classList.add('active');
-  document.querySelectorAll(`[data-p="${id}"]`).forEach(n=>n.classList.add('active'));
-}
-
-// ===================== TEACHER - GRADES =====================
-function buildTeacherDash(){
-  const today=getTodayStr();
-  const classes=CU.classes||[];
-  let absentToday=0;
-  classes.forEach(cls=>{
-    if(ATT[cls]&&ATT[cls][today])Object.values(ATT[cls][today]).forEach(v=>{if(v==='absent')absentToday++;});
+// ── TEACHER DASHBOARD ──
+function buildDash(){
+  const t=tod(),cls=CU.classes||[];
+  let abs=0,tot=0;
+  cls.forEach(c=>{
+    tot+=(DB.classes[c]||[]).length;
+    if(AT[c]&&AT[c][t])Object.values(AT[c][t]).forEach(v=>{if(v==='absent')abs++});
   });
-  const totalStudents=classes.reduce((s,cls)=>s+(DB.classes[cls]||[]).length,0);
   const hr=CU.homeroom;
-  let hrHtml='';
+  let hrH='';
   if(hr&&DB.classes[hr]){
     const sts=DB.classes[hr]||[];
-    const attData=ATT[hr]||{};
-    const absCounts={};
-    sts.forEach(st=>{absCounts[st]=0;});
-    Object.values(attData).forEach(day=>{
-      Object.entries(day).forEach(([st,v])=>{if(v==='absent'&&absCounts[st]!==undefined)absCounts[st]++;});
-    });
-    const rows=sts.map(st=>{
-      const todayAtt=attData[today]?attData[today][st]:null;
-      const attBadge=todayAtt?'<span class="badge b-'+todayAtt+'">'+(todayAtt==='present'?'Present':todayAtt==='absent'?'Absent':'Late')+'</span>':'—';
-      const absBadge=absCounts[st]>0?'<span class="badge b-absent">'+absCounts[st]+'</span>':'<span class="badge b-present">0</span>';
-      const safeSt=st.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-      return '<tr style="cursor:pointer;" onclick="showStudentModal(\''+hr+'\',\''+safeSt+'\')">'
-        +'<td><div class="tf"><div class="av av-p">'+initials(st)+'</div><b>'+st+'</b></div></td>'
-        +'<td>'+attBadge+'</td>'
-        +'<td>'+absBadge+'</td>'
-        +'</tr>';
-    }).join('');
-    hrHtml='<div class="card" style="margin-bottom:16px;">'
-      +'<div class="card-head"><h3>🏠 Homeroom — '+hr+'</h3></div>'
-      +'<table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th></tr></thead>'
-      +'<tbody>'+rows+'</tbody></table></div>';
+    const ac={};sts.forEach(s=>{ac[s]=0});
+    Object.values(AT[hr]||{}).forEach(d=>Object.entries(d).forEach(([s,v])=>{if(v==='absent'&&ac[s]!==undefined)ac[s]++}));
+    hrH='<div class="cd">'
+      +'<div class="cdh"><h3>🏠 Homeroom — '+hr+'</h3></div>'
+      +'<table><thead><tr><th>Student</th><th>Today</th><th>Absent (year)</th></tr></thead><tbody>'
+      +sts.map(s=>{
+        const ta=(AT[hr]&&AT[hr][t])?AT[hr][t][s]:null;
+        const tb=ta?'<span class="badge b'+ta.charAt(0)+'">'+cap(ta)+'</span>':'—';
+        const ab=ac[s]>0?'<span class="badge ba">'+ac[s]+'</span>':'<span class="badge bp">0</span>';
+        return'<tr style="cursor:pointer" onclick="stuModal(\''+hr+'\',\''+esc(s)+'\')"><td><div class="tf"><div class="av avp">'+ini(s)+'</div><b>'+s+'</b></div></td><td>'+tb+'</td><td>'+ab+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>';
   }
-  const clsRows=classes.map(cls=>{
-    const sts=DB.classes[cls]||[];
-    const abs=ATT[cls]&&ATT[cls][today]?Object.values(ATT[cls][today]).filter(v=>v==='absent').length:0;
-    const absBadge=abs>0?'<span class="badge b-absent">'+abs+' absent</span>':'<span class="badge b-present">All present</span>';
-    return '<tr><td><b>'+cls+'</b></td><td>'+sts.length+'</td><td>'+absBadge+'</td></tr>';
+  const rows=cls.map(c=>{
+    const n=(DB.classes[c]||[]).length;
+    const ab=AT[c]&&AT[c][t]?Object.values(AT[c][t]).filter(v=>v==='absent').length:0;
+    return'<tr><td><b>'+c+'</b></td><td>'+n+'</td><td>'+(ab>0?'<span class="badge ba">'+ab+' absent</span>':'<span class="badge bp">All present</span>')+'</td></tr>';
   }).join('');
-  return '<div class="page" id="t-dash">'
-    +'<div class="ptitle">Dashboard</div>'
-    +'<div class="psub">'+CU.name+' · '+(CU.subject||'')+'</div>'
-    +'<div class="stats-row">'
-    +'<div class="stat-card"><div class="sl">My Classes</div><div class="sv">'+classes.length+'</div><div class="ss">'+classes.join(', ')+'</div></div>'
-    +'<div class="stat-card"><div class="sl">Total Students</div><div class="sv">'+totalStudents+'</div></div>'
-    +'<div class="stat-card"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red);">'+absentToday+'</div></div>'
-    +'</div>'
-    +hrHtml
-    +'<div class="card">'
-    +'<div class="card-head"><h3>My Classes</h3></div>'
-    +'<table><thead><tr><th>Class</th><th>Students</th><th>Absent Today</th></tr></thead>'
-    +'<tbody>'+clsRows+'</tbody></table></div>'
+  return'<div class="pg" id="dash">'
+    +'<div class="pt">Dashboard</div><div class="ps">'+CU.name+' · '+(CU.subject||'')+'</div>'
+    +'<div class="srow"><div class="sc"><div class="sl">My Classes</div><div class="sv">'+cls.length+'</div><div class="ss">'+cls.join(', ')+'</div></div>'
+    +'<div class="sc"><div class="sl">Students</div><div class="sv">'+tot+'</div></div>'
+    +'<div class="sc"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red)">'+abs+'</div></div></div>'
+    +hrH
+    +'<div class="cd"><div class="cdh"><h3>My Classes</h3></div><table><thead><tr><th>Class</th><th>Students</th><th>Absent Today</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
     +'</div>';
 }
 
-
-function buildGrades(){
-  const subjs=getSubjs();
-  const subSel=subjs.length>1?`<label>Subject:</label>
-    <select id="g-subj" onchange="selSubj=this.value;selLesson=1;refreshGradeTable()">
-      ${subjs.map(s=>`<option value="${s}">${s}</option>`).join('')}
-    </select>`:'';
-  return`<div class="page" id="grades">
-    <div class="ptitle">Grades</div>
-    <div class="psub">Enter grades per lesson</div>
-    <div class="sel-row">
-      <label>Class:</label>
-      <select id="g-cls" onchange="selCls=this.value;selLesson=1;refreshGradeTable()">
-        ${(CU.classes||[]).map(c=>`<option value="${c}">${c}</option>`).join('')}
-      </select>
-      <label>Date:</label>
-      <select id="g-date" onchange="selDate=this.value;selLesson=1;refreshGradeTable()" style="min-width:160px;"><option>Loading...</option></select>
-      ${subSel}
-      <span id="lesson-wrap" style="display:none;">
-        <label>Lesson:</label>
-        <select id="g-lesson" onchange="selLesson=parseInt(this.value);refreshGradeTable()">
-          <option value="1">Lesson 1</option><option value="2">Lesson 2</option>
-        </select>
-      </span>
-    </div>
-    <div class="card" style="margin-bottom:14px;">
-      <div class="card-head"><h3>Lesson Info</h3></div>
-      <div style="padding:14px 18px;display:flex;flex-direction:column;gap:10px;">
-        <div style="display:flex;align-items:center;gap:10px;">
-          <label style="font-size:13px;color:var(--text2);min-width:120px;">Topic:</label>
-          <input id="g-topic" style="flex:1;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Today's topic...">
-        </div>
-        <div style="display:flex;align-items:center;gap:10px;">
-          <label style="font-size:13px;color:var(--text2);min-width:120px;">Homework:</label>
-          <input id="g-hw" style="flex:1;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Homework...">
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3 id="g-title">Grades</h3><button class="btn btn-p" onclick="saveGradeTable()">✓ Save</button></div>
-      <div style="overflow-x:auto;"><table id="g-table"></table></div>
-    </div>
-  </div>`;
+// ── GRADES ──
+function buildGR(){
+  const sjs=subjs();
+  const ss=sjs.length>1?'<label>Subject:</label><select id="gss" onchange="sSubj=this.value;sLes=1;rfGR()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>':'';
+  return'<div class="pg" id="gr">'
+    +'<div class="pt">Grades</div><div class="ps">Enter grades per lesson</div>'
+    +'<div class="sr">'
+    +'<label>Class:</label><select id="gcl" onchange="sCls=this.value;sLes=1;rfGR()">'+(CU.classes||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Date:</label><select id="gdt" onchange="sDate=this.value;sLes=1;rfGR()" style="min-width:155px"><option>Loading...</option></select>'
+    +ss
+    +'<span id="glw" style="display:none"><label>Lesson:</label><select id="gls" onchange="sLes=parseInt(this.value);rfGR()"><option value="1">Lesson 1</option><option value="2">Lesson 2</option></select></span>'
+    +'</div>'
+    +'<div class="cd" style="margin-bottom:12px"><div class="cdh"><h3>Lesson Info</h3></div>'
+    +'<div style="padding:12px 16px;display:flex;flex-direction:column;gap:9px">'
+    +'<div style="display:flex;align-items:center;gap:9px"><label style="font-size:12px;color:var(--txt2);min-width:90px">Topic:</label><input id="gtp" style="flex:1;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Topic..."></div>'
+    +'<div style="display:flex;align-items:center;gap:9px"><label style="font-size:12px;color:var(--txt2);min-width:90px">Homework:</label><input id="ghw" style="flex:1;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Homework..."></div>'
+    +'</div></div>'
+    +'<div class="cd"><div class="cdh"><h3 id="gtit">Grades</h3><button class="btn bp2" onclick="svGR()">✓ Save</button></div>'
+    +'<div style="overflow-x:auto"><table id="gtbl"></table></div></div>'
+    +'</div>';
 }
 
-function getDatesForTeacher(cls){
-  const subj=selSubj||getSubjs()[0]||'';
-  const dayMap={'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5};
-  const clsSched=SCHED[cls]||{};
-  const allowedDays=new Set();
-  // Check week-based schedule
-  Object.values(clsSched).forEach(wk=>{
-    if(typeof wk==='object'&&!Array.isArray(wk)){
+function getDates(cls){
+  const sj=sSubj||subjs()[0]||'';
+  const dk2n={'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5};
+  const clsc=SC[cls]||{};
+  const allowed=new Set();
+  Object.values(clsc).forEach(wk=>{
+    if(wk&&typeof wk==='object'&&!Array.isArray(wk)){
       ['Mon','Tue','Wed','Thu','Fri'].forEach(dk=>{
-        const lessons=wk[dk]||[];
-        if(lessons.some(l=>l.sub===subj||l.sub.toLowerCase().includes(subj.toLowerCase())||subj.toLowerCase().includes(l.sub.toLowerCase())))
-          allowedDays.add(dayMap[dk]);
+        const ls=wk[dk]||[];
+        if(ls.some(l=>matchSubj(l.sub,sj)))allowed.add(dk2n[dk]);
       });
     }
   });
-  // Old format
   ['Mon','Tue','Wed','Thu','Fri'].forEach(dk=>{
-    const lessons=Array.isArray(clsSched[dk])?clsSched[dk]:[];
-    if(lessons.some(l=>l.sub===subj||l.sub.toLowerCase().includes(subj.toLowerCase())||subj.toLowerCase().includes(l.sub.toLowerCase())))
-      allowedDays.add(dayMap[dk]);
+    const ls=Array.isArray(clsc[dk])?clsc[dk]:[];
+    if(ls.some(l=>matchSubj(l.sub,sj)))allowed.add(dk2n[dk]);
   });
-  const dates=[];
-  const d=new Date();
-  let tries=0;
-  while(dates.length<60&&tries<365){
-    if(allowedDays.size===0?(d.getDay()>=1&&d.getDay()<=5):allowedDays.has(d.getDay()))
-      dates.push(dateToStr(d));
-    d.setDate(d.getDate()-1);tries++;
+  const dates=[];const d=new Date();let tr=0;
+  while(dates.length<60&&tr<365){
+    if(d.getDay()>=1&&d.getDay()<=5){
+      if(allowed.size===0||allowed.has(d.getDay()))dates.push(d2s(d));
+    }
+    d.setDate(d.getDate()-1);tr++;
   }
   return dates;
 }
 
-function countSubjInDay(cls,date,subj){
+function matchSubj(a,b){
+  if(!a||!b)return false;
+  return a===b||a.toLowerCase().includes(b.toLowerCase())||b.toLowerCase().includes(a.toLowerCase());
+}
+
+function cntSubjDay(cls,date,sj){
   const d=new Date(date);
-  const dk=['','Mon','Tue','Wed','Thu','Fri'][d.getDay()]||'';
-  if(!dk)return 1;
-  const wkStart=getWeekStart(d);
-  const weekSched=SCHED[cls]&&SCHED[cls][wkStart];
-  const lessons=(weekSched&&weekSched[dk])||(Array.isArray(SCHED[cls]&&SCHED[cls][dk])?SCHED[cls][dk]:[])||[];
-  const subj2=selSubj||getSubjs()[0]||'';
-  return lessons.filter(l=>l.sub===subj2||l.sub.toLowerCase().includes(subj2.toLowerCase())||subj2.toLowerCase().includes(l.sub.toLowerCase())).length;
+  const dkm=['','Mon','Tue','Wed','Thu','Fri'];
+  const dk=dkm[d.getDay()]||'';if(!dk)return 1;
+  const ws=wkStart(d);
+  const wsched=SC[cls]&&SC[cls][ws];
+  const ls=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
+  return ls.filter(l=>matchSubj(l.sub,sj)).length;
 }
 
-function getLessonKey(date){return selLesson>1?`${date}-L${selLesson}`:date;}
+function lKey(date){return sLes>1?date+'-L'+sLes:date}
 
-function refreshGradeTable(){
-  const cls=selCls;
-  const subj=selSubj||getSubjs()[0]||'';
-  // Populate date select
-  const dates=getDatesForTeacher(cls);
-  const dsel=$('g-date');
+function rfGR(){
+  const cls=sCls,sj=sSubj||subjs()[0]||'';
+  const dates=getDates(cls);
+  const dsel=$('gdt');
   if(dsel){
-    const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    dsel.innerHTML=dates.map(d=>{
-      const dt=new Date(d);
-      return`<option value="${d}" ${d===selDate?'selected':''}>${DN[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]} ${dt.getFullYear()}</option>`;
-    }).join('');
-    if(!dates.includes(selDate)&&dates.length)selDate=dates[0];
+    const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    dsel.innerHTML=dates.map(d=>{const dt=new Date(d);return'<option value="'+d+'"'+(d===sDate?' selected':'')+'>'+DN[dt.getDay()]+' '+dt.getDate()+' '+MN[dt.getMonth()]+' '+dt.getFullYear()+'</option>'}).join('');
+    if(!dates.includes(sDate)&&dates.length)sDate=dates[0];
+    if(dsel.value)sDate=dsel.value;
   }
-  // Lesson selector
-  const cnt=countSubjInDay(cls,selDate,subj);
-  const wrap=$('lesson-wrap');
-  if(wrap)wrap.style.display=cnt>=2?'inline-flex':'none';
-  if(cnt<2)selLesson=1;
-  const lk=getLessonKey(selDate);
-  const students=DB.classes[cls]||[];
-  const title=$('g-title');
-  if(title)title.textContent=`${cls} · ${subj} · ${formatDate(selDate)}${selLesson>1?' (Lesson '+selLesson+')':''}`;
-  const li=LESSON_INFO[cls]&&LESSON_INFO[cls][subj]&&LESSON_INFO[cls][subj][lk]?LESSON_INFO[cls][subj][lk]:{};
-  const tp=$('g-topic'),hw=$('g-hw');
+  const cnt=cntSubjDay(cls,sDate,sj);
+  const glw=$('glw');if(glw)glw.style.display=cnt>=2?'inline-flex':'none';
+  if(cnt<2)sLes=1;
+  const lk=lKey(sDate);
+  const sts=DB.classes[cls]||[];
+  const tt=$('gtit');if(tt)tt.textContent=cls+' · '+sj+' · '+fmtD(sDate)+(sLes>1?' (Lesson '+sLes+')':'');
+  const li=(LI[cls]&&LI[cls][sj])?LI[cls][sj][lk]||{}:{};
+  const tp=$('gtp'),hw=$('ghw');
   if(tp)tp.value=li.topic||'';if(hw)hw.value=li.homework||'';
-  const tbl=$('g-table');
-  if(!tbl)return;
-  tbl.innerHTML=`<thead><tr><th>Student</th><th>Grade (1-10)</th></tr></thead><tbody>
-    ${students.map((st,i)=>{
-      const g=GRADES[cls]&&GRADES[cls][st]&&GRADES[cls][st][subj]?GRADES[cls][st][subj][lk]||'':'';
-      return`<tr><td><div class="tf"><div class="av av-b">${initials(st)}</div>${st}</div></td>
-        <td><div style="display:flex;align-items:center;gap:6px;">
-          <input class="gi" type="number" min="1" max="10" value="${g}" id="gi-${i}" placeholder="—">
-          ${g?`<button onclick="clearGi(${i})" style="background:none;border:none;color:var(--text3);cursor:pointer;font-size:14px;">✕</button>`:''}
-        </div></td></tr>`;
-    }).join('')}
-  </tbody>`;
+  const tbl=$('gtbl');if(!tbl)return;
+  tbl.innerHTML='<thead><tr><th>Student</th><th>Grade (1–10)</th></tr></thead><tbody>'
+    +sts.map((st,i)=>{
+      const g=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj])?GR[cls][st][sj][lk]||'':'';
+      return'<tr><td><div class="tf"><div class="av avb">'+ini(st)+'</div>'+st+'</div></td>'
+        +'<td><div style="display:flex;align-items:center;gap:6px">'
+        +'<input class="gi" type="number" min="1" max="10" value="'+g+'" id="gi'+i+'" placeholder="—">'
+        +(g?'<button onclick="clrG('+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:13px">✕</button>':'')
+        +'</div></td></tr>';
+    }).join('')+'</tbody>';
 }
 
-function clearGi(i){const el=$(`gi-${i}`);if(el){el.value='';el.nextElementSibling?.remove();}}
+function clrG(i){const e=$('gi'+i);if(e){e.value='';const nx=e.nextElementSibling;if(nx&&nx.tagName==='BUTTON')nx.remove()}}
 
-async function saveGradeTable(){
-  const cls=selCls,subj=selSubj||getSubjs()[0]||'',lk=getLessonKey(selDate);
-  if(!GRADES[cls])GRADES[cls]={};
+async function svGR(){
+  const cls=sCls,sj=sSubj||subjs()[0]||'',lk=lKey(sDate);
+  if(!GR[cls])GR[cls]={};
   (DB.classes[cls]||[]).forEach((st,i)=>{
-    const v=$(`gi-${i}`)?.value;
-    if(!GRADES[cls][st])GRADES[cls][st]={};
-    if(!GRADES[cls][st][subj])GRADES[cls][st][subj]={};
-    if(v&&parseInt(v)>=1&&parseInt(v)<=10)GRADES[cls][st][subj][lk]=parseInt(v);
-    else delete GRADES[cls][st][subj][lk];
+    const v=$('gi'+i)?.value;
+    if(!GR[cls][st])GR[cls][st]={};
+    if(!GR[cls][st][sj])GR[cls][st][sj]={};
+    if(v&&parseInt(v)>=1&&parseInt(v)<=10)GR[cls][st][sj][lk]=parseInt(v);
+    else delete GR[cls][st][sj][lk];
   });
-  const topic=$('g-topic')?.value||'',hw=$('g-hw')?.value||'';
-  if(!LESSON_INFO[cls])LESSON_INFO[cls]={};
-  if(!LESSON_INFO[cls][subj])LESSON_INFO[cls][subj]={};
-  LESSON_INFO[cls][subj][lk]={topic,homework:hw};
-  showLoad('Saving...');await saveGrades();hideLoad();flash();
+  const tp=$('gtp')?.value||'',hw=$('ghw')?.value||'';
+  if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};
+  LI[cls][sj][lk]={topic:tp,homework:hw};
+  sLoad('Saving...');await svGrades();hLoad();flash();
 }
 
-// ===================== TEACHER - ATTENDANCE =====================
-function buildAttendance(){
-  return`<div class="page" id="attendance">
-    <div class="ptitle">Attendance</div>
-    <div class="psub">Mark daily attendance</div>
-    <div class="sel-row">
-      <label>Class:</label>
-      <select id="a-cls" onchange="selCls=this.value;refreshAttTable()">
-        ${(CU.classes||[]).map(c=>`<option value="${c}">${c}</option>`).join('')}
-      </select>
-      <label>Date:</label>
-      <select id="a-date" onchange="selDate=this.value;refreshAttTable()" style="min-width:160px;"><option>Loading...</option></select>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Attendance</h3><button class="btn btn-p" onclick="saveAtt().then(flash)">✓ Save</button></div>
-      <table id="a-table"></table>
-    </div>
-  </div>`;
+// ── ATTENDANCE ──
+function buildAtt(){
+  return'<div class="pg" id="att">'
+    +'<div class="pt">Attendance</div><div class="ps">Mark daily attendance</div>'
+    +'<div class="sr">'
+    +'<label>Class:</label><select id="acl" onchange="sCls=this.value;rfAtt()">'+(CU.classes||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Date:</label><select id="adt" onchange="sDate=this.value;rfAtt()" style="min-width:155px"><option>Loading...</option></select>'
+    +'</div>'
+    +'<div class="cd"><div class="cdh"><h3>Attendance</h3><button class="btn bp2" onclick="svAtt().then(flash)">✓ Save</button></div>'
+    +'<table id="atbl"></table></div>'
+    +'</div>';
 }
 
-function refreshAttTable(){
-  const cls=selCls;
-  // Populate date select (last 30 working days)
+function rfAtt(){
+  const cls=sCls;
   const dates=[];const d=new Date();
-  for(let i=0;i<60&&dates.length<30;i++){if(d.getDay()>=1&&d.getDay()<=5)dates.push(dateToStr(d));d.setDate(d.getDate()-1);}
-  const dsel=$('a-date');
+  for(let i=0;i<90&&dates.length<30;i++){if(d.getDay()>=1&&d.getDay()<=5)dates.push(d2s(d));d.setDate(d.getDate()-1)}
+  const dsel=$('adt');
   if(dsel){
-    const M=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    dsel.innerHTML=dates.map(d=>{const dt=new Date(d);return`<option value="${d}" ${d===selDate?'selected':''}>${DN[dt.getDay()]} ${dt.getDate()} ${M[dt.getMonth()]}</option>`;}).join('');
-    if(!dates.includes(selDate)&&dates.length)selDate=dates[0];
+    const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    dsel.innerHTML=dates.map(d=>{const dt=new Date(d);return'<option value="'+d+'"'+(d===sDate?' selected':'')+'>'+DN[dt.getDay()]+' '+dt.getDate()+' '+MN[dt.getMonth()]+'</option>'}).join('');
+    if(!dates.includes(sDate)&&dates.length)sDate=dates[0];
+    if(dsel.value)sDate=dsel.value;
   }
-  if(!ATT[cls])ATT[cls]={};
-  if(!ATT[cls][selDate])ATT[cls][selDate]={};
-  const students=DB.classes[cls]||[];
-  const tbl=$('a-table');if(!tbl)return;
-  tbl.innerHTML=`<thead><tr><th>Student</th><th>Status</th></tr></thead><tbody>
-    ${students.map(st=>{
-      const v=ATT[cls][selDate][st]||null;
-      const btn=(val,lbl,clr,tc)=>{
-        const a=v===val;
-        const s=a?`background:rgba(${clr},.15);color:${tc};border:1px solid rgba(${clr},.3);`:`background:var(--surface2);color:var(--text2);border:1px solid var(--border);`;
-        return`<button class="att-btn" onclick="setAtt('${cls}','${selDate}','${st.replace(/'/g,"\\'")}','${val}')" style="${s}">${lbl}</button>`;
-      };
-      return`<tr><td><div class="tf"><div class="av av-b">${initials(st)}</div>${st}</div></td>
-        <td>${btn('present','Present','34,197,94','#4ade80')}${btn('absent','Absent','239,68,68','#f87171')}${btn('late','Late','245,158,11','#fbbf24')}</td></tr>`;
-    }).join('')}
-  </tbody>`;
+  if(!AT[cls])AT[cls]={};if(!AT[cls][sDate])AT[cls][sDate]={};
+  const sts=DB.classes[cls]||[];
+  const tbl=$('atbl');if(!tbl)return;
+  tbl.innerHTML='<thead><tr><th>Student</th><th>Status</th></tr></thead><tbody>'
+    +sts.map(st=>{
+      const v=AT[cls][sDate][st]||null;
+      const mk=(val,lbl,cls2)=>'<button class="ab2'+(v===val?' on '+cls2:'')+'" onclick="setAt(\''+cls+'\',\''+sDate+'\',\''+esc(st)+'\',\''+val+'\')">'+lbl+'</button>';
+      return'<tr><td><div class="tf"><div class="av avb">'+ini(st)+'</div>'+st+'</div></td>'
+        +'<td>'+mk('present','Present','p')+mk('absent','Absent','a')+mk('late','Late','l')+'</td></tr>';
+    }).join('')+'</tbody>';
 }
 
-async function setAtt(cls,date,st,val){
-  if(!ATT[cls])ATT[cls]={};if(!ATT[cls][date])ATT[cls][date]={};
-  ATT[cls][date][st]=val;refreshAttTable();flash();
+function setAt(cls,date,st,val){
+  if(!AT[cls])AT[cls]={};if(!AT[cls][date])AT[cls][date]={};
+  AT[cls][date][st]=val;rfAtt();flash();
 }
 
-// ===================== TEACHER - STUDENTS =====================
-function buildStudents(){
-  return`<div class="page" id="students">
-    <div class="ptitle">Students</div>
-    <div class="psub">My classes</div>
-    ${(CU.classes||[]).map(cls=>`
-      <div class="card">
-        <div class="card-head"><h3>${cls} — ${(DB.classes[cls]||[]).length} students</h3></div>
-        <table><thead><tr><th>Student</th><th>Today</th></tr></thead><tbody>
-          ${(DB.classes[cls]||[]).map(st=>{
-            const att=ATT[cls]&&ATT[cls][getTodayStr()]?ATT[cls][getTodayStr()][st]:null;
-            return`<tr><td><div class="tf"><div class="av av-p">${initials(st)}</div>${st}</div></td>
-              <td>${att?`<span class="badge b-${att}">${att==='present'?'Present':att==='absent'?'Absent':'Late'}</span>`:'—'}</td></tr>`;
-          }).join('')}
-        </tbody></table>
-      </div>`).join('')}
-  </div>`;
+// ── STUDENTS ──
+function buildStu(){
+  const cls=CU.role==='admin'?Object.keys(DB.classes||{}).sort():CU.classes||[];
+  return'<div class="pg" id="stu">'
+    +'<div class="pt">Students</div><div class="ps">Click student for details</div>'
+    +cls.map(c=>'<div class="cd">'
+      +'<div class="cdh"><h3>'+c+' — '+(DB.classes[c]||[]).length+'</h3></div>'
+      +'<table><thead><tr><th>Student</th><th>Today</th></tr></thead><tbody>'
+      +(DB.classes[c]||[]).map(st=>{
+        const a=(AT[c]&&AT[c][tod()])?AT[c][tod()][st]:null;
+        return'<tr style="cursor:pointer" onclick="stuModal(\''+c+'\',\''+esc(st)+'\')">'
+          +'<td><div class="tf"><div class="av avp">'+ini(st)+'</div>'+st+'</div></td>'
+          +'<td>'+(a?'<span class="badge b'+a.charAt(0)+'">'+cap(a)+'</span>':'—')+'</td></tr>';
+      }).join('')
+      +'</tbody></table></div>'
+    ).join('')+'</div>';
 }
 
-// ===================== HOMEROOM =====================
-function buildHomeroom(){
-  const cls=CU.homeroom;
-  if(!cls)return'<div class="page" id="homeroom"></div>';
-  const students=DB.classes[cls]||[];
-  const today=getTodayStr();
-  const attData=ATT[cls]||{};
-  const absCounts={};students.forEach(st=>absCounts[st]=0);
-  Object.values(attData).forEach(day=>Object.entries(day).forEach(([st,v])=>{if(v==='absent'&&absCounts[st]!==undefined)absCounts[st]++;}));
-  return`<div class="page" id="homeroom">
-    <div class="ptitle">🏠 Homeroom — ${cls}</div>
-    <div class="psub">Click a student to see full details</div>
-    <div class="card">
-      <table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th></tr></thead><tbody>
-        ${students.map(st=>{
-          const todayAtt=attData[today]?attData[today][st]:null;
-          return`<tr style="cursor:pointer;" onclick="showStudentModal('${cls}','${st.replace(/'/g,"\\'")}')">
-            <td><div class="tf"><div class="av av-p">${initials(st)}</div><b>${st}</b></div></td>
-            <td>${todayAtt?`<span class="badge b-${todayAtt}">${todayAtt==='present'?'Present':todayAtt==='absent'?'Absent':'Late'}</span>`:'—'}</td>
-            <td>${absCounts[st]>0?`<span class="badge b-absent">${absCounts[st]}</span>`:'<span class="badge b-present">0</span>'}</td>
-          </tr>`;
-        }).join('')}
-      </tbody></table>
-    </div>
-  </div>`;
+// ── HOMEROOM ──
+function buildHR(){
+  const cls=CU.homeroom;if(!cls)return'<div class="pg" id="hr"></div>';
+  const sts=DB.classes[cls]||[];
+  const t=tod(),ad=AT[cls]||{};
+  const ac={};sts.forEach(s=>{ac[s]=0});
+  Object.values(ad).forEach(d=>Object.entries(d).forEach(([s,v])=>{if(v==='absent'&&ac[s]!==undefined)ac[s]++}));
+  return'<div class="pg" id="hr"><div class="pt">🏠 Homeroom — '+cls+'</div>'
+    +'<div class="ps">Click student for full details</div>'
+    +'<div class="cd"><table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th></tr></thead><tbody>'
+    +sts.map(st=>{
+      const ta=ad[t]?ad[t][st]:null;
+      const tb=ta?'<span class="badge b'+ta.charAt(0)+'">'+cap(ta)+'</span>':'—';
+      const ab=ac[st]>0?'<span class="badge ba">'+ac[st]+'</span>':'<span class="badge bp">0</span>';
+      return'<tr style="cursor:pointer" onclick="stuModal(\''+cls+'\',\''+esc(st)+'\')"><td><div class="tf"><div class="av avp">'+ini(st)+'</div><b>'+st+'</b></div></td><td>'+tb+'</td><td>'+ab+'</td></tr>';
+    }).join('')+'</tbody></table></div></div>';
 }
 
-// ===================== STUDENT MODAL =====================
-function showStudentModal(cls,st){
-  const isAdmin=CU.role==='admin';
-  const allG=GRADES[cls]&&GRADES[cls][st]?GRADES[cls][st]:{};
-  const visG=isAdmin?allG:Object.fromEntries(Object.entries(allG).filter(([subj])=>getSubjs().some(s=>s===subj||subj.toLowerCase().includes(s.toLowerCase())||s.toLowerCase().includes(subj.toLowerCase()))));
-  const attData=ATT[cls]||{};
-  let abs=0,late=0;const absDates=[];
-  Object.entries(attData).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,day])=>{
-    if(day[st]==='absent'){abs++;absDates.push({date,v:'absent'});}
-    if(day[st]==='late'){late++;absDates.push({date,v:'late'});}
+// ── STUDENT DETAIL MODAL ──
+function stuModal(cls,st){
+  const isAdm=CU.role==='admin';
+  const allG=(GR[cls]&&GR[cls][st])?GR[cls][st]:{};
+  const visG=isAdm?allG:Object.fromEntries(Object.entries(allG).filter(([sj])=>subjs().some(s=>matchSubj(sj,s))));
+  const ad=AT[cls]||{};
+  let ab=0,lt=0;const abd=[];
+  Object.entries(ad).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,day])=>{
+    if(day[st]==='absent'){ab++;abd.push({d:date,v:'absent'})}
+    if(day[st]==='late'){lt++;abd.push({d:date,v:'late'})}
   });
-  const gradesHtml=Object.entries(visG).map(([subj,dates])=>{
+  const gRows=Object.entries(visG).map(([sj,dates])=>{
     const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
     const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
     const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
-      const isL2=d.endsWith('-L2');
-      return`<span style="font-size:11px;color:var(--text2);margin-right:6px;">${formatDate(d)}${isL2?' L2':''}: <span class="badge b-${g}">${g}</span></span>`;
+      const isl=d.endsWith('-L2');
+      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'">'+g+'</span></span>';
     }).join('');
-    return`<tr><td style="font-weight:500;">${subj}</td><td>${ents||'—'}</td><td><span class="badge b-${Math.round(parseFloat(avg))}">${avg}</span></td></tr>`;
+    const avgN=parseFloat(avg);
+    return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td>'+(avg!=='—'?'<span class="badge b'+Math.round(avgN)+'">'+avg+'</span>':avg)+'</td></tr>';
   }).join('');
-  const absHtml=absDates.slice(0,20).map(({date,v})=>`<tr><td>${formatDate(date)}</td><td><span class="badge b-${v}">${v==='absent'?'Absent':'Late'}</span></td></tr>`).join('');
-  const m=document.createElement('div');
-  m.className='modal-wrap';
-  m.innerHTML=`<div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div><h2>${st}</h2><p style="font-size:13px;color:var(--text2);">Class ${cls}</p></div>
-      <button class="modal-close" onclick="this.closest('.modal-wrap').remove()">✕ Close</button>
-    </div>
-    <div class="stats-row" style="grid-template-columns:repeat(3,1fr);">
-      <div class="stat-card"><div class="sl">Absent</div><div class="sv">${abs}</div></div>
-      <div class="stat-card"><div class="sl">Late</div><div class="sv">${late}</div></div>
-      <div class="stat-card"><div class="sl">Subjects</div><div class="sv">${Object.keys(visG).length}</div></div>
-    </div>
-    <div class="card" style="margin-bottom:14px;">
-      <div class="card-head"><h3>Grades</h3></div>
-      <table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead>
-      <tbody>${gradesHtml||'<tr><td colspan="3" style="text-align:center;color:var(--text3);padding:20px;">No grades yet</td></tr>'}</tbody></table>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Absences</h3></div>
-      <table><thead><tr><th>Date</th><th>Status</th></tr></thead>
-      <tbody>${absHtml||'<tr><td colspan="2" style="text-align:center;color:var(--text3);padding:20px;">No absences</td></tr>'}</tbody></table>
-    </div>
-  </div>`;
+  const aRows=abd.slice(0,20).map(({d,v})=>'<tr><td>'+fmtD(d)+'</td><td><span class="badge b'+v.charAt(0)+'">'+cap(v)+'</span></td></tr>').join('');
+  const avgAll=Object.values(visG).flatMap(d=>Object.values(d).filter(v=>typeof v==='number'));
+  const avgTot=avgAll.length?(avgAll.reduce((a,b)=>a+b,0)/avgAll.length).toFixed(1):'—';
+  const m=document.createElement('div');m.className='mw';
+  m.innerHTML='<div class="md">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<div><div style="font-size:17px;font-weight:700">'+st+'</div><div style="font-size:12px;color:var(--txt2)">Class '+cls+'</div></div>'
+    +'<button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">✕ Close</button>'
+    +'</div>'
+    +'<div class="srow" style="grid-template-columns:repeat(3,1fr)">'
+    +'<div class="sc"><div class="sl">Absent</div><div class="sv" style="color:var(--red)">'+ab+'</div></div>'
+    +'<div class="sc"><div class="sl">Late</div><div class="sv" style="color:var(--amb)">'+lt+'</div></div>'
+    +'<div class="sc"><div class="sl">Avg Grade</div><div class="sv">'+avgTot+'</div></div>'
+    +'</div>'
+    +'<div class="cd" style="margin-bottom:12px"><div class="cdh"><h3>Grades by Subject</h3></div>'
+    +'<table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
+    +(gRows||'<tr><td colspan="3" style="text-align:center;color:var(--txt3);padding:16px">No grades yet</td></tr>')
+    +'</tbody></table></div>'
+    +'<div class="cd"><div class="cdh"><h3>Absences</h3></div>'
+    +'<table><thead><tr><th>Date</th><th>Status</th></tr></thead><tbody>'
+    +(aRows||'<tr><td colspan="2" style="text-align:center;color:var(--txt3);padding:16px">No absences</td></tr>')
+    +'</tbody></table></div>'
+    +'</div>';
   document.body.appendChild(m);
-  m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+  m.addEventListener('click',e=>{if(e.target===m)m.remove()});
 }
 
-// ===================== STUDENT - DIARY =====================
-function buildDiary(){
-  const now=new Date();
-  const ay=now.getMonth()>=8?`${now.getFullYear()}-${now.getFullYear()+1}`:`${now.getFullYear()-1}-${now.getFullYear()}`;
-  const months=getMonthsForYear(ay);
-  const curM=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const years=[];
-  const curY=now.getFullYear();
-  for(let y=curY+1;y>=curY-3;y--)years.push(`${y-1}-${y}`);
-  return`<div class="page" id="diary">
-    <div class="ptitle">📖 My Diary</div>
-    <div class="psub" id="diary-sub"></div>
-    <div class="sel-row" style="margin-bottom:16px;">
-      <label>Year:</label>
-      <select id="d-year" onchange="onDiaryYear()">
-        ${years.map(y=>`<option value="${y}" ${y===ay?'selected':''}>${y}</option>`).join('')}
-      </select>
-      <label>Month:</label>
-      <select id="d-month" onchange="onDiaryMonth()">
-        ${months.map(m=>`<option value="${m.val}" ${m.val===curM?'selected':''}>${m.label}</option>`).join('')}
-      </select>
-      <label>Week:</label>
-      <select id="d-week" onchange="renderDiary()"><option>Loading...</option></select>
-    </div>
-    <div id="diary-content"></div>
-  </div>`;
+// ── DIARY ──
+function buildDi(){
+  const n=new Date(),ay=curAY(),ms=getMonths(ay);
+  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
+  const ys=[];const cy=n.getFullYear();
+  for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
+  return'<div class="pg" id="di">'
+    +'<div class="pt">📖 My Diary</div><div class="ps" id="dis"></div>'
+    +'<div class="sr">'
+    +'<label>Year:</label><select id="diy" onchange="onDiY()">'
+    +ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+    +'<label>Month:</label><select id="dim" onchange="onDiM()">'
+    +ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'<label>Week:</label><select id="diw" onchange="rfDi()"><option>Loading...</option></select>'
+    +'</div>'
+    +'<div id="dic"></div>'
+    +'</div>';
 }
-
-function initDiary(){
-  const cls=CU.class||CU.studentClass||'';
-  const name=CU.name||'';
-  const sub=$('diary-sub');if(sub)sub.textContent=`${name} · Class ${cls}`;
-  window._dCls=cls;window._dName=name;
-  onDiaryMonth();
+function initDi(){
+  const cls=CU.class||CU.studentClass||'',nm=CU.name||'';
+  const ds=$('dis');if(ds)ds.textContent=nm+' · Class '+cls;
+  window._dc=cls;window._dn=nm;
+  onDiM();
 }
-
-function onDiaryYear(){
-  const ay=$('d-year').value;
-  const months=getMonthsForYear(ay);
-  const sel=$('d-month');
-  sel.innerHTML=months.map(m=>`<option value="${m.val}">${m.label}</option>`).join('');
-  onDiaryMonth();
+function onDiY(){
+  const ay=$('diy').value,ms=getMonths(ay);
+  $('dim').innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
+  onDiM();
 }
-
-function onDiaryMonth(){
-  const monthVal=$('d-month').value;
-  const weeks=getWeeksOfMonth(monthVal);
-  const wsel=$('d-week');
-  const today=getTodayStr();
-  wsel.innerHTML=weeks.map((w,i)=>`<option value="${i}">${w.label}</option>`).join('');
-  // Select current week
-  const ci=weeks.findIndex(w=>w.days.some(d=>dateToStr(d)===today));
-  if(ci>=0)wsel.value=ci;
-  renderDiary();
+function onDiM(){
+  const mv=$('dim').value,wks=getWeeks(mv);
+  const ws=$('diw');
+  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)ws.value=ci;
+  rfDi();
 }
-
-function renderDiary(){
-  const cls=window._dCls,name=window._dName;
-  const monthVal=$('d-month').value;
-  const wi=parseInt($('d-week').value)||0;
-  const weeks=getWeeksOfMonth(monthVal);
-  const wk=weeks[wi];
-  const content=$('diary-content');
-  if(!wk||!content){return;}
+function rfDi(){
+  const cls=window._dc,nm=window._dn;
+  const mv=$('dim').value,wi=parseInt($('diw').value)||0;
+  const wk=getWeeks(mv)[wi];
+  const cont=$('dic');if(!wk||!cont)return;
   const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
   const DN=['Monday','Tuesday','Wednesday','Thursday','Friday'];
   const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  content.innerHTML=wk.days.map(day=>{
-    const ds=dateToStr(day),dk=DK[day.getDay()];
-    const wkStart=getWeekStart(day);
-    const weekSched=SCHED[cls]&&SCHED[cls][wkStart];
-    const sched=(weekSched&&weekSched[dk])||(Array.isArray(SCHED[cls]&&SCHED[cls][dk])?SCHED[cls][dk]:[])||[];
-    const att=ATT[cls]&&ATT[cls][ds]?ATT[cls][ds][name]:null;
-    return`<div class="card" style="margin-bottom:12px;">
-      <div class="diary-day-head">
-        <span>${DN[day.getDay()-1]}, ${day.getDate()} ${MN[day.getMonth()]} ${day.getFullYear()}</span>
-        ${att?`<span class="badge b-${att}">${att==='present'?'Present':att==='absent'?'Absent':'Late'}</span>`:''}
-      </div>
-      <table><thead><tr><th style="width:32px;">#</th><th>Subject</th><th style="width:80px;text-align:center;">Grade</th></tr></thead>
-      <tbody>
-        ${sched.length?sched.map((les,i)=>{
-          const sg=GRADES[cls]&&GRADES[cls][name]&&GRADES[cls][name][les.sub]?GRADES[cls][name][les.sub]:{};
-          const g=sg[ds]||'',g2=sg[ds+'-L2']||'';
-          const info=LESSON_INFO[cls]&&LESSON_INFO[cls][les.sub]&&LESSON_INFO[cls][les.sub][ds]?LESSON_INFO[cls][les.sub][ds]:{};
-          const hasInfo=info.topic||info.homework;
-          const iid=`info-${ds}-${i}`;
-          return`<tr><td style="font-size:11px;color:var(--text3);">${i+1}</td>
-            <td>
-              <div style="display:flex;align-items:center;gap:8px;">
-                <span style="font-size:13px;font-weight:500;">${les.sub}</span>
-                ${hasInfo?`<button onclick="toggleInfo('${iid}')" style="background:none;border:1px solid var(--border);border-radius:5px;padding:1px 6px;font-size:10px;color:var(--text2);cursor:pointer;">ℹ</button>`:''}
-              </div>
-              <div id="${iid}" style="display:none;margin-top:4px;">
-                ${info.topic?`<div style="font-size:11px;color:var(--text2);">📖 ${info.topic}</div>`:''}
-                ${info.homework?`<div style="font-size:11px;color:var(--amber);">✏️ ${info.homework}</div>`:''}
-              </div>
-            </td>
-            <td style="text-align:center;">
-              ${g?`<span class="badge b-${g}">${g}</span>`:'<span style="color:var(--text3);">—</span>'}
-              ${g2?`<span class="badge b-${g2}" style="margin-left:3px;">${g2}</span>`:''}
-            </td></tr>`;
-        }).join(''):`<tr><td colspan="3" style="padding:12px;text-align:center;color:var(--text3);font-size:12px;">No lessons scheduled</td></tr>`}
-      </tbody></table>
-    </div>`;
+  cont.innerHTML=wk.days.map(day=>{
+    const ds=d2s(day),dk=DK[day.getDay()];
+    const ws=wkStart(day);
+    const wsched=SC[cls]&&SC[cls][ws];
+    const sched=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
+    const att=(AT[cls]&&AT[cls][ds])?AT[cls][ds][nm]:null;
+    const lesRows=sched.length?sched.map((les,i)=>{
+      const sg=(GR[cls]&&GR[cls][nm]&&GR[cls][nm][les.sub])?GR[cls][nm][les.sub]:{};
+      const g=sg[ds]||'',g2=sg[ds+'-L2']||'';
+      const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
+      const hi=inf.topic||inf.homework;
+      const iid='inf'+ds.replace(/-/g,'')+i;
+      return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
+        +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
+        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
+        +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
+        +'</div></td>'
+        +'<td style="text-align:center">'+(g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
+        +(g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
+    return'<div class="cd" style="margin-bottom:11px">'
+      +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
+      +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
+      +'<table><thead><tr><th style="width:28px">#</th><th>Subject</th><th style="width:80px;text-align:center">Grade</th></tr></thead>'
+      +'<tbody>'+lesRows+'</tbody></table></div>';
   }).join('');
 }
+function tgInf(id){const e=$(id);if(e)e.style.display=e.style.display==='none'?'block':'none'}
 
-function toggleInfo(id){const el=$(id);if(el)el.style.display=el.style.display==='none'?'block':'none';}
-
-// ===================== STUDENT - MY GRADES =====================
-function buildMyGrades(){
-  return`<div class="page" id="mygrades">
-    <div class="ptitle">⭐ My Grades</div>
-    <div class="psub">Academic overview</div>
-    <div id="mg-content"></div>
-  </div>`;
-}
-function renderMyGrades(){
-  const cls=CU.class||CU.studentClass||'',name=CU.name||'';
-  const subG=GRADES[cls]&&GRADES[cls][name]?GRADES[cls][name]:{};
-  const content=$('mg-content');if(!content)return;
-  if(!Object.keys(subG).length){content.innerHTML='<p style="color:var(--text3);padding:20px;">No grades recorded yet.</p>';return;}
-  content.innerHTML=`<div class="card"><table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>
-    ${Object.entries(subG).map(([subj,dates])=>{
+// ── MY GRADES ──
+function buildMG(){return'<div class="pg" id="mg"><div class="pt">⭐ My Grades</div><div class="ps">Academic overview</div><div id="mgc"></div></div>'}
+function rfMG(){
+  const cls=CU.class||CU.studentClass||'',nm=CU.name||'';
+  const sg=(GR[cls]&&GR[cls][nm])?GR[cls][nm]:{};
+  const c=$('mgc');if(!c)return;
+  if(!Object.keys(sg).length){c.innerHTML='<p style="color:var(--txt3);padding:16px">No grades yet.</p>';return}
+  c.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
+    +Object.entries(sg).map(([sj,dates])=>{
       const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
       const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
       const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
-        const isL2=d.endsWith('-L2');
-        return`<span style="font-size:11px;color:var(--text2);margin-right:6px;">${formatDate(d)}${isL2?' L2':''}: <span class="badge b-${g}">${g}</span></span>`;
+        const isl=d.endsWith('-L2');
+        return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'">'+g+'</span></span>';
       }).join('');
-      return`<tr><td style="font-weight:500;">${subj}</td><td>${ents}</td><td><span class="badge b-${Math.round(parseFloat(avg))}">${avg}</span></td></tr>`;
-    }).join('')}
-  </tbody></table></div>`;
+      const avgN=parseFloat(avg);
+      return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td>'+(avg!=='—'?'<span class="badge b'+Math.round(avgN)+'">'+avg+'</span>':avg)+'</td></tr>';
+    }).join('')+'</tbody></table></div>';
 }
 
-// ===================== ADMIN - DASHBOARD =====================
-function buildAdmDash(){
-  const teachers=Object.values(DB.users||{}).filter(u=>u.role==='teacher');
-  const classes=Object.keys(DB.classes||{}).sort();
-  const today=getTodayStr();
-  let totalAbs=0;
-  classes.forEach(cls=>{if(ATT[cls]&&ATT[cls][today])Object.values(ATT[cls][today]).forEach(v=>{if(v==='absent')totalAbs++;});});
-  return`<div class="page" id="adm-dash">
-    <div class="ptitle">Dashboard</div>
-    <div class="psub">School overview</div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="sl">Teachers</div><div class="sv">${teachers.length}</div></div>
-      <div class="stat-card"><div class="sl">Classes</div><div class="sv">${classes.length}</div></div>
-      <div class="stat-card"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red);">${totalAbs}</div></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>All Classes</h3></div>
-      <table><thead><tr><th>Class</th><th>Students</th><th>Homeroom</th><th>Absent Today</th><th></th></tr></thead><tbody>
-        ${classes.map(cls=>{
-          const sts=DB.classes[cls]||[];
-          const abs=ATT[cls]&&ATT[cls][today]?Object.values(ATT[cls][today]).filter(v=>v==='absent').length:0;
-          const hr=Object.values(DB.users||{}).find(u=>u.role==='teacher'&&u.homeroom===cls);
-          return`<tr>
-            <td style="cursor:pointer;font-weight:600;" onclick="showAdmClass('${cls}')">${cls}</td>
-            <td>${sts.length}</td>
-            <td>${hr?hr.name:'—'}</td>
-            <td>${abs>0?`<span class="badge b-absent">${abs}</span>`:'<span class="badge b-present">0</span>'}</td>
-            <td><button class="btn btn-g" style="font-size:11px;" onclick="showAdmAbsences('${cls}')">📋 Absences</button></td>
-          </tr>`;
-        }).join('')}
-      </tbody></table>
-    </div>
-  </div>`;
-}
-function updatePendingCount(){
-  const cnt=Object.keys(PENDING||{}).length;
-  const el=$('pending-count');if(el)el.textContent=cnt>0?cnt:'';
+// ── ADMIN DASHBOARD ──
+function buildADash(){
+  const tchs=Object.values(DB.users||{}).filter(u=>u.role==='teacher');
+  const cls=Object.keys(DB.classes||{}).sort();
+  const t=tod();let tabs=0;
+  cls.forEach(c=>{if(AT[c]&&AT[c][t])Object.values(AT[c][t]).forEach(v=>{if(v==='absent')tabs++})});
+  const rows=cls.map(c=>{
+    const sts=DB.classes[c]||[];
+    const ab=AT[c]&&AT[c][t]?Object.values(AT[c][t]).filter(v=>v==='absent').length:0;
+    const hr=Object.values(DB.users||{}).find(u=>u.role==='teacher'&&u.homeroom===c);
+    return'<tr>'
+      +'<td style="cursor:pointer;font-weight:600" onclick="showClsModal(\''+c+'\')">'+c+'</td>'
+      +'<td>'+sts.length+'</td>'
+      +'<td>'+(hr?'<div class="tf"><div class="av avb">'+ini(hr.name)+'</div>'+hr.name+'</div>':'—')+'</td>'
+      +'<td>'+(ab>0?'<span class="badge ba">'+ab+'</span>':'<span class="badge bp">0</span>')+'</td>'
+      +'<td><button class="btn bg2" style="font-size:11px" onclick="showAbsModal(\''+c+'\')">📋 Absences</button></td>'
+      +'</tr>';
+  }).join('');
+  return'<div class="pg" id="adash"><div class="pt">Dashboard</div><div class="ps">School overview</div>'
+    +'<div class="srow"><div class="sc"><div class="sl">Teachers</div><div class="sv">'+tchs.length+'</div></div>'
+    +'<div class="sc"><div class="sl">Classes</div><div class="sv">'+cls.length+'</div></div>'
+    +'<div class="sc"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red)">'+tabs+'</div></div></div>'
+    +'<div class="cd"><div class="cdh"><h3>All Classes — click to view</h3></div>'
+    +'<table><thead><tr><th>Class</th><th>Students</th><th>Homeroom</th><th>Absent Today</th><th></th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div></div>';
 }
 
-function showAdmClass(cls){
-  const students=DB.classes[cls]||[];
-  const today=getTodayStr();
-  const m=document.createElement('div');m.className='modal-wrap';
-  m.innerHTML=`<div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2>Class ${cls}</h2>
-      <button class="modal-close" onclick="this.closest('.modal-wrap').remove()">✕</button>
-    </div>
-    <div class="card">
-      <table><thead><tr><th>Student</th><th>Today</th><th>Absences</th></tr></thead><tbody>
-        ${students.map(st=>{
-          const att=ATT[cls]&&ATT[cls][today]?ATT[cls][today][st]:null;
-          let abs=0;Object.values(ATT[cls]||{}).forEach(d=>{if(d[st]==='absent')abs++;});
-          return`<tr style="cursor:pointer;" onclick="this.closest('.modal-wrap').remove();showStudentModal('${cls}','${st.replace(/'/g,"\\'")}')">
-            <td><div class="tf"><div class="av av-p">${initials(st)}</div>${st}</div></td>
-            <td>${att?`<span class="badge b-${att}">${att==='present'?'P':att==='absent'?'A':'L'}</span>`:'—'}</td>
-            <td>${abs>0?`<span class="badge b-absent">${abs}</span>`:'0'}</td>
-          </tr>`;
-        }).join('')}
-      </tbody></table>
-    </div>
-  </div>`;
-  document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+function showClsModal(cls){
+  const sts=DB.classes[cls]||[],t=tod(),ad=AT[cls]||{};
+  const rows=sts.map(st=>{
+    const ta=ad[t]?ad[t][st]:null;
+    let ab=0;Object.values(ad).forEach(d=>{if(d[st]==='absent')ab++});
+    return'<tr style="cursor:pointer" onclick="this.closest(\'.mw\').remove();stuModal(\''+cls+'\',\''+esc(st)+'\')">'
+      +'<td><div class="tf"><div class="av avp">'+ini(st)+'</div>'+st+'</div></td>'
+      +'<td>'+(ta?'<span class="badge b'+ta.charAt(0)+'">'+cap(ta)+'</span>':'—')+'</td>'
+      +'<td>'+(ab>0?'<span class="badge ba">'+ab+'</span>':'0')+'</td></tr>';
+  }).join('');
+  mkModal('<h2 style="font-size:16px;font-weight:700;margin-bottom:14px">Class '+cls+' — '+sts.length+' students</h2>'
+    +'<div class="cd"><table><thead><tr><th>Student</th><th>Today</th><th>Absences</th></tr></thead><tbody>'+(rows||'<tr><td colspan="3" style="text-align:center;padding:14px;color:var(--txt3)">Empty class</td></tr>')+'</tbody></table></div>');
 }
 
-function showAdmAbsences(cls){
-  const students=DB.classes[cls]||[];
-  const sum={};students.forEach(st=>sum[st]={abs:0,late:0,last:''});
-  Object.entries(ATT[cls]||{}).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([date,day])=>{
-    Object.entries(day).forEach(([st,v])=>{
-      if(!sum[st])return;
-      if(v==='absent'){sum[st].abs++;if(!sum[st].last)sum[st].last=date;}
-      if(v==='late')sum[st].late++;
+function showAbsModal(cls){
+  const sts=DB.classes[cls]||[],sum={};
+  sts.forEach(s=>{sum[s]={ab:0,lt:0,last:''}});
+  Object.entries(AT[cls]||{}).sort((a,b)=>b[0].localeCompare(a[0])).forEach(([d,day])=>{
+    Object.entries(day).forEach(([s,v])=>{
+      if(!sum[s])return;
+      if(v==='absent'){sum[s].ab++;if(!sum[s].last)sum[s].last=d}
+      if(v==='late')sum[s].lt++;
     });
   });
-  const m=document.createElement('div');m.className='modal-wrap';
-  m.innerHTML=`<div class="modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h2>Absences — ${cls}</h2>
-      <button class="modal-close" onclick="this.closest('.modal-wrap').remove()">✕</button>
-    </div>
-    <div class="card"><table><thead><tr><th>Student</th><th>Absent</th><th>Late</th><th>Last</th></tr></thead><tbody>
-      ${students.filter(st=>sum[st].abs>0||sum[st].late>0).sort((a,b)=>(sum[b].abs+sum[b].late)-(sum[a].abs+sum[a].late)).map(st=>
-        `<tr><td><div class="tf"><div class="av av-p">${initials(st)}</div>${st}</div></td>
-        <td><span class="badge b-absent">${sum[st].abs}</span></td>
-        <td><span class="badge b-late">${sum[st].late}</span></td>
-        <td style="font-size:12px;color:var(--text2);">${sum[st].last?formatDate(sum[st].last):'—'}</td></tr>`
-      ).join('')||'<tr><td colspan="4" style="text-align:center;color:var(--text3);padding:20px;">No absences</td></tr>'}
-    </tbody></table></div>
-  </div>`;
-  document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+  const rows=sts.filter(s=>sum[s].ab>0||sum[s].lt>0).sort((a,b)=>(sum[b].ab+sum[b].lt)-(sum[a].ab+sum[a].lt)).map(s=>'<tr>'
+    +'<td><div class="tf"><div class="av avp">'+ini(s)+'</div>'+s+'</div></td>'
+    +'<td><span class="badge ba">'+sum[s].ab+'</span></td>'
+    +'<td><span class="badge bl">'+sum[s].lt+'</span></td>'
+    +'<td style="font-size:12px;color:var(--txt2)">'+(sum[s].last?fmtD(sum[s].last):'—')+'</td></tr>'
+  ).join('');
+  mkModal('<h2 style="font-size:16px;font-weight:700;margin-bottom:14px">Absences — '+cls+'</h2>'
+    +'<div class="cd"><table><thead><tr><th>Student</th><th>Absent</th><th>Late</th><th>Last</th></tr></thead><tbody>'+(rows||'<tr><td colspan="4" style="text-align:center;padding:14px;color:var(--txt3)">No absences</td></tr>')+'</tbody></table></div>');
 }
 
-// ===================== ADMIN - TEACHERS =====================
-function buildAdmTeachers(){
-  const teachers=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='teacher');
-  const classOpts=Object.keys(DB.classes||{}).map(c=>`<option value="${c}">${c}</option>`).join('');
-  return`<div class="page" id="adm-teachers">
-    <div class="ptitle">Teachers</div>
-    <div class="form-card">
-      <h3>Add New Teacher</h3>
-      <div class="form-row">
-        <div class="ff"><label>Full Name</label><input id="tn" placeholder="Ani Hakobyan"></div>
-        <div class="ff"><label>Username (email)</label><input id="tu" placeholder="ani@school.am"></div>
-      </div>
-      <div class="form-row">
-        <div class="ff"><label>Password</label><input id="tp" placeholder="Password"></div>
-        <div class="ff"><label>Subject(s) (use & for multiple)</label><input id="ts" placeholder="Math & Physics"></div>
-      </div>
-      <div class="form-row">
-        <div class="ff"><label>Classes (comma separated)</label><input id="tc" placeholder="10A, 10B"></div>
-        <div class="ff"><label>Homeroom Class (optional)</label><input id="th" placeholder="6A"></div>
-      </div>
-      <button class="btn btn-p" onclick="addTeacher()">+ Add Teacher</button>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Teachers (${teachers.length})</h3></div>
-      <table><thead><tr><th>Name</th><th>Subject</th><th>Classes</th><th>Homeroom</th><th></th></tr></thead><tbody>
-        ${teachers.map(([key,t])=>`
-        <tr id="tr-${key}">
-          <td><div class="tf"><div class="av av-b">${initials(t.name)}</div>${t.name}</div></td>
-          <td style="font-size:12px;">${t.subject||'—'}</td>
-          <td style="font-size:12px;">${(t.classes||[]).join(', ')||'—'}</td>
-          <td style="font-size:12px;">${t.homeroom||'—'}</td>
-          <td style="display:flex;gap:5px;">
-            <button class="btn btn-g" onclick="editTeacher('${key}')">Edit</button>
-            <button class="btn btn-d" onclick="delUser('${key}')">Del</button>
-          </td>
-        </tr>
-        <tr id="te-${key}" style="display:none;background:var(--surface2);">
-          <td colspan="5" style="padding:14px;">
-            <div class="form-row">
-              <div class="ff"><label>Name</label><input id="te-n-${key}" value="${t.name}"></div>
-              <div class="ff"><label>Password</label><input id="te-p-${key}" value="${t.pass}"></div>
-              <div class="ff"><label>Subject</label><input id="te-s-${key}" value="${t.subject||''}"></div>
-              <div class="ff"><label>Classes</label><input id="te-c-${key}" value="${(t.classes||[]).join(', ')}"></div>
-              <div class="ff"><label>Homeroom</label><input id="te-h-${key}" value="${t.homeroom||''}"></div>
-            </div>
-            <button class="btn btn-p" onclick="saveTeacher('${key}')">✓ Save</button>
-            <button class="btn btn-g" style="margin-left:6px;" onclick="cancelEdit('tr-${key}','te-${key}')">Cancel</button>
-          </td>
-        </tr>`).join('')}
-      </tbody></table>
-    </div>
-  </div>`;
+function mkModal(html){
+  const m=document.createElement('div');m.className='mw';
+  m.innerHTML='<div class="md"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<span></span><button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">✕ Close</button></div>'+html+'</div>';
+  document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.remove()});
 }
-function editTeacher(k){$(`tr-${k}`).style.display='none';$(`te-${k}`).style.display='';}
-function cancelEdit(show,hide){$(show).style.display='';$(hide).style.display='none';}
-async function saveTeacher(k){
-  const n=$(`te-n-${k}`)?.value.trim(),p=$(`te-p-${k}`)?.value.trim(),s=$(`te-s-${k}`)?.value.trim();
-  const c=$(`te-c-${k}`)?.value.split(',').map(x=>x.trim()).filter(Boolean);
-  const h=$(`te-h-${k}`)?.value.trim();
+
+// ── ADMIN TEACHERS ──
+function buildATch(){
+  const tchs=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='teacher');
+  const co=Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  return'<div class="pg" id="atch"><div class="pt">Teachers</div>'
+    +'<div class="fc"><h3>Add Teacher</h3>'
+    +'<div class="fr"><div class="ff"><label>Full Name</label><input id="tn"></div><div class="ff"><label>Username (email)</label><input id="tu"></div></div>'
+    +'<div class="fr"><div class="ff"><label>Password</label><input id="tp"></div><div class="ff"><label>Subject(s) (& for multiple)</label><input id="ts"></div></div>'
+    +'<div class="fr"><div class="ff"><label>Classes (comma sep.)</label><input id="tc"></div><div class="ff"><label>Homeroom Class</label><input id="th"></div></div>'
+    +'<button class="btn bp2" onclick="addTch()">+ Add Teacher</button></div>'
+    +'<div class="cd"><div class="cdh"><h3>Teachers ('+tchs.length+')</h3></div>'
+    +'<table><thead><tr><th>Name</th><th>Subject</th><th>Classes</th><th>HR</th><th></th></tr></thead><tbody>'
+    +tchs.map(([k,t])=>'<tr id="tr'+k.replace(/[^a-z0-9]/gi,'')+'"><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+'</div></td>'
+      +'<td style="font-size:12px">'+( t.subject||'—')+'</td><td style="font-size:12px">'+((t.classes||[]).join(', ')||'—')+'</td><td style="font-size:12px">'+(t.homeroom||'—')+'</td>'
+      +'<td style="display:flex;gap:4px"><button class="btn bg2" onclick="edTch(\''+k+'\')">Edit</button><button class="btn bd2" onclick="delU(\''+k+'\')">Del</button></td></tr>'
+      +'<tr id="te'+k.replace(/[^a-z0-9]/gi,'')+'" style="display:none;background:var(--surf2)"><td colspan="5" style="padding:12px">'
+      +'<div class="fr"><div class="ff"><label>Name</label><input id="ten'+k+'" value="'+esc2(t.name)+'"></div>'
+      +'<div class="ff"><label>Password</label><input id="tep'+k+'" value="'+esc2(t.pass)+'"></div>'
+      +'<div class="ff"><label>Subject</label><input id="tes'+k+'" value="'+esc2(t.subject||'')+'"></div>'
+      +'<div class="ff"><label>Classes</label><input id="tec'+k+'" value="'+esc2((t.classes||[]).join(', '))+'"></div>'
+      +'<div class="ff"><label>Homeroom</label><input id="teh'+k+'" value="'+esc2(t.homeroom||'')+'"></div></div>'
+      +'<button class="btn bp2" onclick="svTch(\''+k+'\')">✓ Save</button>'
+      +'<button class="btn bg2" style="margin-left:6px" onclick="cnclTch(\''+k+'\')">Cancel</button>'
+      +'</td></tr>'
+    ).join('')+'</tbody></table></div></div>';
+}
+function eid(k){return k.replace(/[^a-z0-9]/gi,'')}
+function edTch(k){const id=eid(k);$('tr'+id).style.display='none';$('te'+id).style.display=''}
+function cnclTch(k){const id=eid(k);$('tr'+id).style.display='';$('te'+id).style.display='none'}
+async function svTch(k){
+  const n=$('ten'+k)?.value.trim(),p=$('tep'+k)?.value.trim(),s=$('tes'+k)?.value.trim();
+  const c=$('tec'+k)?.value.split(',').map(x=>x.trim()).filter(Boolean);
+  const h=$('teh'+k)?.value.trim();
   if(!n||!p)return;
   DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null};
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-teachers');
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
-async function addTeacher(){
+async function addTch(){
   const n=$('tn')?.value.trim(),u=$('tu')?.value.trim(),p=$('tp')?.value.trim();
   const s=$('ts')?.value.trim(),c=$('tc')?.value.split(',').map(x=>x.trim()).filter(Boolean);
   const h=$('th')?.value.trim();
-  if(!n||!u||!p){alert('Name, username and password required.');return;}
-  const k=u+'_t';
-  if(!DB.users)DB.users={};
-  DB.users[k]={role:'teacher',name:n,pass:p,subject:s,classes:c,homeroom:h||null};
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-teachers');
+  if(!n||!u||!p){alert('Name, username and password required');return}
+  DB.users[u+'_t']={role:'teacher',name:n,pass:p,subject:s,classes:c,homeroom:h||null};
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
-async function delUser(k){
+async function delU(k){
   if(!confirm('Delete?'))return;
-  delete DB.users[k];
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-teachers');
+  delete DB.users[k];sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
 
-// ===================== ADMIN - STUDENTS =====================
-function buildAdmStudents(){
-  const students=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='student');
-  const classOpts=Object.keys(DB.classes||{}).map(c=>`<option value="${c}">${c}</option>`).join('');
-  return`<div class="page" id="adm-students">
-    <div class="ptitle">Student Accounts</div>
-    <div class="form-card">
-      <h3>Add Student Accounts</h3>
-      <div style="margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid var(--border);">
-        <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Student 1</p>
-        <div class="form-row">
-          <div class="ff"><label>Full Name</label><input id="sn" placeholder="Ani Hakobyan"></div>
-          <div class="ff"><label>Username</label><input id="su" placeholder="ani.hakobyan"></div>
-        </div>
-        <div class="form-row">
-          <div class="ff"><label>Password</label><input id="sp" placeholder="Password"></div>
-          <div class="ff"><label>Class</label><select id="sc">${classOpts}</select></div>
-        </div>
-      </div>
-      <div style="margin-bottom:14px;">
-        <p style="font-size:12px;color:var(--text2);margin-bottom:10px;">Student 2 (optional)</p>
-        <div class="form-row">
-          <div class="ff"><label>Full Name</label><input id="sn2" placeholder="Aram Petrosyan"></div>
-          <div class="ff"><label>Username</label><input id="su2" placeholder="aram.petrosyan"></div>
-        </div>
-        <div class="form-row">
-          <div class="ff"><label>Password</label><input id="sp2" placeholder="Password"></div>
-          <div class="ff"><label>Class</label><select id="sc2">${classOpts}</select></div>
-        </div>
-      </div>
-      <button class="btn btn-p" onclick="addStudent()">+ Add Student(s)</button>
-    </div>
-    <div class="card">
-      <div class="card-head"><h3>Accounts (${students.length})</h3></div>
-      <table><thead><tr><th>Name</th><th>Username</th><th>Class</th><th></th></tr></thead><tbody>
-        ${students.map(([k,s])=>`
-        <tr id="str-${k}">
-          <td><div class="tf"><div class="av av-p">${initials(s.name)}</div>${s.name}</div></td>
-          <td style="font-size:12px;color:var(--text2);">${k}</td>
-          <td>${s.class||'—'}</td>
-          <td style="display:flex;gap:5px;">
-            <button class="btn btn-g" onclick="editStudent('${k}')">Edit</button>
-            <button class="btn btn-d" onclick="delStudent('${k}')">Del</button>
-          </td>
-        </tr>
-        <tr id="ste-${k}" style="display:none;background:var(--surface2);">
-          <td colspan="4" style="padding:14px;">
-            <div class="form-row">
-              <div class="ff"><label>Name</label><input id="ste-n-${k}" value="${s.name}"></div>
-              <div class="ff"><label>Password</label><input id="ste-p-${k}" value="${s.pass}"></div>
-              <div class="ff"><label>Class</label><select id="ste-c-${k}">${Object.keys(DB.classes||{}).map(c=>`<option value="${c}" ${s.class===c?'selected':''}>${c}</option>`).join('')}</select></div>
-            </div>
-            <button class="btn btn-p" onclick="saveStudent('${k}')">✓ Save</button>
-            <button class="btn btn-g" style="margin-left:6px;" onclick="cancelEdit('str-${k}','ste-${k}')">Cancel</button>
-          </td>
-        </tr>`).join('')}
-      </tbody></table>
-    </div>
-  </div>`;
+// ── ADMIN STUDENTS ──
+function buildAStu(){
+  const stus=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='student');
+  const co=Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
+  return'<div class="pg" id="astu"><div class="pt">Student Accounts</div>'
+    +'<div class="fc"><h3>Add Student Accounts</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Student 1 (required)</p>'
+    +'<div class="fr"><div class="ff"><label>Full Name</label><input id="s1n"></div><div class="ff"><label>Username</label><input id="s1u"></div></div>'
+    +'<div class="fr"><div class="ff"><label>Password</label><input id="s1p"></div><div class="ff"><label>Class</label><select id="s1c">'+co+'</select></div></div>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:10px 0">Student 2 (optional)</p>'
+    +'<div class="fr"><div class="ff"><label>Full Name</label><input id="s2n"></div><div class="ff"><label>Username</label><input id="s2u"></div></div>'
+    +'<div class="fr"><div class="ff"><label>Password</label><input id="s2p"></div><div class="ff"><label>Class</label><select id="s2c">'+co+'</select></div></div>'
+    +'<button class="btn bp2" onclick="addStu()">+ Add</button></div>'
+    +'<div class="cd"><div class="cdh"><h3>Accounts ('+stus.length+')</h3></div>'
+    +'<table><thead><tr><th>Name</th><th>Username</th><th>Class</th><th></th></tr></thead><tbody>'
+    +stus.map(([k,s])=>'<tr id="stu'+eid(k)+'"><td><div class="tf"><div class="av avp">'+ini(s.name)+'</div>'+s.name+'</div></td>'
+      +'<td style="font-size:12px;color:var(--txt2)">'+k+'</td><td>'+( s.class||'—')+'</td>'
+      +'<td style="display:flex;gap:4px"><button class="btn bg2" onclick="edStu(\''+k+'\')">Edit</button><button class="btn bd2" onclick="delStu(\''+k+'\')">Del</button></td></tr>'
+      +'<tr id="ste'+eid(k)+'" style="display:none;background:var(--surf2)"><td colspan="4" style="padding:12px">'
+      +'<div class="fr"><div class="ff"><label>Name</label><input id="sten'+k+'" value="'+esc2(s.name)+'"></div>'
+      +'<div class="ff"><label>Password</label><input id="step'+k+'" value="'+esc2(s.pass)+'"></div>'
+      +'<div class="ff"><label>Class</label><select id="stec'+k+'">'+Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'"'+(s.class===c?' selected':'')+'>'+c+'</option>').join('')+'</select></div></div>'
+      +'<button class="btn bp2" onclick="svStu(\''+k+'\')">✓ Save</button>'
+      +'<button class="btn bg2" style="margin-left:6px" onclick="cnclStu(\''+k+'\')">Cancel</button>'
+      +'</td></tr>'
+    ).join('')+'</tbody></table></div></div>';
 }
-function editStudent(k){$(`str-${k}`).style.display='none';$(`ste-${k}`).style.display='';}
-async function saveStudent(k){
-  const n=$(`ste-n-${k}`)?.value.trim(),p=$(`ste-p-${k}`)?.value.trim(),c=$(`ste-c-${k}`)?.value;
+function edStu(k){$('stu'+eid(k)).style.display='none';$('ste'+eid(k)).style.display=''}
+function cnclStu(k){$('stu'+eid(k)).style.display='';$('ste'+eid(k)).style.display='none'}
+async function svStu(k){
+  const n=$('sten'+k)?.value.trim(),p=$('step'+k)?.value.trim(),c=$('stec'+k)?.value;
   if(!n||!p)return;
   DB.users[k]={...DB.users[k],name:n,pass:p,class:c};
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-students');
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('astu');
 }
-async function addStudent(){
-  const n=$('sn')?.value.trim(),u=$('su')?.value.trim(),p=$('sp')?.value.trim(),c=$('sc')?.value;
-  const n2=$('sn2')?.value.trim(),u2=$('su2')?.value.trim(),p2=$('sp2')?.value.trim(),c2=$('sc2')?.value;
-  if(!n||!u||!p){alert('Name, username and password required for Student 1.');return;}
-  if(!DB.users)DB.users={};
-  DB.users[u]={role:'student',name:n,pass:p,class:c};
+async function addStu(){
+  const n1=$('s1n')?.value.trim(),u1=$('s1u')?.value.trim(),p1=$('s1p')?.value.trim(),c1=$('s1c')?.value;
+  const n2=$('s2n')?.value.trim(),u2=$('s2u')?.value.trim(),p2=$('s2p')?.value.trim(),c2=$('s2c')?.value;
+  if(!n1||!u1||!p1){alert('Fill Student 1 fields');return}
+  DB.users[u1]={role:'student',name:n1,pass:p1,class:c1};
   if(n2&&u2&&p2)DB.users[u2]={role:'student',name:n2,pass:p2,class:c2};
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-students');
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('astu');
 }
-async function delStudent(k){
+async function delStu(k){
   if(!confirm('Delete?'))return;
-  delete DB.users[k];
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-students');
+  delete DB.users[k];sLoad('Saving...');await svSchool();hLoad();flash();showPg('astu');
 }
 
-// ===================== ADMIN - CLASSES =====================
-function buildAdmClasses(){
-  return`<div class="page" id="adm-classes">
-    <div class="ptitle">Classes</div>
-    <div class="form-card">
-      <h3>Add Class</h3>
-      <div style="display:flex;gap:10px;">
-        <input id="cls-new" placeholder="e.g. 10A" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;">
-        <button class="btn btn-p" onclick="addCls()">+ Add</button>
-      </div>
-    </div>
-    ${Object.entries(DB.classes||{}).map(([cls,sts])=>`
-      <div class="card">
-        <div class="card-head">
-          <div style="display:flex;align-items:center;gap:10px;">
-            <span id="cls-lbl-${cls}" style="font-weight:600;">${cls} — ${sts.length}</span>
-            <button class="btn btn-g" style="font-size:11px;" onclick="toggleRename('${cls}')">Rename</button>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <input id="new-st-${cls}" placeholder="Student name" style="padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:12px;font-family:inherit;outline:none;width:160px;">
-            <button class="btn btn-p" onclick="addStToCls('${cls}')">+ Add</button>
-            <button class="btn btn-d" onclick="delCls('${cls}')">Del Class</button>
-          </div>
-        </div>
-        <div id="rename-${cls}" style="display:none;padding:10px 16px;border-bottom:1px solid var(--border);">
-          <div style="display:flex;gap:8px;">
-            <input id="rename-inp-${cls}" value="${cls}" style="padding:7px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;width:130px;">
-            <button class="btn btn-p" onclick="renameCls('${cls}')">✓ Rename</button>
-            <button class="btn btn-g" onclick="toggleRename('${cls}')">Cancel</button>
-          </div>
-        </div>
-        <ul style="list-style:none;padding:0;margin:0;" id="stu-list-${cls}">
-          ${sts.map((st,idx)=>`<li draggable="true" data-st="${st}" data-cls="${cls}"
-            ondragstart="dStart(event)" ondragover="dOver(event)" ondrop="dDrop(event)"
-            style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;border-bottom:1px solid var(--border);cursor:grab;">
-            <div class="tf"><span style="font-size:11px;color:var(--text3);width:24px;">${idx+1}</span><div class="av av-p">${initials(st)}</div>${st}</div>
-            <div style="display:flex;gap:5px;">
-              <button class="btn btn-g" style="font-size:11px;" onclick="editStName('${cls}',${idx},'${st.replace(/'/g,"\\'")}')">Edit</button>
-              <button class="btn btn-d" style="font-size:11px;" onclick="delStFromCls('${cls}','${st.replace(/'/g,"\\'")}')">Del</button>
-            </div>
-          </li>`).join('')}
-        </ul>
-      </div>`).join('')}
-  </div>`;
+// ── ADMIN CLASSES ──
+function buildACls(){
+  return'<div class="pg" id="acls"><div class="pt">Classes</div>'
+    +'<div class="fc"><h3>Add Class</h3><div style="display:flex;gap:8px">'
+    +'<input id="ncls" placeholder="e.g. 10A" style="padding:8px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
+    +'<button class="btn bp2" onclick="addCls()">+ Add</button></div></div>'
+    +Object.entries(DB.classes||{}).map(([cls,sts])=>'<div class="cd">'
+      +'<div class="cdh"><div style="display:flex;align-items:center;gap:8px"><b id="clbl'+cls+'">'+cls+' — '+sts.length+'</b>'
+      +'<button class="btn bg2" style="font-size:11px" onclick="tgRn(\''+cls+'\')">Rename</button></div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<input id="nst'+cls+'" placeholder="Add student" style="padding:5px 9px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:12px;font-family:inherit;outline:none;width:150px">'
+      +'<button class="btn bp2" onclick="addSt(\''+cls+'\')">+</button>'
+      +'<button class="btn bd2" onclick="delCls(\''+cls+'\')">Del Class</button></div></div>'
+      +'<div id="rn'+cls+'" style="display:none;padding:9px 15px;border-bottom:1px solid var(--bdr)">'
+      +'<div style="display:flex;gap:7px"><input id="rni'+cls+'" value="'+cls+'" style="padding:6px 9px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;width:120px">'
+      +'<button class="btn bp2" onclick="rnCls(\''+cls+'\')">✓</button><button class="btn bg2" onclick="tgRn(\''+cls+'\')">✕</button></div></div>'
+      +'<ul style="list-style:none;padding:0;margin:0" id="sl'+cls+'">'
+      +sts.map((st,idx)=>'<li draggable="true" data-st="'+esc2(st)+'" data-cls="'+cls+'"'
+        +' ondragstart="dSt(event)" ondragover="dOv(event)" ondrop="dDp(event)"'
+        +' style="display:flex;align-items:center;justify-content:space-between;padding:8px 13px;border-bottom:1px solid var(--bdr);cursor:grab">'
+        +'<div class="tf"><span style="font-size:11px;color:var(--txt3);width:22px">'+(idx+1)+'</span><div class="av avp">'+ini(st)+'</div>'+st+'</div>'
+        +'<div style="display:flex;gap:4px">'
+        +'<button class="btn bg2" style="font-size:11px" onclick="edSt(\''+cls+'\','+idx+',\''+esc(st)+'\')">Edit</button>'
+        +'<button class="btn bd2" style="font-size:11px" onclick="delSt(\''+cls+'\',\''+esc(st)+'\')">Del</button></div></li>'
+      ).join('')+'</ul></div>'
+    ).join('')+'</div>';
 }
-function toggleRename(cls){const el=$(`rename-${cls}`);el.style.display=el.style.display==='none'?'block':'none';}
-async function renameCls(old){
-  const n=$(`rename-inp-${old}`)?.value.trim();
-  if(!n||n===old)return;
-  if(DB.classes[n]){alert('Already exists.');return;}
-  DB.classes[n]=DB.classes[old];delete DB.classes[old];
+function tgRn(cls){const e=$('rn'+cls);if(e)e.style.display=e.style.display==='none'?'block':'none'}
+async function rnCls(old){
+  const nw=$('rni'+old)?.value.trim();if(!nw||nw===old)return;
+  if(DB.classes[nw]){alert('Already exists');return}
+  DB.classes[nw]=DB.classes[old];delete DB.classes[old];
   Object.values(DB.users||{}).forEach(u=>{
-    if(u.classes)u.classes=u.classes.map(c=>c===old?n:c);
-    if(u.class===old)u.class=n;
-    if(u.homeroom===old)u.homeroom=n;
+    if(u.classes)u.classes=u.classes.map(c=>c===old?nw:c);
+    if(u.class===old)u.class=nw;
+    if(u.homeroom===old)u.homeroom=nw;
   });
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-classes');
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
 async function addCls(){
-  const n=$('cls-new')?.value.trim();if(!n)return;
-  if(!DB.classes)DB.classes={};if(DB.classes[n]){alert('Already exists.');return;}
-  DB.classes[n]=[];showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-classes');
+  const n=$('ncls')?.value.trim();if(!n)return;
+  if(DB.classes[n]){alert('Already exists');return}
+  DB.classes[n]=[];sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
 async function delCls(cls){
-  if(!confirm(`Delete class ${cls}?`))return;
-  delete DB.classes[cls];showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-classes');
+  if(!confirm('Delete class '+cls+'?'))return;
+  delete DB.classes[cls];sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
-async function addStToCls(cls){
-  const inp=$(`new-st-${cls}`);const n=inp?.value.trim();if(!n)return;
+async function addSt(cls){
+  const inp=$('nst'+cls);const n=inp?.value.trim();if(!n)return;
   if(!DB.classes[cls])DB.classes[cls]=[];
   if(!DB.classes[cls].includes(n))DB.classes[cls].push(n);
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-classes');
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
-async function delStFromCls(cls,st){
-  DB.classes[cls]=DB.classes[cls].filter(s=>s!==st);
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-classes');
+async function delSt(cls,st){
+  DB.classes[cls]=(DB.classes[cls]||[]).filter(s=>s!==st);
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
-async function editStName(cls,idx,old){
+async function edSt(cls,idx,old){
   const n=prompt('Edit name:',old);if(!n||n===old)return;
   DB.classes[cls][idx]=n;
-  if(GRADES[cls]&&GRADES[cls][old]){GRADES[cls][n]=GRADES[cls][old];delete GRADES[cls][old];}
-  Object.values(ATT[cls]||{}).forEach(day=>{if(day[old]!==undefined){day[n]=day[old];delete day[old];}});
-  showLoad('Saving...');await Promise.all([saveSchool(),saveGrades(),saveAtt()]);hideLoad();flash();showPage('adm-classes');
+  if(GR[cls]&&GR[cls][old]){GR[cls][n]=GR[cls][old];delete GR[cls][old]}
+  Object.values(AT[cls]||{}).forEach(d=>{if(d[old]!==undefined){d[n]=d[old];delete d[old]}});
+  sLoad('Saving...');await Promise.all([svSchool(),svGrades(),svAtt()]);hLoad();flash();showPg('acls');
 }
-let _dragSrc=null;
-function dStart(e){_dragSrc=e.currentTarget;e.dataTransfer.effectAllowed='move';}
-function dOver(e){e.preventDefault();}
-async function dDrop(e){
-  e.preventDefault();const t=e.currentTarget;if(_dragSrc===t)return;
+let _ds=null;
+function dSt(e){_ds=e.currentTarget;e.dataTransfer.effectAllowed='move'}
+function dOv(e){e.preventDefault()}
+async function dDp(e){
+  e.preventDefault();const t=e.currentTarget;if(_ds===t)return;
   const cls=t.getAttribute('data-cls');
-  const list=$(`stu-list-${cls}`);const items=[...list.children];
-  const fi=items.indexOf(_dragSrc),ti=items.indexOf(t);
+  const ul=$('sl'+cls);const items=[...ul.children];
+  const fi=items.indexOf(_ds),ti=items.indexOf(t);
   if(fi<0||ti<0)return;
-  if(fi<ti)list.insertBefore(_dragSrc,t.nextSibling);else list.insertBefore(_dragSrc,t);
-  const arr=DB.classes[cls];const[moved]=arr.splice(fi,1);arr.splice(ti,0,moved);
-  await saveSchool();flash();
+  if(fi<ti)ul.insertBefore(_ds,t.nextSibling);else ul.insertBefore(_ds,t);
+  const arr=DB.classes[cls];const[mv]=arr.splice(fi,1);arr.splice(ti,0,mv);
+  await svSchool();flash();
 }
 
-// ===================== ADMIN - SCHEDULE =====================
-function buildAdmSched(){
-  const classes=Object.keys(DB.classes||{}).sort();
+// ── ADMIN SCHEDULE ──
+function buildASc(){
+  const cls=Object.keys(DB.classes||{}).sort();
   const days=['Mon','Tue','Wed','Thu','Fri'];
-  const now=new Date();
-  const ay=now.getMonth()>=8?`${now.getFullYear()}-${now.getFullYear()+1}`:`${now.getFullYear()-1}-${now.getFullYear()}`;
-  const months=getMonthsForYear(ay);
-  const curM=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  const years=[];const cy=now.getFullYear();
-  for(let y=cy+1;y>=cy-2;y--)years.push(`${y-1}-${y}`);
-  return`<div class="page" id="adm-sched">
-    <div class="ptitle">Schedule</div>
-    <div class="sel-row" style="flex-wrap:wrap;">
-      <label>Class:</label>
-      <select id="sc-cls" onchange="onSchedCls()">${classes.map(c=>`<option value="${c}">${c}</option>`).join('')}</select>
-      <label>Year:</label>
-      <select id="sc-year" onchange="onSchedYear()">${years.map(y=>`<option value="${y}" ${y===ay?'selected':''}>${y}</option>`).join('')}</select>
-      <label>Month:</label>
-      <select id="sc-month" onchange="onSchedMonth()">${months.map(m=>`<option value="${m.val}" ${m.val===curM?'selected':''}>${m.label}</option>`).join('')}</select>
-      <label>Week:</label>
-      <select id="sc-week" onchange="renderSchedEditor()"><option>Loading...</option></select>
-      <label>Day:</label>
-      <select id="sc-day" onchange="renderSchedEditor()">${days.map(d=>`<option value="${d}">${d}</option>`).join('')}</select>
-    </div>
-    <div class="form-card" style="margin-bottom:14px;">
-      <h3>Copy Week</h3>
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-        <label style="font-size:13px;color:var(--text2);">Copy current week to:</label>
-        <select id="sc-copy-to" style="padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:200px;"><option>Loading...</option></select>
-        <button class="btn btn-p" onclick="copyWeek()">Copy</button>
-      </div>
-    </div>
-    <div id="sched-editor"></div>
-  </div>`;
+  const n=new Date(),ay=curAY(),ms=getMonths(ay);
+  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
+  const ys=[];const cy=n.getFullYear();
+  for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
+  return'<div class="pg" id="asc"><div class="pt">Schedule</div>'
+    +'<div class="sr" style="flex-wrap:wrap">'
+    +'<label>Class:</label><select id="sccl" onchange="rfSc()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Year:</label><select id="scyr" onchange="onScYr()">'+ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+    +'<label>Month:</label><select id="scmo" onchange="onScMo()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'<label>Week:</label><select id="scwk" onchange="rfSc()"><option>Loading...</option></select>'
+    +'<label>Day:</label><select id="scdy" onchange="rfSc()">'+days.map(d=>'<option value="'+d+'">'+d+'</option>').join('')+'</select>'
+    +'</div>'
+    +'<div class="fc" style="margin-bottom:12px"><h3>Copy Week</h3>'
+    +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+    +'<label style="font-size:13px;color:var(--txt2)">Copy current week to:</label>'
+    +'<select id="sccw" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;min-width:190px"><option>Loading...</option></select>'
+    +'<button class="btn bp2" onclick="cpWk()">Copy</button></div></div>'
+    +'<div id="sce"></div>'
+    +'</div>';
 }
-
-function onSchedYear(){
-  const ay=$('sc-year').value;
-  const months=getMonthsForYear(ay);
-  const sel=$('sc-month');
-  sel.innerHTML=months.map(m=>`<option value="${m.val}">${m.label}</option>`).join('');
-  onSchedMonth();
+function onScYr(){
+  const ay=$('scyr').value,ms=getMonths(ay);
+  $('scmo').innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
+  onScMo();
 }
-function onSchedCls(){renderSchedEditor();}
-function onSchedMonth(){
-  const mv=$('sc-month').value;
-  const weeks=getWeeksOfMonth(mv);
-  const wsel=$('sc-week');
-  wsel.innerHTML=weeks.map((w,i)=>`<option value="${i}">${w.label}</option>`).join('');
-  const today=getTodayStr();
-  const ci=weeks.findIndex(w=>w.days.some(d=>dateToStr(d)===today));
-  if(ci>=0)wsel.value=ci;
-  // Populate copy-to
-  const ay=$('sc-year').value;
-  const allMs=getMonthsForYear(ay);
-  const curW=weeks[parseInt(wsel.value)||0]?.weekStart;
-  let allW=[];allMs.forEach(m=>getWeeksOfMonth(m.val).forEach(w=>allW.push({...w,mLabel:m.label})));
-  const csel=$('sc-copy-to');
-  if(csel)csel.innerHTML='<option value="">Select week...</option>'+allW.filter(w=>w.weekStart!==curW).map(w=>`<option value="${w.weekStart}">${w.mLabel} — ${w.label}</option>`).join('');
-  renderSchedEditor();
+function onScMo(){
+  const mv=$('scmo').value,wks=getWeeks(mv);
+  const ws=$('scwk');
+  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)ws.value=ci;
+  const curWs=wks[parseInt(ws.value)||0]?.ws||'';
+  const ay=$('scyr').value,allMs=getMonths(ay);
+  let allW=[];allMs.forEach(m=>getWeeks(m.v).forEach(w=>allW.push({...w,ml:m.l})));
+  const cw=$('sccw');
+  if(cw)cw.innerHTML='<option value="">Select week...</option>'+allW.filter(w=>w.ws!==curWs).map(w=>'<option value="'+w.ws+'">'+w.ml+' — '+w.l+'</option>').join('');
+  rfSc();
 }
-function getSchedWeek(){
-  const mv=$('sc-month').value;
-  const wi=parseInt($('sc-week').value)||0;
-  return getWeeksOfMonth(mv)[wi]?.weekStart||'';
+function getScWk(){
+  const mv=$('scmo').value,wi=parseInt($('scwk').value)||0;
+  return getWeeks(mv)[wi]?.ws||'';
 }
-function renderSchedEditor(){
-  const cls=$('sc-cls')?.value,day=$('sc-day')?.value,wk=getSchedWeek();
+function rfSc(){
+  const cls=$('sccl')?.value,day=$('scdy')?.value,wk=getScWk();
   if(!cls||!day||!wk)return;
-  const lessons=(SCHED[cls]&&SCHED[cls][wk]&&SCHED[cls][wk][day])||[];
-  $('sched-editor').innerHTML=`<div class="card">
-    <div class="card-head"><h3>${cls} — ${day} — ${wk}</h3><button class="btn btn-p" onclick="addLesson('${cls}','${wk}','${day}')">+ Add</button></div>
-    <table><thead><tr><th>#</th><th>Subject</th><th>Teacher</th><th></th></tr></thead><tbody id="sc-tbody">
-      ${lessons.map((l,i)=>`
-      <tr id="sc-r-${i}">
-        <td>${i+1}</td><td>${l.sub}</td><td style="color:var(--text2);font-size:12px;">${l.teacher||''}</td>
-        <td style="display:flex;gap:4px;">
-          <button class="btn btn-g" style="padding:3px 7px;" onclick="mvUp('${cls}','${wk}','${day}',${i})" ${i===0?'disabled':''}>↑</button>
-          <button class="btn btn-g" style="padding:3px 7px;" onclick="mvDn('${cls}','${wk}','${day}',${i})" ${i===lessons.length-1?'disabled':''}>↓</button>
-          <button class="btn btn-g" onclick="editLesson('${cls}','${wk}','${day}',${i})">Edit</button>
-          <button class="btn btn-d" onclick="delLesson('${cls}','${wk}','${day}',${i})">Del</button>
-        </td>
-      </tr>
-      <tr id="sc-e-${i}" style="display:none;background:var(--surface2);">
-        <td colspan="4" style="padding:10px 14px;">
-          <div style="display:flex;gap:8px;flex-wrap:wrap;">
-            <input id="sc-es-${i}" value="${l.sub}" style="flex:1;min-width:140px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Subject">
-            <input id="sc-et-${i}" value="${l.teacher||''}" style="flex:1;min-width:140px;padding:7px 10px;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Teacher">
-            <button class="btn btn-p" onclick="saveLesson('${cls}','${wk}','${day}',${i})">✓</button>
-            <button class="btn btn-g" onclick="$('sc-r-${i}').style.display='';$('sc-e-${i}').style.display='none';">✕</button>
-          </div>
-        </td>
-      </tr>`).join('')}
-    </tbody></table>
-    <div style="padding:14px 18px;display:flex;gap:8px;border-top:1px solid var(--border);flex-wrap:wrap;">
-      <input id="sc-ns" style="flex:1;min-width:140px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Subject">
-      <input id="sc-nt" style="flex:1;min-width:140px;padding:8px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;" placeholder="Teacher">
-    </div>
-  </div>`;
+  const ls=(SC[cls]&&SC[cls][wk]&&SC[cls][wk][day])||[];
+  $('sce').innerHTML='<div class="cd">'
+    +'<div class="cdh"><h3>'+cls+' — '+day+' — '+wk+'</h3><button class="btn bp2" onclick="addLs(\''+cls+'\',\''+wk+'\',\''+day+'\')">+ Add</button></div>'
+    +'<table><thead><tr><th>#</th><th>Subject</th><th>Teacher</th><th></th></tr></thead><tbody>'
+    +ls.map((l,i)=>'<tr id="sr'+i+'">'
+      +'<td>'+(i+1)+'</td><td>'+l.sub+'</td><td style="font-size:12px;color:var(--txt2)">'+(l.teacher||'')+'</td>'
+      +'<td style="display:flex;gap:3px">'
+      +'<button class="btn bg2" style="padding:3px 7px" onclick="mvU(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')"'+(i===0?' disabled':'')+'>↑</button>'
+      +'<button class="btn bg2" style="padding:3px 7px" onclick="mvD(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')"'+(i===ls.length-1?' disabled':'')+'>↓</button>'
+      +'<button class="btn bg2" onclick="edLs(\''+i+'\')">Edit</button>'
+      +'<button class="btn bd2" onclick="delLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">Del</button>'
+      +'</td></tr>'
+      +'<tr id="se'+i+'" style="display:none;background:var(--surf2)"><td colspan="4" style="padding:9px 13px">'
+      +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
+      +'<input id="ses'+i+'" value="'+esc2(l.sub)+'" style="flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Subject">'
+      +'<input id="set'+i+'" value="'+esc2(l.teacher||'')+'" style="flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Teacher">'
+      +'<button class="btn bp2" onclick="svLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">✓</button>'
+      +'<button class="btn bg2" onclick="cnLs('+i+')">✕</button>'
+      +'</div></td></tr>'
+    ).join('')+'</tbody></table>'
+    +'<div style="padding:12px 16px;display:flex;gap:7px;border-top:1px solid var(--bdr);flex-wrap:wrap">'
+    +'<input id="scsb" style="flex:1;min-width:130px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Subject">'
+    +'<input id="sctc" style="flex:1;min-width:130px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Teacher">'
+    +'</div></div>';
 }
-function editLesson(cls,wk,day,i){$(`sc-r-${i}`).style.display='none';$(`sc-e-${i}`).style.display='';}
-async function saveLesson(cls,wk,day,i){
-  const s=$(`sc-es-${i}`)?.value.trim(),t=$(`sc-et-${i}`)?.value.trim();
-  if(!s)return;
-  SCHED[cls][wk][day][i]={sub:s,teacher:t||''};
-  showLoad('Saving...');await saveSched();hideLoad();flash();renderSchedEditor();
+function edLs(i){$('sr'+i).style.display='none';$('se'+i).style.display=''}
+function cnLs(i){$('sr'+i).style.display='';$('se'+i).style.display='none'}
+async function svLs(cls,wk,day,i){
+  const s=$('ses'+i)?.value.trim(),t=$('set'+i)?.value.trim();if(!s)return;
+  SC[cls][wk][day][i]={sub:s,teacher:t||''};
+  sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
-async function addLesson(cls,wk,day){
-  const s=$('sc-ns')?.value.trim(),t=$('sc-nt')?.value.trim();if(!s)return;
-  if(!SCHED[cls])SCHED[cls]={};if(!SCHED[cls][wk])SCHED[cls][wk]={};if(!SCHED[cls][wk][day])SCHED[cls][wk][day]=[];
-  SCHED[cls][wk][day].push({sub:s,teacher:t||''});
-  showLoad('Saving...');await saveSched();hideLoad();flash();renderSchedEditor();
+async function addLs(cls,wk,day){
+  const s=$('scsb')?.value.trim(),t=$('sctc')?.value.trim();if(!s)return;
+  if(!SC[cls])SC[cls]={};if(!SC[cls][wk])SC[cls][wk]={};if(!SC[cls][wk][day])SC[cls][wk][day]=[];
+  SC[cls][wk][day].push({sub:s,teacher:t||''});
+  sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
-async function delLesson(cls,wk,day,i){
-  SCHED[cls][wk][day].splice(i,1);
-  showLoad('Saving...');await saveSched();hideLoad();flash();renderSchedEditor();
+async function delLs(cls,wk,day,i){
+  SC[cls][wk][day].splice(i,1);
+  sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
-async function mvUp(cls,wk,day,i){
-  if(i===0)return;const a=SCHED[cls][wk][day];[a[i-1],a[i]]=[a[i],a[i-1]];
-  showLoad('Saving...');await saveSched();hideLoad();flash();renderSchedEditor();
+async function mvU(cls,wk,day,i){
+  if(i===0)return;const a=SC[cls][wk][day];[a[i-1],a[i]]=[a[i],a[i-1]];
+  sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
-async function mvDn(cls,wk,day,i){
-  const a=SCHED[cls][wk][day];if(i>=a.length-1)return;[a[i],a[i+1]]=[a[i+1],a[i]];
-  showLoad('Saving...');await saveSched();hideLoad();flash();renderSchedEditor();
+async function mvD(cls,wk,day,i){
+  const a=SC[cls][wk][day];if(i>=a.length-1)return;[a[i],a[i+1]]=[a[i+1],a[i]];
+  sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
-async function copyWeek(){
-  const cls=$('sc-cls')?.value,from=getSchedWeek(),to=$('sc-copy-to')?.value;
-  if(!to){alert('Select a target week.');return;}
-  if(!confirm(`Copy ${cls} schedule from ${from} to ${to}?`))return;
-  if(!SCHED[cls])SCHED[cls]={};
-  SCHED[cls][to]=JSON.parse(JSON.stringify(SCHED[cls][from]||{}));
-  showLoad('Saving...');await saveSched();hideLoad();flash();
+async function cpWk(){
+  const cls=$('sccl')?.value,from=getScWk(),to=$('sccw')?.value;
+  if(!to){alert('Select a target week');return}
+  if(!confirm('Copy '+cls+' schedule from '+from+' to '+to+'?'))return;
+  if(!SC[cls])SC[cls]={};
+  SC[cls][to]=JSON.parse(JSON.stringify(SC[cls][from]||{}));
+  sLoad('Saving...');await svSched();hLoad();flash();
 }
 
-// ===================== ADMIN - PENDING =====================
-function buildAdmPending(){
-  const pList=Object.entries(PENDING||{});
-  return`<div class="page" id="adm-pending">
-    <div class="ptitle">⏳ Pending Registrations</div>
-    <div class="psub">Students waiting for approval</div>
-    ${pList.length===0?'<p style="color:var(--text3);padding:20px;">No pending registrations.</p>':''}
-    ${pList.map(([email,data])=>`
-      <div class="card" style="margin-bottom:14px;">
-        <div class="card-head">
-          <div>
-            <b>${email}</b>
-            <span class="pending-badge" style="margin-left:8px;">Pending</span>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn btn-p" onclick="approvePending('${email}')">✓ Approve</button>
-            <button class="btn btn-d" onclick="rejectPending('${email}')">✗ Reject</button>
-          </div>
-        </div>
-        <div style="padding:12px 18px;">
-          <p style="font-size:12px;color:var(--text2);margin-bottom:8px;">Children:</p>
-          ${(data.children||[]).map(c=>`
-            <div style="display:flex;gap:16px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--border);">
-              <span><b>${c.name}</b></span>
-              <span style="color:var(--text2);">ID: ${c.publicId}</span>
-              <span style="color:var(--text2);">DOB: ${c.dob}</span>
-              <span style="color:var(--text2);">Class: <select onchange="PENDING['${email}'].children[${(data.children||[]).indexOf(c)}].cls=this.value" style="padding:2px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;font-family:inherit;">
-                <option value="">Select class...</option>
-                ${Object.keys(DB.classes||{}).map(cl=>`<option value="${cl}" ${c.cls===cl?'selected':''}>${cl}</option>`).join('')}
-              </select></span>
-            </div>`).join('')}
-        </div>
-      </div>`).join('')}
-  </div>`;
+// ── ADMIN PENDING ──
+function buildAPend(){
+  const pl=Object.entries(PE||{});
+  return'<div class="pg" id="apend"><div class="pt">⏳ Pending</div><div class="ps">Students waiting for approval</div>'
+    +(pl.length===0?'<p style="color:var(--txt3);padding:16px">No pending registrations.</p>':'')
+    +pl.map(([email,data])=>'<div class="cd" style="margin-bottom:12px">'
+      +'<div class="cdh"><div><b>'+email+'</b><span class="pb" style="margin-left:8px">Pending</span></div>'
+      +'<div style="display:flex;gap:6px">'
+      +'<button class="btn bp2" onclick="apprPend(\''+email+'\')">✓ Approve</button>'
+      +'<button class="btn bd2" onclick="rejPend(\''+email+'\')">✗ Reject</button></div></div>'
+      +'<div style="padding:11px 16px">'
+      +(data.children||[]).map((c,ci)=>'<div style="display:flex;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap">'
+        +'<span><b>'+c.name+'</b></span>'
+        +'<span style="color:var(--txt2)">ID: '+c.publicId+'</span>'
+        +'<span style="color:var(--txt2)">DOB: '+c.dob+'</span>'
+        +'<span>Class: <select onchange="PE[\''+email+'\'].children['+ci+'].cls=this.value" style="padding:2px 6px;background:var(--surf2);border:1px solid var(--bdr);border-radius:5px;color:var(--txt);font-size:12px;font-family:inherit">'
+        +'<option value="">Select...</option>'+Object.keys(DB.classes||{}).map(cl=>'<option value="'+cl+'"'+(c.cls===cl?' selected':'')+'>'+cl+'</option>').join('')+'</select></span>'
+        +'</div>'
+      ).join('')+'</div></div>'
+    ).join('')+'</div>';
 }
-
-async function approvePending(email){
-  const data=PENDING[email];
-  if(!data){alert('Not found.');return;}
-  // Check all children have class assigned
-  const missingCls=(data.children||[]).filter(c=>!c.cls);
-  if(missingCls.length){alert('Please assign a class to all children first.');return;}
-  // Create student account
-  if(!DB.users)DB.users={};
+function updPC(){const cnt=Object.keys(PE||{}).length;const e=$('pc');if(e)e.textContent=cnt>0?cnt:''}
+async function apprPend(email){
+  const data=PE[email];if(!data)return;
+  const miss=(data.children||[]).filter(c=>!c.cls);
+  if(miss.length){alert('Assign a class to all children first');return}
   DB.users[email]={role:'student',name:(data.children[0]?.name)||email,pass:data.pass,class:data.children[0]?.cls||'',children:data.children};
-  delete PENDING[email];
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-pending');
+  delete PE[email];
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('apend');
+}
+async function rejPend(email){
+  if(!confirm('Reject '+email+'?'))return;
+  delete PE[email];sLoad('Saving...');await svSchool();hLoad();flash();showPg('apend');
 }
 
-async function rejectPending(email){
-  if(!confirm(`Reject ${email}?`))return;
-  delete PENDING[email];
-  showLoad('Saving...');await saveSchool();hideLoad();flash();showPage('adm-pending');
-}
+// HELPERS
+function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):''}
+function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+function esc2(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
-// ===================== INIT =====================
-(async()=>{
-  await loadAll();
-})();
+// INIT
+(async()=>{await loadAll()})();
 </script>
 </body>
 </html>
