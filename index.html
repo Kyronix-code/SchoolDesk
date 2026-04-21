@@ -136,24 +136,24 @@ select:focus{border-color:var(--acc)}
     </div>
     <div id="lf">
       <div class="rtabs" id="rtabs">
-        <div class="rtab on" onclick="setRole('teacher')">Teacher</div>
-        <div class="rtab" onclick="setRole('student')">Student</div>
-        <div class="rtab" onclick="setRole('parent')">Parent</div>
-        <div class="rtab" onclick="setRole('admin')">Admin</div>
+        <div class="rtab on" onclick="window.setRole&&window.setRole('teacher')">Teacher</div>
+        <div class="rtab" onclick="window.setRole&&window.setRole('student')">Student</div>
+        <div class="rtab" onclick="window.setRole&&window.setRole('parent')">Parent</div>
+        <div class="rtab" onclick="window.setRole&&window.setRole('admin')">Admin</div>
       </div>
       <div class="fg"><label>Username</label><input id="lu" placeholder="username" onkeydown="if(event.key==='Enter')login()"></div>
       <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
-      <button class="bmain" onclick="login()">Sign In</button>
+      <button class="bmain" onclick="window.login&&window.login()">Sign In</button>
       <div class="er" id="le"></div>
-      <div class="af">New student? <button class="lb" onclick="showF('rf')">Register</button></div>
+      <div class="af">New student? <button class="lb" onclick="window.showF&&window.showF('rf')">Register</button></div>
     </div>
     <div id="rf" class="h">
-      <div style="margin-bottom:12px"><button class="lb" onclick="showF('lf')" style="color:var(--txt2)">← Back</button></div>
+      <div style="margin-bottom:12px"><button class="lb" onclick="window.showF&&window.showF('lf')" style="color:var(--txt2)">← Back</button></div>
       <div class="fg"><label>Email</label><input id="re" type="email" placeholder="your@email.com"></div>
       <div class="fg"><label>Password <small style="color:var(--txt3)">(Aa1# required)</small></label><input id="rp" type="password" placeholder="Aabbcc#123"></div>
       <div class="fg"><label>Confirm Password</label><input id="rp2" type="password" placeholder="Repeat"></div>
       <div class="fg"><label id="cql">Captcha: ?</label><input id="rca" placeholder="Answer"></div>
-      <button class="bmain" onclick="doReg()">Create Account</button>
+      <button class="bmain" onclick="window.doReg&&window.doReg()">Create Account</button>
       <div class="er" id="re2"></div>
     </div>
     <div id="pf" class="h">
@@ -165,7 +165,7 @@ select:focus{border-color:var(--acc)}
       <div class="fg"><label>Child's Full Name</label><input id="pn" placeholder="Ani Hakobyan"></div>
       <div class="fg"><label>Public ID (Հnr. hamaranishn)</label><input id="pi" placeholder="12345678"></div>
       <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="pd" placeholder="10.10.2010"></div>
-      <button class="bmain" onclick="subPend()">Submit</button>
+      <button class="bmain" onclick="window.subPend&&window.subPend()">Submit</button>
       <div class="er" id="pe"></div>
     </div>
     <div id="cf" class="h">
@@ -177,8 +177,8 @@ select:focus{border-color:var(--acc)}
       <div class="fg"><label>Child's Full Name</label><input id="cn" placeholder="Aram Hakobyan"></div>
       <div class="fg"><label>Public ID</label><input id="ci" placeholder="12345679"></div>
       <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="cd" placeholder="15.03.2012"></div>
-      <button class="bmain" onclick="addChild()">Add Child</button>
-      <div style="text-align:center;margin-top:8px"><button class="lb" onclick="showF('lf')">Done → Login</button></div>
+      <button class="bmain" onclick="window.addChild&&window.addChild()">Add Child</button>
+      <div style="text-align:center;margin-top:8px"><button class="lb" onclick="window.showF&&window.showF('lf')">Done → Login</button></div>
       <div class="er" id="ce"></div>
     </div>
   </div>
@@ -205,6 +205,8 @@ select:focus{border-color:var(--acc)}
 
 <div class="ld h" id="ld"><div class="sp"></div><p id="ldt">Loading...</p></div>
 <div class="fl" id="fl">✓ Saved</div>
+
+
 
 <script>
 const AK='$2a$10$Gi.k.77zA4oqHpM7hiWOPu.sz164TIhfB/m5M0o91k2DOfHCi08b6';
@@ -406,6 +408,11 @@ function showPg(id){
     'apend':()=>{const o=$('apend');if(o){o.outerHTML=buildAPend()};updPC()},
     'hr':()=>{const o=$('hr');if(o){o.outerHTML=buildHR()}},
     'stu':()=>{const o=$('stu');if(o){o.outerHTML=buildStu()}},
+    'asc':()=>{const o=$('asc');if(o){o.outerHTML=buildASc()};setTimeout(()=>{onScMo()},50)},
+    'atch':()=>{const o=$('atch');if(o){o.outerHTML=buildATch()}},
+    'astu':()=>{const o=$('astu');if(o){o.outerHTML=buildAStu()}},
+    'acls':()=>{const o=$('acls');if(o){o.outerHTML=buildACls()}},
+    'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
   };
   if(rb[id])rb[id]();
   const pg=$(id);if(pg)pg.classList.add('on');
@@ -424,7 +431,7 @@ function buildNav(){
       +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">📅 Schedule</div>'
       +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>';
     mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend();
-    updPC();showPg('adash');
+    updPC();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
     const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
     nav.innerHTML='<div class="sbs">Overview</div>'
@@ -696,7 +703,8 @@ function stuModal(cls,st){
     const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
     const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
       const isl=d.endsWith('-L2');
-      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'">'+g+'</span></span>';
+      const clsE=cls,stE=st,sjE=sj,dkE=d,gE=g;
+      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'" style="cursor:pointer" onclick="editGradeInline(\''+clsE+'\',\''+stE+'\',\''+sjE+'\',\''+dkE+'\','+g+',this)">'+g+'</span></span>';
     }).join('');
     const avgN=parseFloat(avg);
     return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td>'+(avg!=='—'?'<span class="badge b'+Math.round(avgN)+'">'+avg+'</span>':avg)+'</td></tr>';
@@ -710,6 +718,7 @@ function stuModal(cls,st){
     +'<div><div style="font-size:17px;font-weight:700">'+st+'</div><div style="font-size:12px;color:var(--txt2)">Class '+cls+'</div></div>'
     +'<button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">✕ Close</button>'
     +'</div>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:12px">Click a grade to edit it</p>'
     +'<div class="srow" style="grid-template-columns:repeat(3,1fr)">'
     +'<div class="sc"><div class="sl">Absent</div><div class="sv" style="color:var(--red)">'+ab+'</div></div>'
     +'<div class="sc"><div class="sl">Late</div><div class="sv" style="color:var(--amb)">'+lt+'</div></div>'
@@ -727,6 +736,93 @@ function stuModal(cls,st){
   document.body.appendChild(m);
   m.addEventListener('click',e=>{if(e.target===m)m.remove()});
 }
+
+// ── PARENT VIEW ──
+function showParentChild(idx){
+  clSb();
+  const kids=CU.children||[];
+  const ch=kids[idx];if(!ch)return;
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
+  document.querySelectorAll('[data-p="pch'+idx+'"]').forEach(n=>n.classList.add('on'));
+  const mn=$('mn');
+  const cls=ch.cls||ch.class||'';
+  const nm=ch.name||'';
+  // Build diary + grades for this child
+  const n=new Date(),ay=curAY(),ms=getMonths(ay);
+  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
+  const html='<div class="pg on" id="pch'+idx+'">'
+    +'<div class="pt">'+nm+'</div><div class="ps">Class '+cls+' · Parent view</div>'
+    +'<div class="sr">'
+    +'<label>Month:</label><select id="pdm'+idx+'" onchange="onPDiM('+idx+')">'
+    +ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'<label>Week:</label><select id="pdw'+idx+'" onchange="rfPDi('+idx+')"><option>Loading...</option></select>'
+    +'</div>'
+    +'<div id="pdc'+idx+'"></div>'
+    +'<div class="cd" style="margin-top:14px"><div class="cdh"><h3>⭐ All Grades</h3></div>'
+    +'<table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
+    +Object.entries((GR[cls]&&GR[cls][nm])||{}).map(([sj,dates])=>{
+      const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
+      const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
+      const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+      return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td><span class="badge b'+Math.round(parseFloat(avg))+'">'+avg+'</span></td></tr>';
+    }).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--txt3);padding:16px">No grades yet</td></tr>'
+    +'</tbody></table></div>'
+    +'</div>';
+  const exist=$('pch'+idx);
+  if(exist)exist.outerHTML=html;else mn.innerHTML=html;
+  window['_pdc'+idx]={cls,nm};
+  onPDiM(idx);
+}
+function onPDiM(idx){
+  const mv=$('pdm'+idx).value,wks=getWeeks(mv);
+  const ws=$('pdw'+idx);
+  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)ws.value=ci;
+  rfPDi(idx);
+}
+function rfPDi(idx){
+  const st=window['_pdc'+idx];if(!st)return;
+  const {cls,nm}=st;
+  const mv=$('pdm'+idx).value,wi=parseInt($('pdw'+idx).value)||0;
+  const wk=getWeeks(mv)[wi];
+  const cont=$('pdc'+idx);if(!wk||!cont)return;
+  const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
+  const DN=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  cont.innerHTML=wk.days.map(day=>{
+    const ds=d2s(day),dk=DK[day.getDay()];
+    const ws=wkStart(day);
+    const wsched=SC[cls]&&SC[cls][ws];
+    const sched=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
+    const att=(AT[cls]&&AT[cls][ds])?AT[cls][ds][nm]:null;
+    const lesRows=sched.length?sched.map((les,i)=>{
+      const sg=(GR[cls]&&GR[cls][nm]&&GR[cls][nm][les.sub])?GR[cls][nm][les.sub]:{};
+      const g=sg[ds]||'',g2=sg[ds+'-L2']||'';
+      const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
+      const hi=inf.topic||inf.homework;
+      const iid='pinf'+ds.replace(/-/g,'')+i+idx;
+      return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
+        +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
+        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
+        +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
+        +'</div></td>'
+        +'<td style="text-align:center">'+(g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
+        +(g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
+    return'<div class="cd" style="margin-bottom:11px">'
+      +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
+      +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
+      +'<table><thead><tr><th style="width:28px">#</th><th>Subject</th><th style="width:80px;text-align:center">Grade</th></tr></thead>'
+      +'<tbody>'+lesRows+'</tbody></table></div>';
+  }).join('');
+}
+
+// ── STUDENT ADD SECOND CHILD (from diary) ──
+// This is handled via registration flow already
 
 // ── DIARY ──
 function buildDi(){
@@ -817,7 +913,8 @@ function rfMG(){
       const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
       const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
         const isl=d.endsWith('-L2');
-        return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'">'+g+'</span></span>';
+        const clsE=cls,stE=st,sjE=sj,dkE=d,gE=g;
+      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'" style="cursor:pointer" onclick="editGradeInline(\''+clsE+'\',\''+stE+'\',\''+sjE+'\',\''+dkE+'\','+g+',this)">'+g+'</span></span>';
       }).join('');
       const avgN=parseFloat(avg);
       return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td>'+(avg!=='—'?'<span class="badge b'+Math.round(avgN)+'">'+avg+'</span>':avg)+'</td></tr>';
@@ -1212,7 +1309,29 @@ async function rejPend(email){
   delete PE[email];sLoad('Saving...');await svSchool();hLoad();flash();showPg('apend');
 }
 
-// HELPERS
+// ── EDIT GRADE INLINE (in modal) ──
+function editGradeInline(cls,st,sj,dk,curG,el){
+  const isAdm=CU.role==='admin';
+  const mySubj=subjs().some(s=>matchSubj(sj,s));
+  if(!isAdm&&!mySubj){alert('You can only edit grades for your own subjects');return}
+  const nv=prompt('Edit grade for '+st+' ('+sj+', '+fmtD(dk)+')\nCurrent: '+curG+'\nEnter 1-10 or leave empty to delete:',curG);
+  if(nv===null)return;
+  const n=parseInt(nv);
+  if(!GR[cls])GR[cls]={};
+  if(!GR[cls][st])GR[cls][st]={};
+  if(!GR[cls][st][sj])GR[cls][st][sj]={};
+  if(nv.trim()===''||isNaN(n)){
+    delete GR[cls][st][sj][dk];
+    el.closest('span').remove();
+  }else if(n>=1&&n<=10){
+    GR[cls][st][sj][dk]=n;
+    el.className='badge b'+n;el.textContent=n;
+  }else{alert('Grade must be 1-10');return}
+  svGrades().then(flash);
+}
+
+// ── ADMIN ADD PARENT ──
+
 function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):''}
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function esc2(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
