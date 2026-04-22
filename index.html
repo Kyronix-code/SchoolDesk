@@ -413,6 +413,7 @@ function showPg(id){
     'astu':()=>{const o=$('astu');if(o){o.outerHTML=buildAStu()}},
     'acls':()=>{const o=$('acls');if(o){o.outerHTML=buildACls()}},
     'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
+    'tp':()=>{const o=$('tp');if(o){o.outerHTML=buildTP()};rfTP()},
   };
   if(rb[id])rb[id]();
   const pg=$(id);if(pg)pg.classList.add('on');
@@ -442,7 +443,7 @@ function buildNav(){
       +'<div class="sbs">Other</div>'
       +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
       +hr;
-    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'');
+    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP();
     rfGR();rfAtt();showPg('dash');
   }else{
     nav.innerHTML='<div class="sbs">Diary</div>'
@@ -500,10 +501,14 @@ function buildGR(){
   return'<div class="pg" id="gr">'
     +'<div class="pt">Grades</div><div class="ps">Enter grades per lesson</div>'
     +'<div class="sr">'
-    +'<label>Class:</label><select id="gcl" onchange="sCls=this.value;sLes=1;rfGR()">'+(CU.classes||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Class:</label><select id="gcl" onchange="sCls=this.value;sLes=1;onGrCls()">'+(CU.classes||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
     +'<label>Date:</label><select id="gdt" onchange="sDate=this.value;sLes=1;rfGR()" style="min-width:155px"><option>Loading...</option></select>'
     +ss
     +'<span id="glw" style="display:none"><label>Lesson:</label><select id="gls" onchange="sLes=parseInt(this.value);rfGR()"><option value="1">Lesson 1</option><option value="2">Lesson 2</option></select></span>'
+    +'</div>'
+    +'<div class="sr" id="gr-stu-row" style="margin-bottom:10px">'
+    +'<label>Jump to student:</label>'
+    +'<select id="g-stu-jump" onchange="jumpToStu(this.value)" style="min-width:200px"><option value="">All students</option></select>'
     +'</div>'
     +'<div class="cd" style="margin-bottom:12px"><div class="cdh"><h3>Lesson Info</h3></div>'
     +'<div style="padding:12px 16px;display:flex;flex-direction:column;gap:9px">'
@@ -559,8 +564,13 @@ function cntSubjDay(cls,date,sj){
 
 function lKey(date){return sLes>1?date+'-L'+sLes:date}
 
+function onGrCls(){rfGR();}
 function rfGR(){
   const cls=sCls,sj=sSubj||subjs()[0]||'';
+  // Update student jump dropdown
+  const sts=DB.classes[cls]||[];
+  const sJump=$('g-stu-jump');
+  if(sJump)sJump.innerHTML='<option value="">All students</option>'+sts.map((st,i)=>'<option value="'+i+'">'+st+'</option>').join('');
   const dates=getDates(cls);
   const dsel=$('gdt');
   if(dsel){
@@ -574,7 +584,6 @@ function rfGR(){
   const glw=$('glw');if(glw)glw.style.display=cnt>=2?'inline-flex':'none';
   if(cnt<2)sLes=1;
   const lk=lKey(sDate);
-  const sts=DB.classes[cls]||[];
   const tt=$('gtit');if(tt)tt.textContent=cls+' · '+sj+' · '+fmtD(sDate)+(sLes>1?' (Lesson '+sLes+')':'');
   const li=(LI[cls]&&LI[cls][sj])?LI[cls][sj][lk]||{}:{};
   const tp=$('gtp'),hw=$('ghw');
@@ -591,6 +600,7 @@ function rfGR(){
     }).join('')+'</tbody>';
 }
 
+function jumpToStu(idx){const e=$('gi'+idx);if(e)e.scrollIntoView({behavior:'smooth',block:'center'});}
 function clrG(i){const e=$('gi'+i);if(e){e.value='';const nx=e.nextElementSibling;if(nx&&nx.tagName==='BUTTON')nx.remove()}}
 
 async function svGR(){
@@ -904,17 +914,22 @@ function tgInf(id){const e=$(id);if(e)e.style.display=e.style.display==='none'?'
 function buildMG(){return'<div class="pg" id="mg"><div class="pt">⭐ My Grades</div><div class="ps">Academic overview</div><div id="mgc"></div></div>'}
 function rfMG(){
   const cls=CU.class||CU.studentClass||'',nm=CU.name||'';
+  const el=$('mgc');if(!el)return;
+  if(!cls){el.innerHTML='<p style="color:var(--txt3);padding:16px">No class assigned.</p>';return}
   const sg=(GR[cls]&&GR[cls][nm])?GR[cls][nm]:{};
-  const c=$('mgc');if(!c)return;
-  if(!Object.keys(sg).length){c.innerHTML='<p style="color:var(--txt3);padding:16px">No grades yet.</p>';return}
-  c.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
-    +Object.entries(sg).map(([sj,dates])=>{
+  const entries=Object.entries(sg).filter(([,dates])=>Object.values(dates).some(v=>typeof v==='number'));
+  if(!entries.length){el.innerHTML='<p style="color:var(--txt3);padding:16px">No grades recorded yet.</p>';return}
+  const allVals=entries.flatMap(([,dates])=>Object.values(dates).filter(v=>typeof v==='number'));
+  const oa=allVals.length?(allVals.reduce((a,b)=>a+b,0)/allVals.length).toFixed(1):'—';
+  el.innerHTML='<div style="margin-bottom:12px"><div class="sc" style="display:inline-block;min-width:140px">'
+    +'<div class="sl">Overall Average</div><div class="sv">'+(oa!=='—'?'<span class="badge b'+Math.round(parseFloat(oa))+'">'+oa+'</span>':oa)+'</div></div></div>'
+    +'<div class="cd"><table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
+    +entries.map(([sj,dates])=>{
       const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
       const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
       const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>{
         const isl=d.endsWith('-L2');
-        const clsE=cls,stE=st,sjE=sj,dkE=d,gE=g;
-      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'" style="cursor:pointer" onclick="editGradeInline(\''+clsE+'\',\''+stE+'\',\''+sjE+'\',\''+dkE+'\','+g+',this)">'+g+'</span></span>';
+        return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+(isl?' L2':'')+': <span class="badge b'+g+'">'+g+'</span></span>';
       }).join('');
       const avgN=parseFloat(avg);
       return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td>'+(avg!=='—'?'<span class="badge b'+Math.round(avgN)+'">'+avg+'</span>':avg)+'</td></tr>';
@@ -1176,19 +1191,43 @@ function buildASc(){
   for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
   return'<div class="pg" id="asc"><div class="pt">Schedule</div>'
     +'<div class="sr" style="flex-wrap:wrap">'
-    +'<label>Class:</label><select id="sccl" onchange="rfSc()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Class:</label><select id="sccl" onchange="onScCls()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
     +'<label>Year:</label><select id="scyr" onchange="onScYr()">'+ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
     +'<label>Month:</label><select id="scmo" onchange="onScMo()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
-    +'<label>Week:</label><select id="scwk" onchange="rfSc()"><option>Loading...</option></select>'
+    +'<label>Week:</label><select id="scwk" onchange="onScWk()"><option>Loading...</option></select>'
     +'<label>Day:</label><select id="scdy" onchange="rfSc()">'+days.map(d=>'<option value="'+d+'">'+d+'</option>').join('')+'</select>'
     +'</div>'
-    +'<div class="fc" style="margin-bottom:12px"><h3>Copy Week</h3>'
+    +'<div class="fc" style="margin-bottom:12px"><h3>Copy Week to another week</h3>'
     +'<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-    +'<label style="font-size:13px;color:var(--txt2)">Copy current week to:</label>'
+    +'<label style="font-size:13px;color:var(--txt2)">To:</label>'
     +'<select id="sccw" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;min-width:190px"><option>Loading...</option></select>'
     +'<button class="btn bp2" onclick="cpWk()">Copy</button></div></div>'
     +'<div id="sce"></div>'
     +'</div>';
+}
+function onScCls(){updScWkDropdown();rfSc();}
+function onScWk(){updCopyDropdown();rfSc();}
+function updScWkDropdown(){
+  const mv=$('scmo').value,wks=getWeeks(mv);
+  const cls=$('sccl')?.value||'';
+  const ws=$('scwk');
+  if(!ws)return;
+  // Show weeks that have schedule + all weeks
+  ws.innerHTML=wks.map((w,i)=>{
+    const hasData=SC[cls]&&SC[cls][w.ws]&&Object.keys(SC[cls][w.ws]).some(dk=>SC[cls][w.ws][dk]?.length>0);
+    return'<option value="'+i+'"'+(hasData?' style="font-weight:600"':'')+'>'+w.l+(hasData?' ✓':'')+'</option>';
+  }).join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)ws.value=ci;
+  updCopyDropdown();
+}
+function updCopyDropdown(){
+  const ay=$('scyr').value,allMs=getMonths(ay);
+  const mv=$('scmo').value,wi=parseInt($('scwk').value)||0;
+  const curWs=getWeeks(mv)[wi]?.ws||'';
+  let allW=[];allMs.forEach(m=>getWeeks(m.v).forEach(w=>allW.push({...w,ml:m.l})));
+  const cw=$('sccw');
+  if(cw)cw.innerHTML='<option value="">Select target week...</option>'+allW.filter(w=>w.ws!==curWs).map(w=>'<option value="'+w.ws+'">'+w.ml+' — '+w.l+'</option>').join('');
 }
 function onScYr(){
   const ay=$('scyr').value,ms=getMonths(ay);
@@ -1196,16 +1235,7 @@ function onScYr(){
   onScMo();
 }
 function onScMo(){
-  const mv=$('scmo').value,wks=getWeeks(mv);
-  const ws=$('scwk');
-  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
-  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
-  if(ci>=0)ws.value=ci;
-  const curWs=wks[parseInt(ws.value)||0]?.ws||'';
-  const ay=$('scyr').value,allMs=getMonths(ay);
-  let allW=[];allMs.forEach(m=>getWeeks(m.v).forEach(w=>allW.push({...w,ml:m.l})));
-  const cw=$('sccw');
-  if(cw)cw.innerHTML='<option value="">Select week...</option>'+allW.filter(w=>w.ws!==curWs).map(w=>'<option value="'+w.ws+'">'+w.ml+' — '+w.l+'</option>').join('');
+  updScWkDropdown();
   rfSc();
 }
 function getScWk(){
@@ -1214,7 +1244,8 @@ function getScWk(){
 }
 function rfSc(){
   const cls=$('sccl')?.value,day=$('scdy')?.value,wk=getScWk();
-  if(!cls||!day||!wk)return;
+  if(!cls||!day)return;
+  if(!wk){updScWkDropdown();return;}
   const ls=(SC[cls]&&SC[cls][wk]&&SC[cls][wk][day])||[];
   $('sce').innerHTML='<div class="cd">'
     +'<div class="cdh"><h3>'+cls+' — '+day+' — '+wk+'</h3><button class="btn bp2" onclick="addLs(\''+cls+'\',\''+wk+'\',\''+day+'\')">+ Add</button></div>'
@@ -1307,6 +1338,79 @@ async function apprPend(email){
 async function rejPend(email){
   if(!confirm('Reject '+email+'?'))return;
   delete PE[email];sLoad('Saving...');await svSchool();hLoad();flash();showPg('apend');
+}
+
+// ── THEMATIC PLAN ──
+function buildTP(){
+  const sjs=subjs();
+  const cls=CU.classes||[];
+  const n=new Date(),ay=curAY(),ms=getMonths(ay);
+  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
+  return'<div class="pg" id="tp">'
+    +'<div class="pt">📋 Thematic Plan</div><div class="ps">Annual lesson plan by class and subject</div>'
+    +'<div class="sr" style="flex-wrap:wrap">'
+    +'<label>Class:</label><select id="tpcl" onchange="rfTP()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +(sjs.length>1?'<label>Subject:</label><select id="tpsj" onchange="rfTP()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>':'<input type="hidden" id="tpsj" value="'+esc2(sjs[0]||'')+'"/>')
+    +'<label>Month:</label><select id="tpmo" onchange="rfTP()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'</div>'
+    +'<div id="tpc"></div>'
+    +'<div style="margin-top:10px"><button class="btn bp2" onclick="svTP()">✓ Save Plan</button></div>'
+    +'</div>';
+}
+function rfTP(){
+  const cls=$('tpcl')?.value||'',sj=$('tpsj')?.value||'',mv=$('tpmo')?.value||'';
+  const el=$('tpc');if(!el||!cls||!sj||!mv)return;
+  const wks=getWeeks(mv);
+  const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DN=['Mon','Tue','Wed','Thu','Fri'];
+  // Collect lesson days for this class+subject in this month
+  const lessDays=[];
+  wks.forEach(wk=>{
+    wk.days.forEach(day=>{
+      const dk=DK[day.getDay()];
+      const ws=wkStart(day);
+      const wsched=SC[cls]&&SC[cls][ws];
+      const sched=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
+      if(sched.some(l=>matchSubj(l.sub,sj)))lessDays.push(d2s(day));
+    });
+  });
+  const tp=(window._tp=window._tp||{});
+  const saved=(tp[CU.username]&&tp[CU.username][cls]&&tp[CU.username][cls][sj])||{};
+  if(!lessDays.length){
+    el.innerHTML='<p style="color:var(--txt3);padding:16px">No lessons scheduled for this subject in this month. Add lessons in Admin → Schedule first.</p>';
+    return;
+  }
+  el.innerHTML='<div class="cd"><div style="overflow-x:auto"><table>'
+    +'<thead><tr><th>Date</th><th>Topic</th><th>Goal</th><th>Homework</th></tr></thead><tbody>'
+    +lessDays.map((ds,i)=>{
+      const dt=new Date(ds);
+      const lbl=DN[dt.getDay()-1]+' '+dt.getDate()+' '+MN[dt.getMonth()];
+      const ent=saved[ds]||{};
+      return'<tr><td style="font-size:12px;color:var(--txt2);white-space:nowrap">'+lbl+'</td>'
+        +'<td><input id="tpt'+i+'" value="'+esc2(ent.topic||'')+'" data-ds="'+ds+'" style="width:100%;padding:5px 8px;background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:12px;font-family:inherit;outline:none" placeholder="Topic..."></td>'
+        +'<td><input id="tpg'+i+'" value="'+esc2(ent.goal||'')+'" data-ds="'+ds+'" style="width:100%;padding:5px 8px;background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:12px;font-family:inherit;outline:none" placeholder="Goal..."></td>'
+        +'<td><input id="tph'+i+'" value="'+esc2(ent.homework||'')+'" data-ds="'+ds+'" style="width:100%;padding:5px 8px;background:transparent;border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:12px;font-family:inherit;outline:none" placeholder="Homework..."></td>'
+        +'</tr>';
+    }).join('')+'</tbody></table></div></div>';
+  window._tpDays=lessDays;
+}
+async function svTP(){
+  const cls=$('tpcl')?.value||'',sj=$('tpsj')?.value||'';
+  const days=window._tpDays||[];
+  if(!cls||!sj||!days.length)return;
+  if(!window._tp)window._tp={};
+  if(!window._tp[CU.username])window._tp[CU.username]={};
+  if(!window._tp[CU.username][cls])window._tp[CU.username][cls]={};
+  if(!window._tp[CU.username][cls][sj])window._tp[CU.username][cls][sj]={};
+  days.forEach((ds,i)=>{
+    const t=$('tpt'+i)?.value||'',g=$('tpg'+i)?.value||'',h=$('tph'+i)?.value||'';
+    window._tp[CU.username][cls][sj][ds]={topic:t,goal:g,homework:h};
+  });
+  // Save in grades bin
+  const gData=await bGet(BG).catch(()=>({}));
+  gData.thematic=window._tp;
+  sLoad('Saving...');await bSet(BG,gData);hLoad();flash();
 }
 
 // ── EDIT GRADE INLINE (in modal) ──
