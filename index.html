@@ -1104,10 +1104,24 @@ async function delStu(k){
 
 // ── ADMIN CLASSES ──
 function buildACls(){
+  const cls=Object.keys(DB.classes||{}).sort();
   return'<div class="pg" id="acls"><div class="pt">Classes</div>'
     +'<div class="fc"><h3>Add Class</h3><div style="display:flex;gap:8px">'
     +'<input id="ncls" placeholder="e.g. 10A" style="padding:8px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
     +'<button class="btn bp2" onclick="addCls()">+ Add</button></div></div>'
+    +'<div class="fc" style="margin-bottom:16px"><h3>📋 Bulk Import Students</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Select class, then paste student names — one per line. They will all be added at once.</p>'
+    +'<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">'
+    +'<label style="font-size:13px;color:var(--txt2)">Class:</label>'
+    +'<select id="bulk-cls" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
+    +cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')
+    +'</select></div>'
+    +'<textarea id="bulk-names" placeholder="Ani Hakobyan&#10;Aram Petrosyan&#10;Mari Simonyan&#10;..." '
+    +'style="width:100%;min-height:150px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
+    +'<button class="btn bp2" onclick="bulkImport()" style="padding:9px 20px;font-size:14px">✓ Add All Students</button>'
+    +'<span id="bulk-msg" style="font-size:13px;color:var(--grn)"></span>'
+    +'</div></div>'
     +Object.entries(DB.classes||{}).map(([cls,sts])=>'<div class="cd">'
       +'<div class="cdh"><div style="display:flex;align-items:center;gap:8px"><b id="clbl'+cls+'">'+cls+' — '+sts.length+'</b>'
       +'<button class="btn bg2" style="font-size:11px" onclick="tgRn(\''+cls+'\')">Rename</button></div>'
@@ -1141,6 +1155,24 @@ async function rnCls(old){
   });
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('acls');
 }
+async function bulkImport(){
+  const cls=$('bulk-cls')?.value;
+  const raw=$('bulk-names')?.value||'';
+  const names=raw.split('\n').map(n=>n.trim()).filter(n=>n.length>0);
+  if(!cls||!names.length){alert('Select a class and enter at least one name.');return;}
+  if(!DB.classes[cls])DB.classes[cls]=[];
+  let added=0;
+  names.forEach(n=>{
+    if(!DB.classes[cls].includes(n)){DB.classes[cls].push(n);added++;}
+  });
+  sLoad('Saving...');await svSchool();hLoad();
+  const msg=$('bulk-msg');
+  if(msg)msg.textContent='✓ Added '+added+' students ('+names.length+' total, '+(names.length-added)+' already existed)';
+  $('bulk-names').value='';
+  // Refresh classes page to show updated lists
+  showPg('acls');
+}
+
 async function addCls(){
   const n=$('ncls')?.value.trim();if(!n)return;
   if(DB.classes[n]){alert('Already exists');return}
