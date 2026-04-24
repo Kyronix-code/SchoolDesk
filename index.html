@@ -1009,17 +1009,26 @@ function buildATch(){
   const tchs=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='teacher');
   const co=Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
   return'<div class="pg" id="atch"><div class="pt">Teachers</div>'
-    +'<div class="fc"><h3>Add Teacher</h3>'
-    +'<div class="fr"><div class="ff"><label>Full Name</label><input id="tn"></div><div class="ff"><label>Username (email)</label><input id="tu"></div></div>'
+    +'<div class="fc"><h3>📋 Bulk Import Teachers</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:6px">One teacher per line, fields separated by <b>|</b>:</p>'
+    +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject | Name | Username | Password | Classes (comma sep.) | Homeroom (optional)</code>'
+    +'<p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Example: Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A | 7A</p>'
+    +'<textarea id="bulk-tch" placeholder="Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A&#10;Math | Ani Karapetyan | Ani_Karapetyan | Ani90@ | 8B, 9B | 8B" style="width:100%;min-height:140px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.7"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
+    +'<button class="btn bp2" onclick="bulkImportTch()" style="padding:9px 20px;font-size:14px">✓ Import Teachers</button>'
+    +'<span id="bulk-tch-msg" style="font-size:13px;color:var(--grn)"></span>'
+    +'</div></div>'
+    +'<div class="fc"><h3>Add Single Teacher</h3>'
+    +'<div class="fr"><div class="ff"><label>Full Name</label><input id="tn"></div><div class="ff"><label>Username</label><input id="tu"></div></div>'
     +'<div class="fr"><div class="ff"><label>Password</label><input id="tp"></div><div class="ff"><label>Subject(s) (& for multiple)</label><input id="ts"></div></div>'
     +'<div class="fr"><div class="ff"><label>Classes (comma sep.)</label><input id="tc"></div><div class="ff"><label>Homeroom Class</label><input id="th"></div></div>'
     +'<button class="btn bp2" onclick="addTch()">+ Add Teacher</button></div>'
     +'<div class="cd"><div class="cdh"><h3>Teachers ('+tchs.length+')</h3></div>'
     +'<table><thead><tr><th>Name</th><th>Subject</th><th>Classes</th><th>HR</th><th></th></tr></thead><tbody>'
-    +tchs.map(([k,t])=>'<tr id="tr'+k.replace(/[^a-z0-9]/gi,'')+'"><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+'</div></td>'
-      +'<td style="font-size:12px">'+( t.subject||'—')+'</td><td style="font-size:12px">'+((t.classes||[]).join(', ')||'—')+'</td><td style="font-size:12px">'+(t.homeroom||'—')+'</td>'
+    +tchs.map(([k,t])=>'<tr id="tr'+eid(k)+'"><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+'</div></td>'
+      +'<td style="font-size:12px">'+(t.subject||'—')+'</td><td style="font-size:12px">'+((t.classes||[]).join(', ')||'—')+'</td><td style="font-size:12px">'+(t.homeroom||'—')+'</td>'
       +'<td style="display:flex;gap:4px"><button class="btn bg2" onclick="edTch(\''+k+'\')">Edit</button><button class="btn bd2" onclick="delU(\''+k+'\')">Del</button></td></tr>'
-      +'<tr id="te'+k.replace(/[^a-z0-9]/gi,'')+'" style="display:none;background:var(--surf2)"><td colspan="5" style="padding:12px">'
+      +'<tr id="te'+eid(k)+'" style="display:none;background:var(--surf2)"><td colspan="5" style="padding:12px">'
       +'<div class="fr"><div class="ff"><label>Name</label><input id="ten'+k+'" value="'+esc2(t.name)+'"></div>'
       +'<div class="ff"><label>Password</label><input id="tep'+k+'" value="'+esc2(t.pass)+'"></div>'
       +'<div class="ff"><label>Subject</label><input id="tes'+k+'" value="'+esc2(t.subject||'')+'"></div>'
@@ -1041,6 +1050,30 @@ async function svTch(k){
   DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null};
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
+async function bulkImportTch(){
+  const raw=$('bulk-tch')?.value||'';
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  if(!lines.length){alert('Enter at least one teacher.');return;}
+  let added=0,errs=[];
+  lines.forEach((line,i)=>{
+    const parts=line.split('|').map(p=>p.trim());
+    // Format: Subject | Name | Username | Password | Classes | Homeroom(opt)
+    if(parts.length<4){errs.push('Line '+(i+1)+': not enough fields');return;}
+    const [subj,name,user,pass,clsRaw,homeroom]=parts;
+    if(!name||!user||!pass){errs.push('Line '+(i+1)+': name/user/pass required');return;}
+    const cls=(clsRaw||'').split(',').map(c=>c.trim()).filter(Boolean);
+    const key=user+'_t';
+    DB.users[key]={role:'teacher',name,pass,subject:subj||'',classes:cls,homeroom:homeroom||null};
+    added++;
+  });
+  if(errs.length){alert('Errors:\n'+errs.join('\n'));return;}
+  sLoad('Saving...');await svSchool();hLoad();
+  const msg=$('bulk-tch-msg');
+  if(msg)msg.textContent='✓ Imported '+added+' teachers';
+  $('bulk-tch').value='';
+  showPg('atch');
+}
+
 async function addTch(){
   const n=$('tn')?.value.trim(),u=$('tu')?.value.trim(),p=$('tp')?.value.trim();
   const s=$('ts')?.value.trim(),c=$('tc')?.value.split(',').map(x=>x.trim()).filter(Boolean);
