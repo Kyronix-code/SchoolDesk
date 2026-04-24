@@ -1242,16 +1242,37 @@ function getScWk(){
   const mv=$('scmo').value,wi=parseInt($('scwk').value)||0;
   return getWeeks(mv)[wi]?.ws||'';
 }
+function getAllSubjects(){
+  const sjs=new Set();
+  Object.values(DB.users||{}).forEach(u=>{
+    if(u.role==='teacher'&&u.subject)
+      u.subject.split('&').map(s=>s.trim()).filter(Boolean).forEach(s=>sjs.add(s));
+  });
+  return[...sjs].sort();
+}
+function getAllTeachers(){
+  return Object.values(DB.users||{}).filter(u=>u.role==='teacher').map(u=>u.name).sort();
+}
+function scSubjOpts(sel){
+  return getAllSubjects().map(s=>'<option value="'+esc2(s)+'"'+(s===sel?' selected':'')+'>'+s+'</option>').join('');
+}
+function scTchOpts(sel){
+  return getAllTeachers().map(t=>'<option value="'+esc2(t)+'"'+(t===sel?' selected':'')+'>'+t+'</option>').join('');
+}
 function rfSc(){
   const cls=$('sccl')?.value,day=$('scdy')?.value,wk=getScWk();
   if(!cls||!day)return;
   if(!wk){updScWkDropdown();return;}
   const ls=(SC[cls]&&SC[cls][wk]&&SC[cls][wk][day])||[];
+  const selSt='flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none';
+  const selSt2='flex:1;min-width:150px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none';
   $('sce').innerHTML='<div class="cd">'
-    +'<div class="cdh"><h3>'+cls+' — '+day+' — '+wk+'</h3><button class="btn bp2" onclick="addLs(\''+cls+'\',\''+wk+'\',\''+day+'\')">+ Add</button></div>'
+    +'<div class="cdh"><h3>'+cls+' — '+day+' — '+wk+'</h3></div>'
     +'<table><thead><tr><th>#</th><th>Subject</th><th>Teacher</th><th></th></tr></thead><tbody>'
     +ls.map((l,i)=>'<tr id="sr'+i+'">'
-      +'<td>'+(i+1)+'</td><td>'+l.sub+'</td><td style="font-size:12px;color:var(--txt2)">'+(l.teacher||'')+'</td>'
+      +'<td>'+(i+1)+'</td>'
+      +'<td style="font-weight:500">'+l.sub+'</td>'
+      +'<td style="font-size:12px;color:var(--txt2)">'+(l.teacher||'—')+'</td>'
       +'<td style="display:flex;gap:3px">'
       +'<button class="btn bg2" style="padding:3px 7px" onclick="mvU(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')"'+(i===0?' disabled':'')+'>↑</button>'
       +'<button class="btn bg2" style="padding:3px 7px" onclick="mvD(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')"'+(i===ls.length-1?' disabled':'')+'>↓</button>'
@@ -1259,27 +1280,30 @@ function rfSc(){
       +'<button class="btn bd2" onclick="delLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">Del</button>'
       +'</td></tr>'
       +'<tr id="se'+i+'" style="display:none;background:var(--surf2)"><td colspan="4" style="padding:9px 13px">'
-      +'<div style="display:flex;gap:7px;flex-wrap:wrap">'
-      +'<input id="ses'+i+'" value="'+esc2(l.sub)+'" style="flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Subject">'
-      +'<input id="set'+i+'" value="'+esc2(l.teacher||'')+'" style="flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Teacher">'
-      +'<button class="btn bp2" onclick="svLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">✓</button>'
+      +'<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">'
+      +'<select id="ses'+i+'" style="'+selSt+'"><option value="">Subject...</option>'+scSubjOpts(l.sub)+'</select>'
+      +'<select id="set'+i+'" style="'+selSt+'"><option value="">Teacher...</option>'+scTchOpts(l.teacher||'')+'</select>'
+      +'<button class="btn bp2" onclick="svLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">✓ Save</button>'
       +'<button class="btn bg2" onclick="cnLs('+i+')">✕</button>'
       +'</div></td></tr>'
     ).join('')+'</tbody></table>'
-    +'<div style="padding:12px 16px;display:flex;gap:7px;border-top:1px solid var(--bdr);flex-wrap:wrap">'
-    +'<input id="scsb" style="flex:1;min-width:130px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Subject">'
-    +'<input id="sctc" style="flex:1;min-width:130px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Teacher">'
-    +'</div></div>';
+    +'<div style="padding:12px 16px;border-top:1px solid var(--bdr)">'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:8px">Add lesson:</p>'
+    +'<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">'
+    +'<select id="scsb" style="'+selSt2+'"><option value="">Select subject...</option>'+scSubjOpts('')+'</select>'
+    +'<select id="sctc" style="'+selSt2+'"><option value="">Select teacher...</option>'+scTchOpts('')+'</select>'
+    +'<button class="btn bp2" onclick="addLs(\''+cls+'\',\''+wk+'\',\''+day+'\')">+ Add</button>'
+    +'</div></div></div>';
 }
 function edLs(i){$('sr'+i).style.display='none';$('se'+i).style.display=''}
 function cnLs(i){$('sr'+i).style.display='';$('se'+i).style.display='none'}
 async function svLs(cls,wk,day,i){
-  const s=$('ses'+i)?.value.trim(),t=$('set'+i)?.value.trim();if(!s)return;
+  const s=$('ses'+i)?.value,t=$('set'+i)?.value;if(!s)return;
   SC[cls][wk][day][i]={sub:s,teacher:t||''};
   sLoad('Saving...');await svSched();hLoad();flash();rfSc();
 }
 async function addLs(cls,wk,day){
-  const s=$('scsb')?.value.trim(),t=$('sctc')?.value.trim();if(!s)return;
+  const s=$('scsb')?.value,t=$('sctc')?.value;if(!s)return;
   if(!SC[cls])SC[cls]={};if(!SC[cls][wk])SC[cls][wk]={};if(!SC[cls][wk][day])SC[cls][wk][day]=[];
   SC[cls][wk][day].push({sub:s,teacher:t||''});
   sLoad('Saving...');await svSched();hLoad();flash();rfSc();
