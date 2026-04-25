@@ -281,19 +281,25 @@ async function bGet(id){
   return(await r.json()).record;
 }
 async function bSet(id,data){
-  await fetch('https://api.jsonbin.io/v3/b/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(data)});
+  const r=await fetch('https://api.jsonbin.io/v3/b/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(data)});
+  if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.message||'HTTP '+r.status);}
 }
 
 // LOAD/SAVE
 async function loadAll(){
   sLoad('Loading...');
   try{
-    const[s,g,a,c]=await Promise.all([bGet(BS).catch(()=>null),bGet(BG).catch(()=>null),bGet(BA).catch(()=>null),bGet(BC).catch(()=>null)]);
+    const[s,g,a,schedData]=await Promise.all([
+      bGet(BS).catch(()=>null),
+      bGet(BG).catch(()=>null),
+      bGet(BA).catch(()=>null),
+      bGet(BC).catch(()=>null)
+    ]);
     if(s&&s.users){DB=s;PE=s.pending||{}}
     if(g){GR=g.grades||{};LI=g.lessonInfo||{}}
     if(a&&typeof a==='object'&&!a.type)AT=a;
-    if(c&&typeof c==='object')SC=c;
-  }catch(e){console.error(e)}
+    if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData))SC=schedData;
+  }catch(e){console.error('loadAll error:',e)}
   Object.keys(DB.classes||{}).forEach(cls=>{
     if(!GR[cls])GR[cls]={};
     if(!AT[cls])AT[cls]={};
@@ -303,18 +309,41 @@ async function loadAll(){
   hLoad();
 }
 async function svSchool(){
-  try{await bSet(BS,{users:DB.users,classes:DB.classes,pending:PE})}catch(e){console.error(e)}
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BS,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({users:DB.users,classes:DB.classes,pending:PE})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (School): '+e.message);throw e;}
 }
 async function svGrades(){
-  try{await bSet(BG,{grades:GR,lessonInfo:LI})}catch(e){console.error(e)}
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({grades:GR,lessonInfo:LI})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Grades): '+e.message);throw e;}
 }
-async function svAtt(){try{await bSet(BA,AT)}catch(e){console.error(e)}}
+async function svAtt(){
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BA,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(AT)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Attendance): '+e.message);throw e;}
+}
 async function svSched(){
+  // Trim old weeks to stay under 100KB
   Object.keys(SC).forEach(cls=>{
     const wks=Object.keys(SC[cls]).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
     if(wks.length>16)wks.slice(0,wks.length-16).forEach(w=>delete SC[cls][w]);
   });
-  try{await bSet(BC,SC)}catch(e){console.error(e)}
+  // Check size
+  const json=JSON.stringify(SC);
+  const kb=Math.round(json.length/1024);
+  if(kb>90){hLoad();alert('❌ Schedule is too large ('+kb+'KB). Delete old weeks first.');return;}
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BC,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:json});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Schedule): '+e.message+' ('+kb+'KB)');throw e;}
 }
 
 // CAPTCHA
