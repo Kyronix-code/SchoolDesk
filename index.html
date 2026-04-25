@@ -525,6 +525,7 @@ function getDates(cls){
   const dk2n={'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5};
   const clsc=SC[cls]||{};
   const allowed=new Set();
+  // Collect allowed days from all weeks in schedule
   Object.values(clsc).forEach(wk=>{
     if(wk&&typeof wk==='object'&&!Array.isArray(wk)){
       ['Mon','Tue','Wed','Thu','Fri'].forEach(dk=>{
@@ -537,14 +538,33 @@ function getDates(cls){
     const ls=Array.isArray(clsc[dk])?clsc[dk]:[];
     if(ls.some(l=>matchSubj(l.sub,sj)))allowed.add(dk2n[dk]);
   });
-  const dates=[];const d=new Date();let tr=0;
-  while(dates.length<60&&tr<365){
-    if(d.getDay()>=1&&d.getDay()<=5){
-      if(allowed.size===0||allowed.has(d.getDay()))dates.push(d2s(d));
+  // Generate dates: current month first (including today + future), then past
+  const dates=[];
+  const today=new Date();
+  const todayStr=tod();
+  // Current month - all working days (past, today, future)
+  const curY=today.getFullYear(),curM=today.getMonth();
+  const d1=new Date(curY,curM,1);
+  while(d1.getMonth()===curM){
+    if(d1.getDay()>=1&&d1.getDay()<=5){
+      if(allowed.size===0||allowed.has(d1.getDay()))dates.push(d2s(d1));
     }
-    d.setDate(d.getDate()-1);tr++;
+    d1.setDate(d1.getDate()+1);
   }
-  return dates;
+  // Sort: put today and future at top (descending from today going back)
+  // Actually sort all descending so today is first
+  dates.sort((a,b)=>b.localeCompare(a));
+  // Also add past 2 months
+  const past=[];
+  const dp=new Date(today);dp.setDate(dp.getDate()-1);
+  let tries=0;
+  while(past.length<30&&tries<120){
+    if(dp.getMonth()!==curM&&dp.getDay()>=1&&dp.getDay()<=5){
+      if(allowed.size===0||allowed.has(dp.getDay()))past.push(d2s(dp));
+    }
+    dp.setDate(dp.getDate()-1);tries++;
+  }
+  return [...dates,...past];
 }
 
 function matchSubj(a,b){
@@ -1255,6 +1275,22 @@ function buildASc(){
   const ys=[];const cy=n.getFullYear();
   for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
   return'<div class="pg" id="asc"><div class="pt">Schedule</div>'
+    +'<div class="fc" style="margin-bottom:14px"><h3>📋 Bulk Import — Full Day Schedule</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:6px">Select class, week, day — then paste lessons one per line:</p>'
+    +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject — Teacher Name</code>'
+    +'<p style="font-size:11px;color:var(--txt3);margin-bottom:10px">Example:<br>Armenian Language — Armen Danielyan<br>Mathematics — Gor Petrosyan<br>English — Aram Vardanyan</p>'
+    +'<div class="sr" style="margin-bottom:10px;flex-wrap:wrap">'
+    +'<label>Class:</label><select id="bi-cls" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Year:</label><select id="bi-yr" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'+ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
+    +'<label>Month:</label><select id="bi-mo" onchange="updBiWeeks()" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'<label>Week:</label><select id="bi-wk" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;min-width:180px"><option>Loading...</option></select>'
+    +'<label>Day:</label><select id="bi-dy" style="padding:7px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'+days.map(d=>'<option value="'+d+'">'+d+'</option>').join('')+'</select>'
+    +'</div>'
+    +'<textarea id="bi-lines" placeholder="Armenian Language — Armen Danielyan&#10;Mathematics — Gor Petrosyan&#10;English — Aram Vardanyan&#10;Natural Science — Lilia Sargsyan" style="width:100%;min-height:160px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.7"></textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
+    +'<button class="btn bp2" onclick="bulkImportSched()" style="padding:9px 20px;font-size:14px">✓ Import Schedule</button>'
+    +'<span id="bi-msg" style="font-size:13px;color:var(--grn)"></span>'
+    +'</div></div>'
     +'<div class="sr" style="flex-wrap:wrap">'
     +'<label>Class:</label><select id="sccl" onchange="onScCls()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
     +'<label>Year:</label><select id="scyr" onchange="onScYr()">'+ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
@@ -1270,6 +1306,50 @@ function buildASc(){
     +'<div id="sce"></div>'
     +'</div>';
 }
+function updBiWeeks(){
+  const mo=$('bi-mo')?.value||'';
+  if(!mo)return;
+  const wks=getWeeks(mo);
+  const sel=$('bi-wk');
+  if(!sel)return;
+  sel.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)sel.value=ci;
+}
+
+async function bulkImportSched(){
+  const cls=$('bi-cls')?.value;
+  const mo=$('bi-mo')?.value;
+  const wi=parseInt($('bi-wk')?.value)||0;
+  const day=$('bi-dy')?.value;
+  const raw=$('bi-lines')?.value||'';
+  if(!cls||!mo||!day){alert('Select class, month, week and day.');return;}
+  const wks=getWeeks(mo);
+  const wk=wks[wi]?.ws;
+  if(!wk){alert('Invalid week.');return;}
+  const lines=raw.split('\n').map(l=>l.trim()).filter(l=>l.length>0);
+  if(!lines.length){alert('Enter at least one lesson.');return;}
+  const lessons=[];
+  const errs=[];
+  lines.forEach((line,i)=>{
+    // Support both — and - separators
+    const sep=line.includes('—')?'—':'-';
+    const parts=line.split(sep).map(p=>p.trim());
+    if(parts.length<1||!parts[0]){errs.push('Line '+(i+1)+': invalid format');return;}
+    const sub=parts[0];
+    const teacher=parts.slice(1).join(sep).trim();
+    lessons.push({sub,teacher:teacher||''});
+  });
+  if(errs.length){alert('Errors:\n'+errs.join('\n'));return;}
+  if(!SC[cls])SC[cls]={};
+  if(!SC[cls][wk])SC[cls][wk]={};
+  SC[cls][wk][day]=lessons;
+  sLoad('Saving...');await svSched();hLoad();
+  const msg=$('bi-msg');
+  if(msg)msg.textContent='✓ Saved '+lessons.length+' lessons for '+cls+' '+day+' week '+wk;
+  $('bi-lines').value='';
+}
+
 function onScCls(){updScWkDropdown();rfSc();}
 function onScWk(){updCopyDropdown();rfSc();}
 function updScWkDropdown(){
