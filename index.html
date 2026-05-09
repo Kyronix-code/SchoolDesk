@@ -453,6 +453,8 @@ function showPg(id){
     'acls':()=>{const o=$('acls');if(o){o.outerHTML=buildACls()}},
     'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
     'tp':()=>{const o=$('tp');if(o){o.outerHTML=buildTP()};rfTP()},
+    'sem':()=>{const o=$('sem');if(o){o.outerHTML=buildSem()};initSem()},
+    'semtch':()=>{const o=$('semtch');if(o){o.outerHTML=buildSemTch()};rfSemTch()},
   };
   if(rb[id])rb[id]();
   const pg=$(id);if(pg)pg.classList.add('on');
@@ -481,17 +483,20 @@ function buildNav(){
       +'<div class="sbs">Teaching</div>'
       +'<div class="ni" onclick="showPg(\'gr\')" data-p="gr">📝 Grades</div>'
       +'<div class="ni" onclick="showPg(\'att\')" data-p="att">📋 Attendance</div>'
+      +'<div class="ni" onclick="showPg(\'semtch\')" data-p="semtch">📊 Semester Grades</div>'
       +'<div class="sbs">Other</div>'
       +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'tp\')" data-p="tp">📋 Thematic Plan</div>'
       +hr;
-    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP();
+    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch();
     rfGR();rfAtt();showPg('dash');
   }else{
     nav.innerHTML='<div class="sbs">Diary</div>'
       +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">📖 My Diary</div>'
-      +'<div class="ni" onclick="showPg(\'mg\')" data-p="mg">⭐ My Grades</div>';
-    mn.innerHTML=buildDi()+buildMG();
-    initDi();rfMG();showPg('di');
+      +'<div class="sbs">Grades</div>'
+      +'<div class="ni" onclick="showPg(\'sem\')" data-p="sem">📊 Semester Grades</div>';
+    mn.innerHTML=buildDi()+buildSem();
+    initDi();initSem();showPg('di');
   }
 }
 
@@ -694,7 +699,8 @@ function buildAtt(){
 }
 
 function rfAtt(){
-  const cls=sCls;
+  const cls=($('acl')?.value)||sCls||(CU.classes||[])[0]||'';
+  if(!cls)return;
   const dates=[];const d=new Date();
   for(let i=0;i<90&&dates.length<30;i++){if(d.getDay()>=1&&d.getDay()<=5)dates.push(d2s(d));d.setDate(d.getDate()-1)}
   const dsel=$('adt');
@@ -1687,6 +1693,223 @@ function editGradeInline(cls,st,sj,dk,curG,el){
 function cap(s){return s?s.charAt(0).toUpperCase()+s.slice(1):''}
 function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function esc2(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
+
+// ── SEMESTER HELPERS ──
+function getSemester(dateStr){
+  // Returns 'S1' or 'S2' based on month
+  const m=parseInt((dateStr||'').substring(5,7));
+  if(m>=9&&m<=12)return'S1';
+  if(m>=1&&m<=5)return'S2';
+  return null; // Jun-Aug = no semester
+}
+function getSemYear(dateStr){
+  // Academic year label for this date
+  const y=parseInt((dateStr||'').substring(0,4));
+  const m=parseInt((dateStr||'').substring(5,7));
+  if(m>=9)return y+'-'+(y+1);
+  return (y-1)+'-'+y;
+}
+function getSemKey(sem,ay){return sem+'-'+ay;} // e.g. 'S1-2025-2026'
+function getAnnKey(ay){return'ANN-'+ay;}
+
+function calcSemGrade(gradesByDate,sem,ay){
+  // Calculate average from lesson grades in this semester
+  const vals=[];
+  Object.entries(gradesByDate).forEach(([dk,g])=>{
+    const ds=dk.replace(/-L\d$/,'');
+    if(typeof g==='number'&&getSemester(ds)===sem&&getSemYear(ds)===ay)vals.push(g);
+  });
+  return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):null;
+}
+
+function getStoredSemGrade(cls,st,subj,semKey){
+  return GR[cls]&&GR[cls][st]&&GR[cls][st][subj]?GR[cls][st][subj][semKey]:null;
+}
+
+// ── STUDENT SEMESTER PAGE ──
+function buildSem(){
+  const ay=curAY();
+  return'<div class="pg" id="sem">'
+    +'<div class="pt">📊 Semester Grades</div>'
+    +'<div class="ps" id="sem-sub"></div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'
+    +'<button id="stab-s1" class="btn bp2" onclick="showSemTab(\'S1\')">Semester 1 (Sep–Dec)</button>'
+    +'<button id="stab-s2" class="btn bg2" onclick="showSemTab(\'S2\')">Semester 2 (Jan–May)</button>'
+    +'<button id="stab-ann" class="btn bg2" onclick="showSemTab(\'ANN\')">🎓 Annual</button>'
+    +'</div>'
+    +'<div id="sem-content"></div>'
+    +'</div>';
+}
+
+function initSem(){
+  const cls=CU.class||CU.studentClass||'',nm=CU.name||'';
+  const sub=$('sem-sub');if(sub)sub.textContent=nm+' · Class '+cls;
+  window._semCls=cls;window._semNm=nm;
+  showSemTab('S1');
+}
+
+function showSemTab(tab){
+  ['S1','S2','ANN'].forEach(t=>{
+    const btn=$('stab-'+t.toLowerCase());
+    if(btn){btn.className=t===tab?'btn bp2':'btn bg2';}
+  });
+  window._semTab=tab;
+  rfSem();
+}
+
+function rfSem(){
+  const cls=window._semCls,nm=window._semNm,tab=window._semTab||'S1';
+  const ay=curAY();
+  const el=$('sem-content');if(!el||!cls)return;
+  const sg=(GR[cls]&&GR[cls][nm])?GR[cls][nm]:{};
+
+  // Get all subjects this student has — from grades OR from schedule
+  const subjsFromGrades=Object.keys(sg).filter(sj=>Object.values(sg[sj]).some(v=>typeof v==='number'));
+  // Also get subjects from schedule for this class
+  const subjsFromSched=new Set();
+  Object.values(SC[cls]||{}).forEach(wk=>{
+    if(typeof wk==='object'&&!Array.isArray(wk)){
+      Object.values(wk).forEach(lessons=>{
+        (lessons||[]).forEach(l=>{if(l.sub)subjsFromSched.add(l.sub)});
+      });
+    }
+  });
+  // Merge both
+  const allSubjs=[...new Set([...subjsFromGrades,...subjsFromSched])].sort();
+
+  if(!allSubjs.length){
+    el.innerHTML='<p style="color:var(--txt3);padding:16px">No subjects found. Make sure schedule is set up in Admin.</p>';
+    return;
+  }
+
+  if(tab==='ANN'){
+    const rows=allSubjs.map(sj=>{
+      const dates=sg[sj]||{};
+      const s1stored=getStoredSemGrade(cls,nm,sj,getSemKey('S1',ay));
+      const s2stored=getStoredSemGrade(cls,nm,sj,getSemKey('S2',ay));
+      const annStored=getStoredSemGrade(cls,nm,sj,getAnnKey(ay));
+      const s1=s1stored!=null?s1stored:calcSemGrade(dates,'S1',ay);
+      const s2=s2stored!=null?s2stored:calcSemGrade(dates,'S2',ay);
+      const ann=annStored!=null?annStored:(s1!=null&&s2!=null?((s1+s2)/2):s1!=null?s1:s2!=null?s2:null);
+      return'<tr>'
+        +'<td style="font-weight:500">'+sj+'</td>'
+        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'<span style="color:var(--txt3)">—</span>')+'</td>'
+        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'<span style="color:var(--txt3)">—</span>')+'</td>'
+        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:15px;padding:4px 14px;font-weight:700">'+ann.toFixed(1)+'</span>':'<span style="color:var(--txt3)">—</span>')+'</td>'
+        +'</tr>';
+    }).join('');
+    el.innerHTML='<div class="cd"><table><thead><tr>'
+      +'<th>Subject</th>'
+      +'<th style="text-align:center">Sem 1</th>'
+      +'<th style="text-align:center">Sem 2</th>'
+      +'<th style="text-align:center">🎓 Annual</th>'
+      +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+    return;
+  }
+
+  // S1 or S2
+  const semLabel=tab==='S1'?'Semester 1 (Sep–Dec)':'Semester 2 (Jan–May)';
+  const rows=allSubjs.map(sj=>{
+    const dates=sg[sj]||{};
+    const stored=getStoredSemGrade(cls,nm,sj,getSemKey(tab,ay));
+    const auto=calcSemGrade(dates,tab,ay);
+    const vals=Object.entries(dates).filter(([dk,g])=>{
+      const ds=dk.replace(/-L\d$/,'');
+      return typeof g==='number'&&getSemester(ds)===tab&&getSemYear(ds)===ay;
+    }).sort((a,b)=>a[0].localeCompare(b[0]));
+    const gradeList=vals.map(([d,g])=>'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+    const semG=stored!=null?stored:auto;
+    return'<tr>'
+      +'<td style="font-weight:500">'+sj+'</td>'
+      +'<td style="font-size:12px">'+(gradeList||'<span style="color:var(--txt3);font-size:12px">No grades yet</span>')+'</td>'
+      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'<span style="color:var(--txt3)">—</span>')+'</td>'
+      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'<span style="color:var(--txt3)">—</span>')+'</td>'
+      +'</tr>';
+  }).join('');
+  el.innerHTML='<div class="cd"><div class="cdh"><h3>'+semLabel+'</h3></div>'
+    +'<table><thead><tr>'
+    +'<th>Subject</th>'
+    +'<th>Lesson Grades</th>'
+    +'<th style="text-align:center">Auto Avg</th>'
+    +'<th style="text-align:center">Semester Grade</th>'
+    +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ── TEACHER SEMESTER PAGE ──
+function buildSemTch(){
+  const cls=CU.classes||[];
+  const ay=curAY();
+  return'<div class="pg" id="semtch">'
+    +'<div class="pt">📊 Semester Grades</div>'
+    +'<div class="ps">Enter semester grades per class</div>'
+    +'<div class="sr" style="flex-wrap:wrap;margin-bottom:14px">'
+    +'<label>Class:</label><select id="stcl" onchange="rfSemTch()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Semester:</label>'
+    +'<select id="stsem" onchange="rfSemTch()">'
+    +'<option value="S1">Semester 1 (Sep–Dec)</option>'
+    +'<option value="S2">Semester 2 (Jan–May)</option>'
+    +'<option value="ANN">🎓 Annual</option>'
+    +'</select>'
+    +'</div>'
+    +'<div id="semtch-content"></div>'
+    +'</div>';
+}
+
+function rfSemTch(){
+  const cls=$('stcl')?.value,sem=$('stsem')?.value||'S1';
+  const el=$('semtch-content');if(!el||!cls)return;
+  const ay=curAY();
+  const sjs=subjs(); // teacher's subjects
+  const sts=DB.classes[cls]||[];
+  if(!sts.length){el.innerHTML='<p style="color:var(--txt3);padding:16px">No students in this class.</p>';return;}
+  const semKey=sem==='ANN'?getAnnKey(ay):getSemKey(sem,ay);
+  const semLabel=sem==='S1'?'Semester 1':sem==='S2'?'Semester 2':'Annual';
+
+  el.innerHTML='<div class="cd">'
+    +'<div class="cdh"><h3>'+cls+' — '+semLabel+'</h3>'
+    +'<button class="btn bp2" onclick="svSemTch()">✓ Save Semester Grades</button></div>'
+    +'<div style="overflow-x:auto"><table>'
+    +'<thead><tr><th>Student</th>'+sjs.map(sj=>'<th style="text-align:center;min-width:120px">'+sj+'</th>').join('')+'</tr></thead>'
+    +'<tbody>'
+    +sts.map((st,si)=>{
+      return'<tr><td><div class="tf"><div class="av avp">'+ini(st)+'</div>'+st+'</div></td>'
+        +sjs.map(sj=>{
+          const stored=getStoredSemGrade(cls,st,sj,semKey);
+          const auto=sem==='ANN'
+            ?(()=>{
+              const s1=getStoredSemGrade(cls,st,sj,getSemKey('S1',ay))??calcSemGrade((GR[cls]&&GR[cls][st]&&GR[cls][st][sj])||{},'S1',ay);
+              const s2=getStoredSemGrade(cls,st,sj,getSemKey('S2',ay))??calcSemGrade((GR[cls]&&GR[cls][st]&&GR[cls][st][sj])||{},'S2',ay);
+              return s1!=null&&s2!=null?((s1+s2)/2):s1!=null?s1:s2;
+            })()
+            :calcSemGrade((GR[cls]&&GR[cls][st]&&GR[cls][st][sj])||{},sem,ay);
+          const displayVal=stored!=null?stored:(auto!=null?Math.round(auto):null);
+          return'<td style="text-align:center;padding:6px 8px">'
+            +(auto!=null?'<div style="font-size:10px;color:var(--txt3);margin-bottom:3px">auto: '+auto.toFixed(1)+'</div>':'')
+            +'<input id="sg-'+si+'-'+sjs.indexOf(sj)+'" type="number" min="1" max="10" value="'+(displayVal!=null?displayVal:'')+'" placeholder="—" '
+            +'style="width:55px;text-align:center;padding:4px;background:var(--surf2);border:1px solid var(--bdr);border-radius:6px;color:var(--txt);font-size:13px;font-family:monospace;outline:none">'
+            +'</td>';
+        }).join('')+'</tr>';
+    }).join('')
+    +'</tbody></table></div></div>';
+  window._semTchState={cls,sem,semKey,sts,sjs,ay};
+}
+
+async function svSemTch(){
+  const st=window._semTchState;if(!st)return;
+  const{cls,semKey,sts,sjs}=st;
+  sts.forEach((student,si)=>{
+    if(!GR[cls])GR[cls]={};
+    if(!GR[cls][student])GR[cls][student]={};
+    sjs.forEach((sj,ji)=>{
+      if(!GR[cls][student][sj])GR[cls][student][sj]={};
+      const v=$('sg-'+si+'-'+ji)?.value;
+      const n=parseInt(v);
+      if(v&&n>=1&&n<=10)GR[cls][student][sj][semKey]=n;
+      else if(!v)delete GR[cls][student][sj][semKey];
+    });
+  });
+  sLoad('Saving...');await svGrades();hLoad();flash();
+}
 
 // INIT
 (async()=>{
