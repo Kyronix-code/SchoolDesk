@@ -295,7 +295,7 @@ async function loadAll(){
       bGet(BA).catch(()=>null),
       bGet(BC).catch(()=>null)
     ]);
-    if(s&&s.users){DB=s;PE=s.pending||{}}
+    if(s&&s.users){DB=s;PE=s.pending||{};}
     if(g){GR=g.grades||{};LI=g.lessonInfo||{}}
     if(a&&typeof a==='object'&&!a.type)AT=a;
     if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData))SC=schedData;
@@ -310,7 +310,8 @@ async function loadAll(){
 }
 async function svSchool(){
   try{
-    const r=await fetch('https://api.jsonbin.io/v3/b/'+BS,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({users:DB.users,classes:DB.classes,pending:PE})});
+    const payload={users:DB.users,classes:DB.classes,pending:PE,maintenance:DB.maintenance||false,maintMsg:DB.maintMsg||''};
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BS,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
   }catch(e){hLoad();alert('❌ Save error (School): '+e.message);throw e;}
@@ -362,6 +363,15 @@ function login(){
   const u=$('lu').value.trim().toLowerCase();
   const p=$('lp').value.trim();
   const er=$('le');er.textContent='';
+  // Check maintenance mode (except admin)
+  if(cRole!=='admin'&&DB.maintenance){
+    er.innerHTML='<div style="text-align:center;padding:10px 0">'
+      +'<div style="font-size:28px;margin-bottom:8px">🔧</div>'
+      +'<div style="font-size:14px;font-weight:600;margin-bottom:6px">SchoolDesk is temporarily closed</div>'
+      +'<div style="font-size:12px;color:var(--txt2)">'+(DB.maintMsg||'We are making improvements. Please try again later.')+'</div>'
+      +'</div>';
+    return;
+  }
   if(cRole==='admin'){
     if(p===AP){CU={role:'admin',name:'Administrator',username:'admin'};startApp()}
     else er.textContent='Wrong password';return;
@@ -459,9 +469,11 @@ function buildNav(){
       +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">👥 Students</div>'
       +'<div class="ni" onclick="showPg(\'acls\')" data-p="acls">🏫 Classes</div>'
       +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">📅 Schedule</div>'
-      +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>';
+      +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>'
+      +'<div class="sbs">System</div>'
+      +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">🟢 School Open</div>';
     mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend();
-    updPC();showPg('adash');setTimeout(()=>onScMo(),100);
+    updPC();updMaintNi();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
     const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
     nav.innerHTML='<div class="sbs">Overview</div>'
@@ -991,6 +1003,12 @@ function buildADash(){
   const cls=Object.keys(DB.classes||{}).sort();
   const t=tod();let tabs=0;
   cls.forEach(c=>{if(AT[c]&&AT[c][t])Object.values(AT[c][t]).forEach(v=>{if(v==='absent')tabs++})});
+  // Detect invalid class names (numeric or very short)
+  const badCls=cls.filter(c=>!isNaN(c)||c.length<2);
+  const badWarn=badCls.length?'<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
+    +'<div><span style="color:var(--red);font-weight:600">⚠️ Invalid class names detected:</span> <span style="font-size:13px;color:var(--txt2)">'+badCls.join(', ')+'</span></div>'
+    +'<button class="btn bd2" onclick="cleanBadCls()">🗑 Delete invalid classes</button>'
+    +'</div>':'';
   const rows=cls.map(c=>{
     const sts=DB.classes[c]||[];
     const ab=AT[c]&&AT[c][t]?Object.values(AT[c][t]).filter(v=>v==='absent').length:0;
@@ -1004,12 +1022,21 @@ function buildADash(){
       +'</tr>';
   }).join('');
   return'<div class="pg" id="adash"><div class="pt">Dashboard</div><div class="ps">School overview</div>'
+    +badWarn
     +'<div class="srow"><div class="sc"><div class="sl">Teachers</div><div class="sv">'+tchs.length+'</div></div>'
-    +'<div class="sc"><div class="sl">Classes</div><div class="sv">'+cls.length+'</div></div>'
+    +'<div class="sc"><div class="sl">Classes</div><div class="sv">'+cls.filter(c=>isNaN(c)&&c.length>=2).length+'</div></div>'
     +'<div class="sc"><div class="sl">Absent Today</div><div class="sv" style="color:var(--red)">'+tabs+'</div></div></div>'
     +'<div class="cd"><div class="cdh"><h3>All Classes — click to view</h3></div>'
     +'<table><thead><tr><th>Class</th><th>Students</th><th>Homeroom</th><th>Absent Today</th><th></th></tr></thead>'
     +'<tbody>'+rows+'</tbody></table></div></div>';
+}
+
+async function cleanBadCls(){
+  const badCls=Object.keys(DB.classes||{}).filter(c=>!isNaN(c)||c.length<2);
+  if(!badCls.length){alert('No invalid classes found.');return;}
+  if(!confirm('Delete these invalid classes?\n'+badCls.join(', ')))return;
+  badCls.forEach(c=>delete DB.classes[c]);
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('adash');
 }
 
 function showClsModal(cls){
@@ -1525,6 +1552,29 @@ function buildAPend(){
     ).join('')+'</div>';
 }
 function updPC(){const cnt=Object.keys(PE||{}).length;const e=$('pc');if(e)e.textContent=cnt>0?cnt:''}
+function updMaintNi(){
+  const ni=$('maint-ni');if(!ni)return;
+  if(DB.maintenance){
+    ni.textContent='🔴 School Closed';ni.style.color='var(--red)';
+  }else{
+    ni.textContent='🟢 School Open';ni.style.color='var(--grn)';
+  }
+}
+async function toggleMaint(){
+  const isOn=DB.maintenance;
+  if(!isOn){
+    const msg=prompt('Enter message to show students (or leave empty for default):','We are making improvements. Please try again later.');
+    if(msg===null)return;
+    DB.maintenance=true;
+    DB.maintMsg=msg||'We are making improvements. Please try again later.';
+  }else{
+    if(!confirm('Reopen SchoolDesk for all users?'))return;
+    DB.maintenance=false;DB.maintMsg='';
+  }
+  sLoad('Saving...');
+  try{await svSchool();flash();}catch(e){return;}
+  hLoad();updMaintNi();
+}
 async function apprPend(email){
   const data=PE[email];if(!data)return;
   const miss=(data.children||[]).filter(c=>!c.cls);
@@ -1639,7 +1689,17 @@ function esc(s){return(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
 function esc2(s){return(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;')}
 
 // INIT
-(async()=>{await loadAll()})();
+(async()=>{
+  await loadAll();
+  // Show maintenance notice on login if closed
+  if(DB.maintenance){
+    const le=$('le');
+    if(le)le.innerHTML='<div style="text-align:center;padding:8px 0">'
+      +'<span style="font-size:16px">🔧</span> '
+      +'<span style="font-size:12px;color:var(--amb)">SchoolDesk is currently closed for maintenance</span>'
+      +'</div>';
+  }
+})();
 </script>
 </body>
 </html>
