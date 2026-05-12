@@ -656,29 +656,70 @@ function rfGR(){
   const tp=$('gtp'),hw=$('ghw');
   if(tp)tp.value=li.topic||'';if(hw)hw.value=li.homework||'';
   const tbl=$('gtbl');if(!tbl)return;
-  tbl.innerHTML='<thead><tr><th>Student</th><th>Grade (1–10)</th></tr></thead><tbody>'
+  // Check today's attendance for this class
+  const todayAtt=AT[cls]&&AT[cls][sDate]?AT[cls][sDate]:{};
+  tbl.innerHTML='<thead><tr><th>Student</th><th>Grade (1–10) or բ (absent)</th></tr></thead><tbody>'
     +sts.map((st,i)=>{
       const g=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj])?GR[cls][st][sj][lk]||'':'';
-      return'<tr><td><div class="tf"><div class="av avb">'+ini(st)+'</div>'+st+'</div></td>'
+      const isAbsent=g==='բ';
+      const attStatus=todayAtt[st]||null;
+      return'<tr><td><div class="tf"><div class="av avb">'+ini(st)+'</div>'+st
+        +(attStatus==='absent'?'<span class="badge ba" style="font-size:10px;margin-left:6px">absent</span>':'')
+        +'</div></td>'
         +'<td><div style="display:flex;align-items:center;gap:6px">'
-        +'<input class="gi" type="number" min="1" max="10" value="'+g+'" id="gi'+i+'" placeholder="—">'
-        +(g?'<button onclick="clrG('+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:13px">✕</button>':'')
+        +'<input class="gi" type="number" min="1" max="10" value="'+(isAbsent?'':g)+'" id="gi'+i+'" placeholder="—"'
+        +(isAbsent?' disabled style="opacity:0.4" data-absent="1"':'')+' oninput="onGrInput('+i+')">'
+        +'<button id="gib'+i+'" onclick="tgAbsent('+i+',\''+esc(st)+'\')" title="Mark as absent (բ)" '
+        +'style="background:'+(isAbsent?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(isAbsent?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:3px 8px;color:'+(isAbsent?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px;font-family:inherit">բ</button>'
+        +(g&&!isAbsent?'<button onclick="clrG('+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:13px">✕</button>':'')
         +'</div></td></tr>';
     }).join('')+'</tbody>';
 }
 
 function jumpToStu(idx){const e=$('gi'+idx);if(e)e.scrollIntoView({behavior:'smooth',block:'center'});}
 function clrG(i){const e=$('gi'+i);if(e){e.value='';const nx=e.nextElementSibling;if(nx&&nx.tagName==='BUTTON')nx.remove()}}
+function onGrInput(i){
+  // When typing a grade, un-mark absent
+  const btn=$('gib'+i);
+  if(btn){btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';}
+  const inp=$('gi'+i);
+  if(inp){inp.disabled=false;inp.style.opacity='1';inp.removeAttribute('data-absent');}
+}
+function tgAbsent(i,st){
+  const inp=$('gi'+i),btn=$('gib'+i);
+  if(!inp||!btn)return;
+  const isAbsent=inp.getAttribute('data-absent')==='1';
+  if(isAbsent){
+    // Remove absent
+    inp.removeAttribute('data-absent');
+    inp.disabled=false;inp.style.opacity='1';inp.value='';
+    btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';
+  }else{
+    // Mark absent
+    inp.setAttribute('data-absent','1');
+    inp.disabled=true;inp.style.opacity='0.4';inp.value='';
+    btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='var(--red)';btn.style.color='var(--red)';
+  }
+}
 
 async function svGR(){
   const cls=sCls,sj=sSubj||subjs()[0]||'',lk=lKey(sDate);
   if(!GR[cls])GR[cls]={};
-  (DB.classes[cls]||[]).forEach((st,i)=>{
-    const v=$('gi'+i)?.value;
+  const sts=DB.classes[cls]||[];
+  sts.forEach((st,i)=>{
     if(!GR[cls][st])GR[cls][st]={};
     if(!GR[cls][st][sj])GR[cls][st][sj]={};
-    if(v&&parseInt(v)>=1&&parseInt(v)<=10)GR[cls][st][sj][lk]=parseInt(v);
-    else delete GR[cls][st][sj][lk];
+    const inp=$('gi'+i);
+    const isAbsent=inp&&inp.getAttribute('data-absent')==='1';
+    const v=inp?.value;
+    if(isAbsent){
+      // Save 'բ' as absent marker
+      GR[cls][st][sj][lk]='բ';
+    }else if(v&&parseInt(v)>=1&&parseInt(v)<=10){
+      GR[cls][st][sj][lk]=parseInt(v);
+    }else{
+      delete GR[cls][st][sj][lk];
+    }
   });
   const tp=$('gtp')?.value||'',hw=$('ghw')?.value||'';
   if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};
@@ -888,8 +929,8 @@ function rfPDi(idx){
         +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
         +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
         +'</div></td>'
-        +'<td style="text-align:center">'+(g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
-        +(g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
+        +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
+        +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
@@ -966,8 +1007,8 @@ function rfDi(){
         +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
         +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
         +'</div></td>'
-        +'<td style="text-align:center">'+(g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
-        +(g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
+        +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
+        +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
@@ -1714,10 +1755,10 @@ function getSemKey(sem,ay){return sem+'-'+ay;} // e.g. 'S1-2025-2026'
 function getAnnKey(ay){return'ANN-'+ay;}
 
 function calcSemGrade(gradesByDate,sem,ay){
-  // Calculate average from lesson grades in this semester
   const vals=[];
   Object.entries(gradesByDate).forEach(([dk,g])=>{
     const ds=dk.replace(/-L\d$/,'');
+    // Skip 'բ' (absent) grades in average calculation
     if(typeof g==='number'&&getSemester(ds)===sem&&getSemYear(ds)===ay)vals.push(g);
   });
   return vals.length?(vals.reduce((a,b)=>a+b,0)/vals.length):null;
@@ -1818,7 +1859,11 @@ function rfSem(){
       const ds=dk.replace(/-L\d$/,'');
       return typeof g==='number'&&getSemester(ds)===tab&&getSemYear(ds)===ay;
     }).sort((a,b)=>a[0].localeCompare(b[0]));
-    const gradeList=vals.map(([d,g])=>'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+    const absCount=vals.filter(([d,g])=>g==='բ').length;
+    const gradeList=vals.map(([d,g])=>{
+      if(g==='բ')return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">բ</span></span>';
+      return'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>';
+    }).join('')+(absCount>0?'<span class="badge ba" style="margin-left:4px;font-size:10px">'+absCount+' absent</span>':'');
     const semG=stored!=null?stored:auto;
     return'<tr>'
       +'<td style="font-weight:500">'+sj+'</td>'
