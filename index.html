@@ -162,7 +162,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:10px 14px;bor
     <div class="ab-top">
       <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
-      <p>School Management System</p>
+      <p>Դպրոցական կառավարման համakargayin կayq</p>
     </div>
     <div class="ab-body">
       <div id="lf">
@@ -282,7 +282,12 @@ function getWeeks(mv){
     return{l:'Week '+(i+1)+': '+s.getDate()+'.'+pad(s.getMonth()+1)+' – '+e.getDate()+'.'+pad(e.getMonth()+1),ws:d2s(s),days:wk};
   });
 }
-function curAY(){const n=new Date();const y=n.getFullYear();return n.getMonth()>=8?y+'-'+(y+1):(y-1)+'-'+y}
+function curAY(){
+  // Use manually set academic year if admin set it, otherwise auto-detect
+  if(DB.academicYear)return DB.academicYear;
+  const n=new Date();const y=n.getFullYear();
+  return n.getMonth()>=8?y+'-'+(y+1):(y-1)+'-'+y;
+}
 
 // THEME
 function tgTheme(){
@@ -341,7 +346,7 @@ async function loadAll(){
 }
 async function svSchool(){
   try{
-    const payload={users:DB.users,classes:DB.classes,pending:PE,maintenance:DB.maintenance||false,maintMsg:DB.maintMsg||''};
+    const payload={users:DB.users,classes:DB.classes,pending:PE,maintenance:DB.maintenance||false,maintMsg:DB.maintMsg||'',academicYear:DB.academicYear||''};
     const r=await fetch('https://api.jsonbin.io/v3/b/'+BS,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
@@ -1110,7 +1115,7 @@ function buildADash(){
       +'<td><button class="btn bg2" style="font-size:11px" onclick="showAbsModal(\''+c+'\')">📋 Absences</button></td>'
       +'</tr>';
   }).join('');
-  return'<div class="pg" id="adash"><div class="pt">Dashboard</div><div class="ps">School overview</div>'
+  return'<div class="pg" id="adash"><div class="pt">Dashboard</div><div class="ps">School overview · Academic Year: <b>'+curAY()+'</b></div>'
     +badWarn
     +'<div class="srow"><div class="sc"><div class="sl">Teachers</div><div class="sv">'+tchs.length+'</div></div>'
     +'<div class="sc"><div class="sl">Classes</div><div class="sv">'+cls.filter(c=>isNaN(c)&&c.length>=2).length+'</div></div>'
@@ -2116,16 +2121,16 @@ function confirmNewYear(){
 
 async function startNewYear(nextAY){
   sLoad('Clearing data for new year...');
-  // Clear all grades (keep structure, remove values)
+  // Set new academic year
+  DB.academicYear=nextAY;
+  // Clear all grades
   Object.keys(GR).forEach(cls=>{
     Object.keys(GR[cls]||{}).forEach(st=>{
       Object.keys(GR[cls][st]||{}).forEach(subj=>{
-        // Remove all grade entries (lesson grades + semester keys)
         GR[cls][st][subj]={};
       });
     });
   });
-  // Clear lesson info
   LI={};
   // Clear attendance
   AT={};
@@ -2133,11 +2138,10 @@ async function startNewYear(nextAY){
   // Clear schedules
   SC={};
   Object.keys(DB.classes||{}).forEach(cls=>SC[cls]={});
-  // Save everything
   try{
-    await Promise.all([svGrades(),svAtt(),svSched()]);
+    await Promise.all([svSchool(),svGrades(),svAtt(),svSched()]);
     hLoad();
-    alert('✅ Done! Academic year '+nextAY+' started.\nAll grades, attendance and schedules have been cleared.\nTeachers, students and classes are kept.');
+    alert('✅ Done! Academic year '+nextAY+' started.\nAll grades, attendance and schedules cleared.\nTeachers, students and classes are kept.');
     showPg('adash');
   }catch(e){
     hLoad();
