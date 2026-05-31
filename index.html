@@ -162,7 +162,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:10px 14px;bor
     <div class="ab-top">
       <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
-      <p>Smart Digital Platform For Schools</p>
+      <p>Դպրոցական կառավարման համakargayin կayq</p>
     </div>
     <div class="ab-body">
       <div id="lf">
@@ -968,7 +968,17 @@ function rfPDi(idx){
         +'</div></td>'
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
-    }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
+    }).join(''):(()=>{
+      // Check if all students are absent this day
+      const dayAttData=ATT&&ATT[cls]&&ATT[cls][ds]?ATT[cls][ds]:{};
+      // Check in AT object
+      const attObj=AT[cls]&&AT[cls][ds]?AT[cls][ds]:{};
+      const hasAbsent=Object.values(attObj).some(v=>v==='absent');
+      if(hasAbsent){
+        return'<tr><td colspan="3" style="padding:10px;text-align:center;font-size:12px"><span class="badge ba">Yntrvac xmbum bacakayum en</span></td></tr>';
+      }
+      return'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">Dasacucak kazmvac che</td></tr>';
+    })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
       +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
@@ -1055,7 +1065,17 @@ function rfDi(){
         +'</div></td>'
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
-    }).join(''):'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">No lessons</td></tr>';
+    }).join(''):(()=>{
+      // Check if all students are absent this day
+      const dayAttData=ATT&&ATT[cls]&&ATT[cls][ds]?ATT[cls][ds]:{};
+      // Check in AT object
+      const attObj=AT[cls]&&AT[cls][ds]?AT[cls][ds]:{};
+      const hasAbsent=Object.values(attObj).some(v=>v==='absent');
+      if(hasAbsent){
+        return'<tr><td colspan="3" style="padding:10px;text-align:center;font-size:12px"><span class="badge ba">Yntrvac xmbum bacakayum en</span></td></tr>';
+      }
+      return'<tr><td colspan="3" style="padding:10px;text-align:center;color:var(--txt3);font-size:12px">Dasacucak kazmvac che</td></tr>';
+    })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
       +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
