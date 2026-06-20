@@ -325,14 +325,14 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
     <div class="ab-top">
       <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
-      <p>School Managment System</p>
+      <p>Դпрочаkан каrаvаrum аkаn hаmаkаrg</p>
     </div>
     <div class="ab-body">
       <div id="lf">
         <div class="rtabs" id="rtabs">
           <div class="rtab on" onclick="setRole('teacher')">Teacher</div>
           <div class="rtab" onclick="setRole('student')">Student</div>
-          <div class="rtab" onclick="setRole('parent')">Parent</div>
+          <div class="rtab" onclick="setRole('parent')">Family</div>
           <div class="rtab" onclick="setRole('admin')">Admin</div>
         </div>
         <div class="fg"><label>Username</label><input id="lu" type="text" placeholder="your@email.com" onkeydown="if(event.key==='Enter')login()"></div>
@@ -663,7 +663,6 @@ function showPg(id){
     'atch':()=>{const o=$('atch');if(o){o.outerHTML=buildATch()}},
     'astu':()=>{const o=$('astu');if(o){o.outerHTML=buildAStu()}},
     'acls':()=>{const o=$('acls');if(o){o.outerHTML=buildACls()}},
-    'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
     'tp':()=>{const o=$('tp');if(o){o.outerHTML=buildTP()};rfTP()},
     'sem':()=>{const o=$('sem');if(o){o.outerHTML=buildSem()};initSem()},
     'prof':()=>{const o=$('prof');if(o){o.outerHTML=buildProf()};setTimeout(()=>renderQR('prof-qr',getPersonalCode(CU.username)),50)},
@@ -706,6 +705,8 @@ function buildNav(){
       +hr;
     mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch()+buildProf();
     rfGR();rfAtt();showPg('dash');
+  }else if(CU.role==='parent'){
+    buildFamilyNav();
   }else{
     nav.innerHTML='<div class="sbs">Diary</div>'
       +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">📖 My Diary</div>'
@@ -716,6 +717,313 @@ function buildNav(){
     mn.innerHTML=buildDi()+buildSem()+buildProf();
     initDi();initSem();showPg('di');
   }
+}
+
+// ── FAMILY (PARENT) FLOW ──
+function buildFamilyNav(){
+  const nav=$('nav'),mn=$('mn');
+  const kids=CU.children||[];
+  nav.innerHTML='<div class="sbs">Family</div>'
+    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧 Select Child</div>';
+  mn.innerHTML=buildFamSelect();
+  showPg('fam-select');
+}
+
+function buildFamSelect(){
+  const kids=CU.children||[];
+  window._famUnlocked=window._famUnlocked||{};
+  return'<div class="pg" id="fam-select">'
+    +'<div class="pt">👨‍👩‍👧 '+esc2(CU.name)+'</div>'
+    +'<div class="ps">Select a child to view their school information</div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">'
+    +kids.map((ch,i)=>{
+      const unlocked=window._famUnlocked[i];
+      return'<div class="cd" style="padding:24px;text-align:center;cursor:pointer;transition:.2s" onclick="selectFamChild('+i+')" onmouseover="this.style.transform=\'translateY(-3px)\'" onmouseout="this.style.transform=\'\'">' 
+        +'<div class="av avp" style="width:56px;height:56px;font-size:18px;margin:0 auto 12px">'+ini(ch.name)+'</div>'
+        +'<div style="font-weight:700;font-size:15px;color:var(--txt)">'+esc2(ch.name)+'</div>'
+        +'<div style="font-size:12px;color:var(--txt2);margin-top:3px">Class '+(ch.cls||ch.class||'—')+'</div>'
+        +(unlocked?'<div style="margin-top:10px"><span class="badge bp">🔓 Unlocked</span></div>':'<div style="margin-top:10px"><span class="badge ba">🔒 PIN required</span></div>')
+        +'</div>';
+    }).join('')
+    +'</div>'
+    +'</div>';
+}
+
+let _famPendingIdx=null;
+
+function selectFamChild(idx){
+  window._famUnlocked=window._famUnlocked||{};
+  if(window._famUnlocked[idx]){
+    showFamilyChild(idx);
+    return;
+  }
+  _famPendingIdx=idx;
+  const ch=(CU.children||[])[idx];
+  if(!ch)return;
+  const m=document.createElement('div');
+  m.className='mw';
+  m.innerHTML='<div class="md" style="max-width:340px;text-align:center">'
+    +'<div style="font-size:36px;margin-bottom:10px">🔒</div>'
+    +'<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+esc2(ch.name)+'</div>'
+    +'<div style="font-size:12px;color:var(--txt2);margin-bottom:18px">Enter the 4-digit PIN provided by the school</div>'
+    +'<input id="fam-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder="• • • •" style="width:100%;padding:14px;font-size:26px;letter-spacing:14px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')checkFamPin()">'
+    +'<div class="er" id="fam-pin-err" style="margin-top:8px"></div>'
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +'<button class="btn bg2" style="flex:1" onclick="this.closest(\'.mw\').remove()">Cancel</button>'
+    +'<button class="btn bp2" style="flex:1" onclick="checkFamPin()">Unlock</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(m);
+  setTimeout(()=>$('fam-pin-input')?.focus(),100);
+}
+
+function checkFamPin(){
+  const val=$('fam-pin-input')?.value.trim();
+  const ch=(CU.children||[])[_famPendingIdx];
+  if(!ch)return;
+  if(val===ch.pin){
+    window._famUnlocked=window._famUnlocked||{};
+    window._famUnlocked[_famPendingIdx]=true;
+    document.querySelector('.mw')?.remove();
+    showFamilyChild(_famPendingIdx);
+  }else{
+    const err=$('fam-pin-err');
+    if(err)err.textContent='Wrong PIN, please try again';
+    const inp=$('fam-pin-input');
+    if(inp){inp.value='';inp.focus();}
+  }
+}
+
+function showFamilyChild(idx){
+  const ch=(CU.children||[])[idx];if(!ch)return;
+  const nav=$('nav');
+  nav.innerHTML='<div class="sbs">Family</div>'
+    +'<div class="ni" onclick="backToFamSelect()" data-p="fam-select">← Switch Child</div>'
+    +'<div class="sbs">'+esc2(ch.name)+'</div>'
+    +'<div class="ni on" onclick="showPg(\'fc-diary\')" data-p="fc-diary">📖 Diary</div>'
+    +'<div class="ni" onclick="showPg(\'fc-grades\')" data-p="fc-grades">⭐ Grades</div>'
+    +'<div class="ni" onclick="showPg(\'fc-profile\')" data-p="fc-profile">👤 Profile</div>'
+    +'<div class="ni" onclick="showPg(\'fc-contact\')" data-p="fc-contact">💬 Contact Teachers</div>';
+  const mn=$('mn');
+  mn.innerHTML=buildFamDiary(idx)+buildFamGrades(idx)+buildFamProfile(idx)+buildFamContact(idx);
+  initFamDiary(idx);
+  showPg('fc-diary');
+}
+
+function backToFamSelect(){
+  const nav=$('nav');
+  nav.innerHTML='<div class="sbs">Family</div>'
+    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧 Select Child</div>';
+  const mn=$('mn');
+  mn.innerHTML=buildFamSelect();
+  showPg('fam-select');
+}
+
+// ── FAMILY: DIARY ──
+function buildFamDiary(idx){
+  const ch=(CU.children||[])[idx];
+  const cls=ch.cls||ch.class||'';
+  const n=new Date(),ay=curAY(),ms=getMonths(ay);
+  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
+  return'<div class="pg" id="fc-diary">'
+    +'<div class="pt">📖 '+esc2(ch.name)+'\'s Diary</div><div class="ps">Class '+cls+'</div>'
+    +'<div class="sr">'
+    +'<label>Month:</label><select id="fdm'+idx+'" onchange="onFamDiM('+idx+')">'
+    +ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+    +'<label>Week:</label><select id="fdw'+idx+'" onchange="rfFamDi('+idx+')"><option>Loading...</option></select>'
+    +'</div>'
+    +'<div id="fdc'+idx+'"></div>'
+    +'</div>';
+}
+function initFamDiary(idx){
+  window['_famDC'+idx]={cls:(CU.children[idx].cls||CU.children[idx].class||''),nm:CU.children[idx].name};
+  onFamDiM(idx);
+}
+function onFamDiM(idx){
+  const mv=$('fdm'+idx)?.value;if(!mv)return;
+  const wks=getWeeks(mv);
+  const ws=$('fdw'+idx);
+  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
+  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
+  if(ci>=0)ws.value=ci;
+  rfFamDi(idx);
+}
+function rfFamDi(idx){
+  const st=window['_famDC'+idx];if(!st)return;
+  const{cls,nm}=st;
+  const mv=$('fdm'+idx)?.value,wi=parseInt($('fdw'+idx)?.value)||0;
+  const wk=getWeeks(mv)[wi];
+  const cont=$('fdc'+idx);if(!wk||!cont)return;
+  const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
+  const DN=['Monday','Tuesday','Wednesday','Thursday','Friday'];
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  cont.innerHTML=wk.days.map(day=>{
+    const ds=d2s(day),dk=DK[day.getDay()];
+    const ws=wkStart(day);
+    const wsched=SC[cls]&&SC[cls][ws];
+    const sched=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
+    const att=(AT[cls]&&AT[cls][ds])?AT[cls][ds][nm]:null;
+    const lesRows=sched.length?sched.map((les,i)=>{
+      const sg=(GR[cls]&&GR[cls][nm]&&GR[cls][nm][les.sub])?GR[cls][nm][les.sub]:{};
+      const g=sg[ds]||'',g2=sg[ds+'-L2']||'';
+      const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
+      const hi=inf.topic||inf.homework;
+      const iid='faminf'+ds.replace(/-/g,'')+i+idx;
+      const gBadge=g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>';
+      const g2Badge=g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'';
+      return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
+        +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
+        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
+        +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
+        +'</div></td>'
+        +'<td style="text-align:center">'+gBadge+g2Badge+'</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 Դասացուցակ կազմված չէ</td></tr>';
+    return'<div class="cd" style="margin-bottom:11px">'
+      +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
+      +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
+      +'<table><thead><tr><th style="width:28px">#</th><th>Subject</th><th style="width:80px;text-align:center">Grade</th></tr></thead>'
+      +'<tbody>'+lesRows+'</tbody></table></div>';
+  }).join('');
+}
+
+// ── FAMILY: GRADES (Semester view) ──
+function buildFamGrades(idx){
+  const ch=(CU.children||[])[idx];
+  return'<div class="pg" id="fc-grades">'
+    +'<div class="pt">⭐ '+esc2(ch.name)+'\'s Grades</div>'
+    +'<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'
+    +'<button id="ftab-s1-'+idx+'" class="btn bp2" onclick="showFamSemTab('+idx+',\'S1\')">Semester 1</button>'
+    +'<button id="ftab-s2-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'S2\')">Semester 2</button>'
+    +'<button id="ftab-ann-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'ANN\')">🎓 Annual</button>'
+    +'</div>'
+    +'<div id="fam-sem-content-'+idx+'"></div>'
+    +'</div>';
+}
+function showFamSemTab(idx,tab){
+  ['s1','s2','ann'].forEach(t=>{
+    const btn=$('ftab-'+t+'-'+idx);
+    if(btn)btn.className=(t.toUpperCase()===tab)?'btn bp2':'btn bg2';
+  });
+  rfFamSem(idx,tab);
+}
+function rfFamSem(idx,tab){
+  tab=tab||'S1';
+  const ch=(CU.children||[])[idx];
+  const cls=ch.cls||ch.class||'',nm=ch.name;
+  const ay=curAY();
+  const el=$('fam-sem-content-'+idx);if(!el)return;
+  const sg=(GR[cls]&&GR[cls][nm])?GR[cls][nm]:{};
+  const subjsFromGrades=Object.keys(sg).filter(sj=>Object.values(sg[sj]).some(v=>typeof v==='number'));
+  const subjsFromSched=new Set();
+  Object.values(SC[cls]||{}).forEach(wk=>{
+    if(typeof wk==='object'&&!Array.isArray(wk)){
+      Object.values(wk).forEach(lessons=>{(lessons||[]).forEach(l=>{if(l.sub)subjsFromSched.add(l.sub)})});
+    }
+  });
+  const allSubjs=[...new Set([...subjsFromGrades,...subjsFromSched])].sort();
+  if(!allSubjs.length){el.innerHTML='<p style="color:var(--txt3);padding:16px">No subjects found yet.</p>';return;}
+  if(tab==='ANN'){
+    const rows=allSubjs.map(sj=>{
+      const dates=sg[sj]||{};
+      const s1=getStoredSemGrade(cls,nm,sj,getSemKey('S1',ay))??calcSemGrade(dates,'S1',ay);
+      const s2=getStoredSemGrade(cls,nm,sj,getSemKey('S2',ay))??calcSemGrade(dates,'S2',ay);
+      const ann=getStoredSemGrade(cls,nm,sj,getAnnKey(ay))??(s1!=null&&s2!=null?((s1+s2)/2):s1!=null?s1:s2);
+      return'<tr><td style="font-weight:500">'+sj+'</td>'
+        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'—')+'</td>'
+        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'—')+'</td>'
+        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:14px;padding:4px 12px">'+ann.toFixed(1)+'</span>':'—')+'</td></tr>';
+    }).join('');
+    el.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th style="text-align:center">Sem 1</th><th style="text-align:center">Sem 2</th><th style="text-align:center">🎓 Annual</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    return;
+  }
+  const semLabel=tab==='S1'?'Semester 1 (Sep–Dec)':'Semester 2 (Jan–May)';
+  const rows=allSubjs.map(sj=>{
+    const dates=sg[sj]||{};
+    const stored=getStoredSemGrade(cls,nm,sj,getSemKey(tab,ay));
+    const auto=calcSemGrade(dates,tab,ay);
+    const vals=Object.entries(dates).filter(([dk,g])=>{const ds=dk.replace(/-L\d$/,'');return typeof g==='number'&&getSemester(ds)===tab&&getSemYear(ds)===ay;}).sort((a,b)=>a[0].localeCompare(b[0]));
+    const gradeList=vals.map(([d,g])=>g==='բ'?'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">բ</span></span>':'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+    const semG=stored!=null?stored:auto;
+    return'<tr><td style="font-weight:500">'+sj+'</td>'
+      +'<td style="font-size:12px">'+(gradeList||'<span style="color:var(--txt3)">No grades yet</span>')+'</td>'
+      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'—')+'</td>'
+      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'—')+'</td></tr>';
+  }).join('');
+  el.innerHTML='<div class="cd"><div class="cdh"><h3>'+semLabel+'</h3></div><table><thead><tr><th>Subject</th><th>Lesson Grades</th><th style="text-align:center">Auto Avg</th><th style="text-align:center">Semester Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+}
+
+// ── FAMILY: CHILD PROFILE ──
+function buildFamProfile(idx){
+  const ch=(CU.children||[])[idx];
+  const cls=ch.cls||ch.class||'';
+  const sts=DB.classes[cls]||[];
+  let ab=0,lt=0;
+  Object.values(AT[cls]||{}).forEach(day=>{if(day[ch.name]==='absent')ab++;if(day[ch.name]==='late')lt++;});
+  return'<div class="pg" id="fc-profile">'
+    +'<div class="pt">👤 '+esc2(ch.name)+'\'s Profile</div>'
+    +'<div class="srow" style="grid-template-columns:repeat(3,1fr)">'
+    +'<div class="sc"><div class="sl">Class</div><div class="sv" style="font-size:22px">'+cls+'</div></div>'
+    +'<div class="sc c-red"><div class="sl">Absences</div><div class="sv">'+ab+'</div></div>'
+    +'<div class="sc c-amb"><div class="sl">Late</div><div class="sv">'+lt+'</div></div>'
+    +'</div>'
+    +'<div class="cd"><div class="cdh"><h3>Basic Info</h3></div>'
+    +'<div style="padding:18px">'
+    +'<div class="ff" style="margin-bottom:10px"><label>Full Name</label><div style="font-size:15px;color:var(--txt);padding:4px 0">'+esc2(ch.name)+'</div></div>'
+    +'<div class="ff"><label>Class</label><div style="font-size:15px;color:var(--txt);padding:4px 0">'+cls+'</div></div>'
+    +'</div></div>'
+    +'</div>';
+}
+
+// ── FAMILY: CONTACT TEACHERS ──
+function buildFamContact(idx){
+  const ch=(CU.children||[])[idx];
+  const cls=ch.cls||ch.class||'';
+  const teachers=Object.entries(DB.users||{}).filter(([k,u])=>u.role==='teacher'&&(u.classes||[]).includes(cls));
+  return'<div class="pg" id="fc-contact">'
+    +'<div class="pt">💬 Contact Teachers</div>'
+    +'<div class="ps">Teachers for class '+cls+'</div>'
+    +'<div class="cd"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
+    +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</div></td>'
+      +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
+      +'<td><button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')">✉️ Message</button></td></tr>'
+    ).join('')+'</tbody></table></div>'
+    +'<div id="fam-msg-thread"></div>'
+    +'</div>';
+}
+function openFamMsg(tchKey,tchName,idx){
+  const ch=(CU.children||[])[idx];
+  const threadKey=tchKey+'__'+CU.username+'__'+ch.name;
+  if(!window._famMsgs)window._famMsgs={};
+  const msgs=window._famMsgs[threadKey]||[];
+  const el=$('fam-msg-thread');
+  el.innerHTML='<div class="cd"><div class="cdh"><h3>💬 '+esc2(tchName)+' — re: '+esc2(ch.name)+'</h3></div>'
+    +'<div id="fam-msg-list" style="padding:14px;max-height:260px;overflow-y:auto">'
+    +(msgs.length?msgs.map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from==='family'?'var(--acc-lt)':'var(--surf2)')+';max-width:80%;'+(m.from==='family'?'margin-left:auto':'')+'">'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from==='family'?'You':tchName)+'</div>'
+      +'<div style="font-size:13px">'+esc2(m.text)+'</div></div>'
+    ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet — send the first one</p>')
+    +'</div>'
+    +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr)">'
+    +'<input id="fam-msg-input" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none" onkeydown="if(event.key===\'Enter\')sendFamMsg(\''+threadKey+'\')">'
+    +'<button class="btn bp2" onclick="sendFamMsg(\''+threadKey+'\')">Send</button>'
+    +'</div></div>';
+}
+function sendFamMsg(threadKey){
+  const inp=$('fam-msg-input');
+  const text=inp?.value.trim();
+  if(!text)return;
+  if(!window._famMsgs)window._famMsgs={};
+  if(!window._famMsgs[threadKey])window._famMsgs[threadKey]=[];
+  window._famMsgs[threadKey].push({from:'family',text,ts:Date.now()});
+  inp.value='';
+  // Re-render the thread
+  const parts=threadKey.split('__');
+  const tchKey=parts[0];
+  const tchName=DB.users[tchKey]?.name||'Teacher';
+  const idxMatch=(CU.children||[]).findIndex(c=>threadKey.endsWith('__'+c.name));
+  openFamMsg(tchKey,tchName,idxMatch>=0?idxMatch:0);
 }
 
 // ── TEACHER DASHBOARD ──
@@ -1090,95 +1398,6 @@ function stuModal(cls,st){
   m.addEventListener('click',e=>{if(e.target===m)m.remove()});
 }
 
-// ── PARENT VIEW ──
-function showParentChild(idx){
-  clSb();
-  const kids=CU.children||[];
-  const ch=kids[idx];if(!ch)return;
-  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.ni').forEach(n=>n.classList.remove('on'));
-  document.querySelectorAll('[data-p="pch'+idx+'"]').forEach(n=>n.classList.add('on'));
-  const mn=$('mn');
-  const cls=ch.cls||ch.class||'';
-  const nm=ch.name||'';
-  // Build diary + grades for this child
-  const n=new Date(),ay=curAY(),ms=getMonths(ay);
-  const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
-  const html='<div class="pg on" id="pch'+idx+'">'
-    +'<div class="pt">'+nm+'</div><div class="ps">Class '+cls+' · Parent view</div>'
-    +'<div class="sr">'
-    +'<label>Month:</label><select id="pdm'+idx+'" onchange="onPDiM('+idx+')">'
-    +ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
-    +'<label>Week:</label><select id="pdw'+idx+'" onchange="rfPDi('+idx+')"><option>Loading...</option></select>'
-    +'</div>'
-    +'<div id="pdc'+idx+'"></div>'
-    +'<div class="cd" style="margin-top:14px"><div class="cdh"><h3>⭐ All Grades</h3></div>'
-    +'<table><thead><tr><th>Subject</th><th>Grades</th><th>Avg</th></tr></thead><tbody>'
-    +Object.entries((GR[cls]&&GR[cls][nm])||{}).map(([sj,dates])=>{
-      const vals=Object.entries(dates).filter(([,v])=>typeof v==='number');
-      const avg=vals.length?(vals.reduce((a,[,v])=>a+v,0)/vals.length).toFixed(1):'—';
-      const ents=vals.sort((a,b)=>b[0].localeCompare(a[0])).map(([d,g])=>'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
-      return'<tr><td style="font-weight:500">'+sj+'</td><td>'+ents+'</td><td><span class="badge b'+Math.round(parseFloat(avg))+'">'+avg+'</span></td></tr>';
-    }).join('')||'<tr><td colspan="3" style="text-align:center;color:var(--txt3);padding:16px">No grades yet</td></tr>'
-    +'</tbody></table></div>'
-    +'</div>';
-  const exist=$('pch'+idx);
-  if(exist)exist.outerHTML=html;else mn.innerHTML=html;
-  window['_pdc'+idx]={cls,nm};
-  onPDiM(idx);
-}
-function onPDiM(idx){
-  const mv=$('pdm'+idx).value,wks=getWeeks(mv);
-  const ws=$('pdw'+idx);
-  ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
-  const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
-  if(ci>=0)ws.value=ci;
-  rfPDi(idx);
-}
-function rfPDi(idx){
-  const st=window['_pdc'+idx];if(!st)return;
-  const {cls,nm}=st;
-  const mv=$('pdm'+idx).value,wi=parseInt($('pdw'+idx).value)||0;
-  const wk=getWeeks(mv)[wi];
-  const cont=$('pdc'+idx);if(!wk||!cont)return;
-  const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
-  const DN=['Monday','Tuesday','Wednesday','Thursday','Friday'];
-  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-  cont.innerHTML=wk.days.map(day=>{
-    const ds=d2s(day),dk=DK[day.getDay()];
-    const ws=wkStart(day);
-    const wsched=SC[cls]&&SC[cls][ws];
-    const sched=(wsched&&wsched[dk])||(Array.isArray(SC[cls]&&SC[cls][dk])?SC[cls][dk]:[])||[];
-    const att=(AT[cls]&&AT[cls][ds])?AT[cls][ds][nm]:null;
-    const lesRows=sched.length?sched.map((les,i)=>{
-      const sg=(GR[cls]&&GR[cls][nm]&&GR[cls][nm][les.sub])?GR[cls][nm][les.sub]:{};
-      const g=sg[ds]||'',g2=sg[ds+'-L2']||'';
-      const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
-      const hi=inf.topic||inf.homework;
-      const iid='pinf'+ds.replace(/-/g,'')+i+idx;
-      return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
-        +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
-        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
-        +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
-        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
-        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
-        +'</div></td>'
-        +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
-        +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
-    }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 Դасацуцаk каzмваc чe</td></tr>';
-    })();
-    return'<div class="cd" style="margin-bottom:11px">'
-      +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
-      +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
-      +'<table><thead><tr><th style="width:28px">#</th><th>Subject</th><th style="width:80px;text-align:center">Grade</th></tr></thead>'
-      +'<tbody>'+lesRows+'</tbody></table></div>';
-  }).join('');
-}
-
-// ── STUDENT ADD SECOND CHILD (from diary) ──
-// This is handled via registration flow already
-
 // ── DIARY ──
 function buildDi(){
   const n=new Date(),ay=curAY(),ms=getMonths(ay);
@@ -1461,6 +1680,7 @@ async function delU(k){
 // ── ADMIN STUDENTS ──
 function buildAStu(){
   const stus=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='student');
+  const fams=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='parent');
   const co=Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
   return'<div class="pg" id="astu"><div class="pt">Student Accounts</div>'
     +'<div class="fc"><h3>Add Student Accounts</h3>'
@@ -1483,7 +1703,44 @@ function buildAStu(){
       +'<button class="btn bp2" onclick="svStu(\''+k+'\')">✓ Save</button>'
       +'<button class="btn bg2" style="margin-left:6px" onclick="cnclStu(\''+k+'\')">Cancel</button>'
       +'</td></tr>'
-    ).join('')+'</tbody></table></div></div>';
+    ).join('')+'</tbody></table></div>'
+    // ── FAMILY SECTION ──
+    +'<div class="fc" style="margin-top:24px"><h3>👨‍👩‍👧 Add Family Account</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Family logs in with username/password, then selects a child and enters that child\'s PIN to view their diary.</p>'
+    +'<div class="fr"><div class="ff"><label>Family Name</label><input id="fam-n" placeholder="Hakobyan Family"></div>'
+    +'<div class="ff"><label>Username</label><input id="fam-u" placeholder="hakobyan_family"></div>'
+    +'<div class="ff"><label>Password</label><input id="fam-p" placeholder="Pass#123"></div></div>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:10px 0">Child 1 (required)</p>'
+    +'<div class="fr"><div class="ff"><label>Child Name</label><input id="fam-c1n"></div>'
+    +'<div class="ff"><label>Class</label><select id="fam-c1c">'+co+'</select></div>'
+    +'<div class="ff"><label>PIN (4 digits)</label><input id="fam-c1pin" maxlength="4" placeholder="1234"></div></div>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:10px 0">Child 2 (optional)</p>'
+    +'<div class="fr"><div class="ff"><label>Child Name</label><input id="fam-c2n"></div>'
+    +'<div class="ff"><label>Class</label><select id="fam-c2c">'+co+'</select></div>'
+    +'<div class="ff"><label>PIN (4 digits)</label><input id="fam-c2pin" maxlength="4" placeholder="5678"></div></div>'
+    +'<button class="btn bp2" onclick="addFamily()">+ Add Family</button></div>'
+    +'<div class="cd"><div class="cdh"><h3>Families ('+fams.length+')</h3></div>'
+    +'<table><thead><tr><th>Family</th><th>Username</th><th>Children</th><th></th></tr></thead><tbody>'
+    +fams.map(([k,f])=>{
+      const kids=f.children||[];
+      return'<tr id="fam'+eid(k)+'"><td><div class="tf"><div class="av avb">'+ini(f.name)+'</div>'+f.name+'</div></td>'
+        +'<td style="font-size:12px;color:var(--txt2)">'+k+'</td>'
+        +'<td style="font-size:12px">'+(kids.map(c=>c.name+' ('+(c.cls||c.class||'—')+', PIN: '+(c.pin||'—')+')').join('<br>')||'—')+'</td>'
+        +'<td><button class="btn bd2" onclick="delU(\''+k+'\')">Del</button></td></tr>';
+    }).join('')+'</tbody></table></div>';
+}
+async function addFamily(){
+  const n=$('fam-n')?.value.trim(),u=$('fam-u')?.value.trim(),p=$('fam-p')?.value.trim();
+  const c1n=$('fam-c1n')?.value.trim(),c1c=$('fam-c1c')?.value,c1pin=$('fam-c1pin')?.value.trim();
+  const c2n=$('fam-c2n')?.value.trim(),c2c=$('fam-c2c')?.value,c2pin=$('fam-c2pin')?.value.trim();
+  if(!n||!u||!p){alert('Family name, username, password required');return}
+  if(!c1n||!c1pin){alert('Child 1 name and PIN required');return}
+  if(!/^\d{4}$/.test(c1pin)){alert('PIN must be exactly 4 digits');return}
+  if(c2n&&c2pin&&!/^\d{4}$/.test(c2pin)){alert('Child 2 PIN must be exactly 4 digits');return}
+  const children=[{name:c1n,cls:c1c,pin:c1pin}];
+  if(c2n)children.push({name:c2n,cls:c2c,pin:c2pin||''});
+  DB.users[u]={role:'parent',name:n,pass:p,children};
+  sLoad('Saving...');await svSchool();hLoad();flash();showPg('astu');
 }
 function edStu(k){$('stu'+eid(k)).style.display='none';$('ste'+eid(k)).style.display=''}
 function cnclStu(k){$('stu'+eid(k)).style.display='';$('ste'+eid(k)).style.display='none'}
