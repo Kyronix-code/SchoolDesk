@@ -325,7 +325,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
     <div class="ab-top">
       <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
-      <p>Դпрочаkан каrаvаrum аkаn hаmаkаrg</p>
+      <p>School Managment System</p>
     </div>
     <div class="ab-body">
       <div id="lf">
@@ -1432,13 +1432,17 @@ function initDi(){
   onDiM();
 }
 function onDiY(){
-  const ay=$('diy').value,ms=getMonths(ay);
-  $('dim').innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
+  const diyEl=$('diy');if(!diyEl)return;
+  const ay=diyEl.value,ms=getMonths(ay);
+  const dimEl=$('dim');if(!dimEl)return;
+  dimEl.innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
   onDiM();
 }
 function onDiM(){
-  const mv=$('dim').value,wks=getWeeks(mv);
+  const dimEl=$('dim');if(!dimEl)return;
+  const mv=dimEl.value,wks=getWeeks(mv);
   const ws=$('diw');
+  if(!ws)return;
   ws.innerHTML=wks.map((w,i)=>'<option value="'+i+'">'+w.l+'</option>').join('');
   const t=tod(),ci=wks.findIndex(w=>w.days.some(d=>d2s(d)===t));
   if(ci>=0)ws.value=ci;
@@ -1446,7 +1450,9 @@ function onDiM(){
 }
 function rfDi(){
   const cls=window._dc,nm=window._dn;
-  const mv=$('dim').value,wi=parseInt($('diw').value)||0;
+  const dimEl=$('dim'),diwEl=$('diw');
+  if(!dimEl||!diwEl)return;
+  const mv=dimEl.value,wi=parseInt(diwEl.value)||0;
   const wk=getWeeks(mv)[wi];
   const cont=$('dic');if(!wk||!cont)return;
   const DK={1:'Mon',2:'Tue',3:'Wed',4:'Thu',5:'Fri'};
@@ -1474,7 +1480,7 @@ function rfDi(){
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 Դасацуцаk каzмваc чe</td></tr>';
+      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The schedule is not set.</td></tr>';
     })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
@@ -1727,7 +1733,7 @@ function buildAStu(){
         +'<td style="font-size:12px;color:var(--txt2)">'+k+'</td>'
         +'<td style="font-size:12px">'+(kids.map(c=>c.name+' ('+(c.cls||c.class||'—')+', PIN: '+(c.pin||'—')+')').join('<br>')||'—')+'</td>'
         +'<td><button class="btn bd2" onclick="delU(\''+k+'\')">Del</button></td></tr>';
-    }).join('')+'</tbody></table></div>';
+    }).join('')+'</tbody></table></div></div>';
 }
 async function addFamily(){
   const n=$('fam-n')?.value.trim(),u=$('fam-u')?.value.trim(),p=$('fam-p')?.value.trim();
@@ -1961,7 +1967,9 @@ async function bulkImportSched(){
 function onScCls(){updScWkDropdown();rfSc();}
 function onScWk(){updCopyDropdown();rfSc();}
 function updScWkDropdown(){
-  const mv=$('scmo').value,wks=getWeeks(mv);
+  const scmoEl=$('scmo');
+  if(!scmoEl)return;
+  const mv=scmoEl.value,wks=getWeeks(mv);
   const cls=$('sccl')?.value||'';
   const ws=$('scwk');
   if(!ws)return;
@@ -1975,24 +1983,31 @@ function updScWkDropdown(){
   updCopyDropdown();
 }
 function updCopyDropdown(){
-  const ay=$('scyr').value,allMs=getMonths(ay);
-  const mv=$('scmo').value,wi=parseInt($('scwk').value)||0;
+  const scyrEl=$('scyr'),scmoEl=$('scmo'),scwkEl=$('scwk');
+  if(!scyrEl||!scmoEl||!scwkEl)return;
+  const ay=scyrEl.value,allMs=getMonths(ay);
+  const mv=scmoEl.value,wi=parseInt(scwkEl.value)||0;
   const curWs=getWeeks(mv)[wi]?.ws||'';
   let allW=[];allMs.forEach(m=>getWeeks(m.v).forEach(w=>allW.push({...w,ml:m.l})));
   const cw=$('sccw');
   if(cw)cw.innerHTML='<option value="">Select target week...</option>'+allW.filter(w=>w.ws!==curWs).map(w=>'<option value="'+w.ws+'">'+w.ml+' — '+w.l+'</option>').join('');
 }
 function onScYr(){
-  const ay=$('scyr').value,ms=getMonths(ay);
-  $('scmo').innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
+  const scyrEl=$('scyr'),scmoEl=$('scmo');
+  if(!scyrEl||!scmoEl)return;
+  const ay=scyrEl.value,ms=getMonths(ay);
+  scmoEl.innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');
   onScMo();
 }
 function onScMo(){
+  if(!$('scmo')||!$('sccl')||!$('scdy'))return;
   updScWkDropdown();
   rfSc();
 }
 function getScWk(){
-  const mv=$('scmo').value,wi=parseInt($('scwk').value)||0;
+  const scmoEl=$('scmo'),scwkEl=$('scwk');
+  if(!scmoEl||!scwkEl)return'';
+  const mv=scmoEl.value,wi=parseInt(scwkEl.value)||0;
   return getWeeks(mv)[wi]?.ws||'';
 }
 function getAllSubjects(){
@@ -2016,10 +2031,12 @@ function rfSc(){
   const cls=$('sccl')?.value,day=$('scdy')?.value,wk=getScWk();
   if(!cls||!day)return;
   if(!wk){updScWkDropdown();return;}
+  const sceEl=$('sce');
+  if(!sceEl)return;
   const ls=(SC[cls]&&SC[cls][wk]&&SC[cls][wk][day])||[];
   const selSt='flex:1;min-width:130px;padding:6px 9px;background:var(--surf);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none';
   const selSt2='flex:1;min-width:150px;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none';
-  $('sce').innerHTML='<div class="cd">'
+  sceEl.innerHTML='<div class="cd">'
     +'<div class="cdh"><h3>'+cls+' — '+day+' — '+wk+'</h3></div>'
     +'<table><thead><tr><th>#</th><th>Subject</th><th>Teacher</th><th></th></tr></thead><tbody>'
     +ls.map((l,i)=>'<tr id="sr'+i+'">'
