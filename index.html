@@ -421,7 +421,7 @@ const BA='69be81feaa77b81da90584fe';
 const BC='69be81efb7ec241ddc8baffe';
 const AP='SchoolAdmin2026';
 
-let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={};
+let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={};
 let CU=null,sCls=null,sDate='',sSubj=null,sLes=1,cRole='teacher';
 
 const $=id=>document.getElementById(id);
@@ -453,7 +453,9 @@ function getWeeks(mv){
   const DN=['Mon','Tue','Wed','Thu','Fri'];
   return wks.map((wk,i)=>{
     const s=wk[0],e=wk[wk.length-1];
-    return{l:'Week '+(i+1)+': '+s.getDate()+'.'+pad(s.getMonth()+1)+' – '+e.getDate()+'.'+pad(e.getMonth()+1),ws:d2s(s),days:wk};
+    // Use the actual Monday of this week (even if month starts mid-week) as the key,
+    // so it always matches wkStart() used elsewhere (diary, attendance, etc.)
+    return{l:'Week '+(i+1)+': '+s.getDate()+'.'+pad(s.getMonth()+1)+' – '+e.getDate()+'.'+pad(e.getMonth()+1),ws:wkStart(s),days:wk};
   });
 }
 function curAY(){
@@ -506,9 +508,27 @@ async function loadAll(){
       bGet(BC).catch(()=>null)
     ]);
     if(s&&s.users){DB=s;PE=s.pending||{};}
-    if(g){GR=g.grades||{};LI=g.lessonInfo||{}}
+    if(g){GR=g.grades||{};LI=g.lessonInfo||{};MSGS=g.messages||{};window._tp=g.thematic||{};}
     if(a&&typeof a==='object'&&!a.type)AT=a;
-    if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData))SC=schedData;
+    if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData)){
+      SC=schedData;
+      // Migrate any week keys that aren't actual Mondays (from older buggy partial-week logic)
+      let migrated=false;
+      Object.keys(SC).forEach(cls=>{
+        const wkKeys=Object.keys(SC[cls]||{});
+        wkKeys.forEach(wkKey=>{
+          if(!/^\d{4}-\d{2}-\d{2}$/.test(wkKey))return;
+          const correctKey=wkStart(wkKey);
+          if(correctKey!==wkKey){
+            if(!SC[cls][correctKey])SC[cls][correctKey]={};
+            Object.assign(SC[cls][correctKey],SC[cls][wkKey]);
+            delete SC[cls][wkKey];
+            migrated=true;
+          }
+        });
+      });
+      if(migrated)svSched().catch(()=>{});
+    }
   }catch(e){console.error('loadAll error:',e)}
   Object.keys(DB.classes||{}).forEach(cls=>{
     if(!GR[cls])GR[cls]={};
@@ -526,9 +546,22 @@ async function svSchool(){
     if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
   }catch(e){hLoad();alert('❌ Save error (School): '+e.message);throw e;}
 }
+async function svMsgs(){
+  try{
+    // Fetch latest to avoid clobbering grades/thematic saved elsewhere
+    const r0=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d0=await r0.json();
+    const cur=d0.record||{};
+    const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:MSGS};
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){console.error('svMsgs error:',e);alert('❌ Could not send message: '+e.message);throw e;}
+}
+
 async function svGrades(){
   try{
-    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({grades:GR,lessonInfo:LI})});
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({grades:GR,lessonInfo:LI,thematic:window._tp||{},messages:MSGS})});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
   }catch(e){hLoad();alert('❌ Save error (Grades): '+e.message);throw e;}
@@ -667,6 +700,7 @@ function showPg(id){
     'sem':()=>{const o=$('sem');if(o){o.outerHTML=buildSem()};initSem()},
     'prof':()=>{const o=$('prof');if(o){o.outerHTML=buildProf()};setTimeout(()=>renderQR('prof-qr',getPersonalCode(CU.username)),50)},
     'semtch':()=>{const o=$('semtch');if(o){o.outerHTML=buildSemTch()};rfSemTch()},
+    'tmsg':()=>{const o=$('tmsg');if(o){o.outerHTML=buildTchMsg()}},
   };
   if(rb[id])rb[id]();
   const pg=$(id);if(pg)pg.classList.add('on');
@@ -701,9 +735,10 @@ function buildNav(){
       +'<div class="sbs">Other</div>'
       +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
       +'<div class="ni" onclick="showPg(\'tp\')" data-p="tp">📋 Thematic Plan</div>'
+      +'<div class="ni" onclick="showPg(\'tmsg\')" data-p="tmsg">💬 Messages</div>'
       +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>'
       +hr;
-    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch()+buildProf();
+    mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch()+buildTchMsg()+buildProf();
     rfGR();rfAtt();showPg('dash');
   }else if(CU.role==='parent'){
     buildFamilyNav();
@@ -987,43 +1022,88 @@ function buildFamContact(idx){
     +'<div class="cd"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
     +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</div></td>'
       +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
-      +'<td><button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')">✉️ Message</button></td></tr>'
+      +'<td style="display:flex;gap:6px">'
+      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')">✉️ Message</button>'
+      +(t.phone?'<a href="tel:'+t.phone.replace(/\s+/g,'')+'" class="btn bg2" style="text-decoration:none;display:inline-flex;align-items:center">📞 Call</a>':'<span style="font-size:11px;color:var(--txt3);padding:7px 10px">No phone</span>')
+      +'</td></tr>'
     ).join('')+'</tbody></table></div>'
     +'<div id="fam-msg-thread"></div>'
     +'</div>';
 }
-function openFamMsg(tchKey,tchName,idx){
-  const ch=(CU.children||[])[idx];
-  const threadKey=tchKey+'__'+CU.username+'__'+ch.name;
-  if(!window._famMsgs)window._famMsgs={};
-  const msgs=window._famMsgs[threadKey]||[];
-  const el=$('fam-msg-thread');
-  el.innerHTML='<div class="cd"><div class="cdh"><h3>💬 '+esc2(tchName)+' — re: '+esc2(ch.name)+'</h3></div>'
-    +'<div id="fam-msg-list" style="padding:14px;max-height:260px;overflow-y:auto">'
-    +(msgs.length?msgs.map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from==='family'?'var(--acc-lt)':'var(--surf2)')+';max-width:80%;'+(m.from==='family'?'margin-left:auto':'')+'">'
-      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from==='family'?'You':tchName)+'</div>'
+function msgThreadKey(tchKey,famUser,childName){return tchKey+'__'+famUser+'__'+childName}
+
+function renderMsgThread(elId,threadKey,otherName,myRole){
+  const el=$(elId);if(!el)return;
+  const msgs=MSGS[threadKey]||[];
+  el.innerHTML='<div class="cd"><div class="cdh"><h3>💬 '+esc2(otherName)+'</h3></div>'
+    +'<div id="msg-list-'+elId+'" style="padding:14px;max-height:300px;overflow-y:auto">'
+    +(msgs.length?msgs.slice().sort((a,b)=>a.ts-b.ts).map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from===myRole?'var(--acc-lt)':'var(--surf2)')+';max-width:80%;'+(m.from===myRole?'margin-left:auto':'')+'">'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||otherName))+' · '+new Date(m.ts).toLocaleString()+'</div>'
       +'<div style="font-size:13px">'+esc2(m.text)+'</div></div>'
     ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet — send the first one</p>')
     +'</div>'
     +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr)">'
-    +'<input id="fam-msg-input" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none" onkeydown="if(event.key===\'Enter\')sendFamMsg(\''+threadKey+'\')">'
-    +'<button class="btn bp2" onclick="sendFamMsg(\''+threadKey+'\')">Send</button>'
+    +'<input id="msg-input-'+elId+'" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
+    +'<button class="btn bp2" id="msg-send-'+elId+'">Send</button>'
     +'</div></div>';
+  const inp=$('msg-input-'+elId),btn=$('msg-send-'+elId);
+  const doSend=()=>sendMsgTo(threadKey,elId,otherName,myRole);
+  if(btn)btn.onclick=doSend;
+  if(inp)inp.onkeydown=(e)=>{if(e.key==='Enter')doSend();};
 }
-function sendFamMsg(threadKey){
-  const inp=$('fam-msg-input');
+
+async function sendMsgTo(threadKey,elId,otherName,myRole){
+  const inp=$('msg-input-'+elId);
   const text=inp?.value.trim();
   if(!text)return;
-  if(!window._famMsgs)window._famMsgs={};
-  if(!window._famMsgs[threadKey])window._famMsgs[threadKey]=[];
-  window._famMsgs[threadKey].push({from:'family',text,ts:Date.now()});
+  if(!MSGS[threadKey])MSGS[threadKey]=[];
+  MSGS[threadKey].push({from:myRole,fromName:CU.name,text,ts:Date.now()});
   inp.value='';
-  // Re-render the thread
-  const parts=threadKey.split('__');
-  const tchKey=parts[0];
-  const tchName=DB.users[tchKey]?.name||'Teacher';
-  const idxMatch=(CU.children||[]).findIndex(c=>threadKey.endsWith('__'+c.name));
-  openFamMsg(tchKey,tchName,idxMatch>=0?idxMatch:0);
+  renderMsgThread(elId,threadKey,otherName,myRole);
+  try{await svMsgs();flash();}
+  catch(e){/* already alerted in svMsgs */}
+}
+
+function openFamMsg(tchKey,tchName,idx){
+  const ch=(CU.children||[])[idx];
+  const threadKey=msgThreadKey(tchKey,CU.username,ch.name);
+  renderMsgThread('fam-msg-thread',threadKey,tchName+' — re: '+ch.name,'family');
+}
+
+// ── TEACHER: MESSAGES INBOX ──
+function buildTchMsg(){
+  const myKey=CU.username;
+  // Find all threads where this teacher is the recipient (threadKey starts with myKey+'__')
+  const threads=Object.keys(MSGS||{}).filter(tk=>tk.startsWith(myKey+'__'));
+  const rows=threads.map(tk=>{
+    const parts=tk.split('__');
+    const famUser=parts[1],childName=parts[2];
+    const fam=DB.users[famUser];
+    const famName=fam?fam.name:famUser;
+    const msgs=MSGS[tk]||[];
+    const last=msgs.length?msgs.slice().sort((a,b)=>b.ts-a.ts)[0]:null;
+    const unread=msgs.some(m=>m.from==='family'&&!m.readByTeacher);
+    return{tk,famName,childName,last,unread};
+  }).sort((a,b)=>(b.last?.ts||0)-(a.last?.ts||0));
+  return'<div class="pg" id="tmsg">'
+    +'<div class="pt">💬 Messages</div>'
+    +'<div class="ps">Conversations with families</div>'
+    +(rows.length?'<div class="cd"><table><thead><tr><th>Family</th><th>Child</th><th>Last message</th><th></th></tr></thead><tbody>'
+      +rows.map(r=>'<tr style="cursor:pointer" onclick="openTchMsg(\''+r.tk+'\',\''+esc(r.famName)+'\')">'
+        +'<td><div class="tf"><div class="av avb">'+ini(r.famName)+'</div>'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</div></td>'
+        +'<td style="font-size:12px">'+esc2(r.childName)+'</td>'
+        +'<td style="font-size:12px;color:var(--txt2)">'+(r.last?esc2(r.last.text.slice(0,40))+(r.last.text.length>40?'…':''):'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--txt3)">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td></tr>'
+      ).join('')+'</tbody></table></div>'
+      :'<p style="color:var(--txt3);padding:16px">No messages from families yet.</p>')
+    +'<div id="tch-msg-thread"></div>'
+    +'</div>';
+}
+function openTchMsg(threadKey,famName){
+  // Mark family messages as read
+  (MSGS[threadKey]||[]).forEach(m=>{if(m.from==='family')m.readByTeacher=true;});
+  renderMsgThread('tch-msg-thread',threadKey,famName,'teacher');
+  svMsgs().catch(()=>{});
 }
 
 // ── TEACHER DASHBOARD ──
@@ -1480,7 +1560,7 @@ function rfDi(){
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The schedule is not set.</td></tr>';
+      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The schedule was not set.</td></tr>';
     })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
@@ -1607,8 +1687,8 @@ function buildATch(){
   return'<div class="pg" id="atch"><div class="pt">Teachers</div>'
     +'<div class="fc"><h3>📋 Bulk Import Teachers</h3>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:6px">One teacher per line, fields separated by <b>|</b>:</p>'
-    +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject | Name | Username | Password | Classes (comma sep.) | Homeroom (optional)</code>'
-    +'<p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Example: Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A | 7A</p>'
+    +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject | Name | Username | Password | Classes (comma sep.) | Homeroom (optional) | Phone (optional)</code>'
+    +'<p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Example: Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A | 7A | +374 99 123456</p>'
     +'<textarea id="bulk-tch" placeholder="Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A&#10;Math | Ani Karapetyan | Ani_Karapetyan | Ani90@ | 8B, 9B | 8B" style="width:100%;min-height:140px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.7"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
     +'<button class="btn bp2" onclick="bulkImportTch()" style="padding:9px 20px;font-size:14px">✓ Import Teachers</button>'
@@ -1618,6 +1698,7 @@ function buildATch(){
     +'<div class="fr"><div class="ff"><label>Full Name</label><input id="tn"></div><div class="ff"><label>Username</label><input id="tu"></div></div>'
     +'<div class="fr"><div class="ff"><label>Password</label><input id="tp"></div><div class="ff"><label>Subject(s) (& for multiple)</label><input id="ts"></div></div>'
     +'<div class="fr"><div class="ff"><label>Classes (comma sep.)</label><input id="tc"></div><div class="ff"><label>Homeroom Class</label><input id="th"></div></div>'
+    +'<div class="fr"><div class="ff"><label>Phone Number</label><input id="tphone" placeholder="+374 XX XXX XXX"></div></div>'
     +'<button class="btn bp2" onclick="addTch()">+ Add Teacher</button></div>'
     +'<div class="cd"><div class="cdh"><h3>Teachers ('+tchs.length+')</h3></div>'
     +'<table><thead><tr><th>Name</th><th>Subject</th><th>Classes</th><th>HR</th><th></th></tr></thead><tbody>'
@@ -1629,7 +1710,8 @@ function buildATch(){
       +'<div class="ff"><label>Password</label><input id="tep'+k+'" value="'+esc2(t.pass)+'"></div>'
       +'<div class="ff"><label>Subject</label><input id="tes'+k+'" value="'+esc2(t.subject||'')+'"></div>'
       +'<div class="ff"><label>Classes</label><input id="tec'+k+'" value="'+esc2((t.classes||[]).join(', '))+'"></div>'
-      +'<div class="ff"><label>Homeroom</label><input id="teh'+k+'" value="'+esc2(t.homeroom||'')+'"></div></div>'
+      +'<div class="ff"><label>Homeroom</label><input id="teh'+k+'" value="'+esc2(t.homeroom||'')+'"></div>'
+      +'<div class="ff"><label>Phone</label><input id="teph'+k+'" value="'+esc2(t.phone||'')+'" placeholder="+374 XX XXX XXX"></div></div>'
       +'<button class="btn bp2" onclick="svTch(\''+k+'\')">✓ Save</button>'
       +'<button class="btn bg2" style="margin-left:6px" onclick="cnclTch(\''+k+'\')">Cancel</button>'
       +'</td></tr>'
@@ -1642,8 +1724,9 @@ async function svTch(k){
   const n=$('ten'+k)?.value.trim(),p=$('tep'+k)?.value.trim(),s=$('tes'+k)?.value.trim();
   const c=$('tec'+k)?.value.split(',').map(x=>x.trim()).filter(Boolean);
   const h=$('teh'+k)?.value.trim();
+  const phone=$('teph'+k)?.value.trim();
   if(!n||!p)return;
-  DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null};
+  DB.users[k]={...DB.users[k],name:n,pass:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
 async function bulkImportTch(){
@@ -1655,11 +1738,11 @@ async function bulkImportTch(){
     const parts=line.split('|').map(p=>p.trim());
     // Format: Subject | Name | Username | Password | Classes | Homeroom(opt)
     if(parts.length<4){errs.push('Line '+(i+1)+': not enough fields');return;}
-    const [subj,name,user,pass,clsRaw,homeroom]=parts;
+    const [subj,name,user,pass,clsRaw,homeroom,phone]=parts;
     if(!name||!user||!pass){errs.push('Line '+(i+1)+': name/user/pass required');return;}
     const cls=(clsRaw||'').split(',').map(c=>c.trim()).filter(Boolean);
     const key=user+'_t';
-    DB.users[key]={role:'teacher',name,pass,subject:subj||'',classes:cls,homeroom:homeroom||null};
+    DB.users[key]={role:'teacher',name,pass,subject:subj||'',classes:cls,homeroom:homeroom||null,phone:phone||''};
     added++;
   });
   if(errs.length){alert('Errors:\n'+errs.join('\n'));return;}
@@ -1674,8 +1757,9 @@ async function addTch(){
   const n=$('tn')?.value.trim(),u=$('tu')?.value.trim(),p=$('tp')?.value.trim();
   const s=$('ts')?.value.trim(),c=$('tc')?.value.split(',').map(x=>x.trim()).filter(Boolean);
   const h=$('th')?.value.trim();
+  const phone=$('tphone')?.value.trim();
   if(!n||!u||!p){alert('Name, username and password required');return}
-  DB.users[u+'_t']={role:'teacher',name:n,pass:p,subject:s,classes:c,homeroom:h||null};
+  DB.users[u+'_t']={role:'teacher',name:n,pass:p,subject:s,classes:c,homeroom:h||null,phone:phone||''};
   sLoad('Saving...');await svSchool();hLoad();flash();showPg('atch');
 }
 async function delU(k){
