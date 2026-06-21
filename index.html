@@ -670,6 +670,9 @@ function logout(){
   if(typeof stopScanner==='function')stopScanner();
   CU=null;$('app').classList.add('h');$('aw').classList.remove('h');
   $('lu').value='';$('lp').value='';$('le').textContent='';showF('lf');
+  // Reset family session state so PIN unlocks don't leak between different family logins
+  window._famUnlocked={};
+  _famPendingIdx=null;
 }
 
 // START APP
@@ -739,7 +742,7 @@ function buildNav(){
       +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>'
       +hr;
     mn.innerHTML=buildDash()+buildGR()+buildAtt()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch()+buildTchMsg()+buildProf();
-    rfGR();rfAtt();showPg('dash');
+    rfAtt();showPg('dash');
   }else if(CU.role==='parent'){
     buildFamilyNav();
   }else{
@@ -758,6 +761,7 @@ function buildNav(){
 function buildFamilyNav(){
   const nav=$('nav'),mn=$('mn');
   const kids=CU.children||[];
+  window._famUnlocked={}; // always start locked on a fresh login
   nav.innerHTML='<div class="sbs">Family</div>'
     +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧 Select Child</div>';
   mn.innerHTML=buildFamSelect();
@@ -1019,90 +1023,106 @@ function buildFamContact(idx){
   return'<div class="pg" id="fc-contact">'
     +'<div class="pt">💬 Contact Teachers</div>'
     +'<div class="ps">Teachers for class '+cls+'</div>'
-    +'<div class="cd"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
-    +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</div></td>'
+    +'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
+    +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div><span>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</span></div></td>'
       +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
-      +'<td style="display:flex;gap:6px">'
-      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')">✉️ Message</button>'
-      +(t.phone?'<a href="tel:'+t.phone.replace(/\s+/g,'')+'" class="btn bg2" style="text-decoration:none;display:inline-flex;align-items:center">📞 Call</a>':'<span style="font-size:11px;color:var(--txt3);padding:7px 10px">No phone</span>')
-      +'</td></tr>'
-    ).join('')+'</tbody></table></div>'
+      +'<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
+      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">✉️ Message</button>'
+      +(t.phone?'<a href="tel:'+t.phone.replace(/\s+/g,'')+'" class="btn bg2" style="text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap">📞 Call</a>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
+      +'</div></td></tr>'
+    ).join('')+'</tbody></table></div></div>'
     +'<div id="fam-msg-thread"></div>'
     +'</div>';
 }
-function msgThreadKey(tchKey,famUser,childName){return tchKey+'__'+famUser+'__'+childName}
 
-function renderMsgThread(elId,threadKey,otherName,myRole){
+// ── MESSAGE SYSTEM (safe nested structure — no string-key collisions) ──
+// MSGS shape: { [teacherKey]: { [famUsername]: { [childName]: [ {from,fromName,fromFamily,childName,text,ts,readByTeacher} ] } } }
+function getThread(tchKey,famUser,childName){
+  return(MSGS[tchKey]&&MSGS[tchKey][famUser]&&MSGS[tchKey][famUser][childName])||[];
+}
+function pushThread(tchKey,famUser,childName,msg){
+  if(!MSGS[tchKey])MSGS[tchKey]={};
+  if(!MSGS[tchKey][famUser])MSGS[tchKey][famUser]={};
+  if(!MSGS[tchKey][famUser][childName])MSGS[tchKey][famUser][childName]=[];
+  MSGS[tchKey][famUser][childName].push(msg);
+}
+
+function renderMsgThread(elId,tchKey,famUser,childName,headerLabel,myRole){
   const el=$(elId);if(!el)return;
-  const msgs=MSGS[threadKey]||[];
-  el.innerHTML='<div class="cd"><div class="cdh"><h3>💬 '+esc2(otherName)+'</h3></div>'
+  const msgs=getThread(tchKey,famUser,childName);
+  el.innerHTML='<div class="cd"><div class="cdh"><h3 style="word-break:break-word">💬 '+esc2(headerLabel)+'</h3></div>'
     +'<div id="msg-list-'+elId+'" style="padding:14px;max-height:300px;overflow-y:auto">'
-    +(msgs.length?msgs.slice().sort((a,b)=>a.ts-b.ts).map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from===myRole?'var(--acc-lt)':'var(--surf2)')+';max-width:80%;'+(m.from===myRole?'margin-left:auto':'')+'">'
-      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||otherName))+' · '+new Date(m.ts).toLocaleString()+'</div>'
+    +(msgs.length?msgs.slice().sort((a,b)=>a.ts-b.ts).map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from===myRole?'var(--acc-lt)':'var(--surf2)')+';max-width:85%;word-break:break-word;'+(m.from===myRole?'margin-left:auto':'')+'">'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||'Unknown'))+' · '+new Date(m.ts).toLocaleString()+'</div>'
       +'<div style="font-size:13px">'+esc2(m.text)+'</div></div>'
     ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet — send the first one</p>')
     +'</div>'
-    +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr)">'
-    +'<input id="msg-input-'+elId+'" placeholder="Type a message..." style="flex:1;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
+    +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr);flex-wrap:wrap">'
+    +'<input id="msg-input-'+elId+'" placeholder="Type a message..." style="flex:1;min-width:160px;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
     +'<button class="btn bp2" id="msg-send-'+elId+'">Send</button>'
     +'</div></div>';
   const inp=$('msg-input-'+elId),btn=$('msg-send-'+elId);
-  const doSend=()=>sendMsgTo(threadKey,elId,otherName,myRole);
+  const doSend=()=>sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole);
   if(btn)btn.onclick=doSend;
   if(inp)inp.onkeydown=(e)=>{if(e.key==='Enter')doSend();};
 }
 
-async function sendMsgTo(threadKey,elId,otherName,myRole){
+async function sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole){
   const inp=$('msg-input-'+elId);
   const text=inp?.value.trim();
   if(!text)return;
-  if(!MSGS[threadKey])MSGS[threadKey]=[];
-  MSGS[threadKey].push({from:myRole,fromName:CU.name,text,ts:Date.now()});
+  const msg={from:myRole,fromName:CU.name,text,ts:Date.now()};
+  if(myRole==='family'){
+    // Tag who's writing clearly: "<Family name> Family — regarding <Child name>"
+    msg.fromName=CU.name+' Family (re: '+childName+')';
+  }
+  pushThread(tchKey,famUser,childName,msg);
   inp.value='';
-  renderMsgThread(elId,threadKey,otherName,myRole);
+  renderMsgThread(elId,tchKey,famUser,childName,headerLabel,myRole);
   try{await svMsgs();flash();}
   catch(e){/* already alerted in svMsgs */}
 }
 
 function openFamMsg(tchKey,tchName,idx){
   const ch=(CU.children||[])[idx];
-  const threadKey=msgThreadKey(tchKey,CU.username,ch.name);
-  renderMsgThread('fam-msg-thread',threadKey,tchName+' — re: '+ch.name,'family');
+  const headerLabel=tchName+' — '+CU.name+' (re: '+ch.name+')';
+  renderMsgThread('fam-msg-thread',tchKey,CU.username,ch.name,headerLabel,'family');
 }
 
 // ── TEACHER: MESSAGES INBOX ──
 function buildTchMsg(){
   const myKey=CU.username;
-  // Find all threads where this teacher is the recipient (threadKey starts with myKey+'__')
-  const threads=Object.keys(MSGS||{}).filter(tk=>tk.startsWith(myKey+'__'));
-  const rows=threads.map(tk=>{
-    const parts=tk.split('__');
-    const famUser=parts[1],childName=parts[2];
+  const myThreads=MSGS[myKey]||{};
+  const rows=[];
+  Object.entries(myThreads).forEach(([famUser,children])=>{
     const fam=DB.users[famUser];
     const famName=fam?fam.name:famUser;
-    const msgs=MSGS[tk]||[];
-    const last=msgs.length?msgs.slice().sort((a,b)=>b.ts-a.ts)[0]:null;
-    const unread=msgs.some(m=>m.from==='family'&&!m.readByTeacher);
-    return{tk,famName,childName,last,unread};
-  }).sort((a,b)=>(b.last?.ts||0)-(a.last?.ts||0));
+    Object.entries(children).forEach(([childName,msgs])=>{
+      const last=msgs.length?msgs.slice().sort((a,b)=>b.ts-a.ts)[0]:null;
+      const unread=msgs.some(m=>m.from==='family'&&!m.readByTeacher);
+      rows.push({famUser,famName,childName,last,unread,msgCount:msgs.length});
+    });
+  });
+  rows.sort((a,b)=>(b.last?.ts||0)-(a.last?.ts||0));
   return'<div class="pg" id="tmsg">'
     +'<div class="pt">💬 Messages</div>'
     +'<div class="ps">Conversations with families</div>'
-    +(rows.length?'<div class="cd"><table><thead><tr><th>Family</th><th>Child</th><th>Last message</th><th></th></tr></thead><tbody>'
-      +rows.map(r=>'<tr style="cursor:pointer" onclick="openTchMsg(\''+r.tk+'\',\''+esc(r.famName)+'\')">'
-        +'<td><div class="tf"><div class="av avb">'+ini(r.famName)+'</div>'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</div></td>'
-        +'<td style="font-size:12px">'+esc2(r.childName)+'</td>'
-        +'<td style="font-size:12px;color:var(--txt2)">'+(r.last?esc2(r.last.text.slice(0,40))+(r.last.text.length>40?'…':''):'—')+'</td>'
-        +'<td style="font-size:11px;color:var(--txt3)">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td></tr>'
-      ).join('')+'</tbody></table></div>'
+    +(rows.length?'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>From</th><th>Regarding</th><th>Last message</th><th></th></tr></thead><tbody>'
+      +rows.map(r=>'<tr style="cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">'
+        +'<td><div class="tf"><div class="av avb">'+ini(r.famName)+'</div><span style="word-break:break-word">'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</span></div></td>'
+        +'<td style="font-size:12px">👶 '+esc2(r.childName)+'</td>'
+        +'<td style="font-size:12px;color:var(--txt2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(r.last?esc2(r.last.text):'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--txt3);white-space:nowrap">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td></tr>'
+      ).join('')+'</tbody></table></div></div>'
       :'<p style="color:var(--txt3);padding:16px">No messages from families yet.</p>')
     +'<div id="tch-msg-thread"></div>'
     +'</div>';
 }
-function openTchMsg(threadKey,famName){
-  // Mark family messages as read
-  (MSGS[threadKey]||[]).forEach(m=>{if(m.from==='family')m.readByTeacher=true;});
-  renderMsgThread('tch-msg-thread',threadKey,famName,'teacher');
+function openTchMsg(famUser,famName,childName){
+  const msgs=getThread(CU.username,famUser,childName);
+  msgs.forEach(m=>{if(m.from==='family')m.readByTeacher=true;});
+  const headerLabel=esc2(famName)+' Family — regarding '+esc2(childName);
+  renderMsgThread('tch-msg-thread',CU.username,famUser,childName,headerLabel,'teacher');
   svMsgs().catch(()=>{});
 }
 
@@ -1148,29 +1168,168 @@ function buildDash(){
 
 // ── GRADES ──
 function buildGR(){
-  const sjs=subjs();
-  const ss=sjs.length>1?'<label>Subject:</label><select id="gss" onchange="sSubj=this.value;sLes=1;rfGR()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>':'';
+  const cls=CU.classes||[];
   return'<div class="pg" id="gr">'
-    +'<div class="pt">Grades</div><div class="ps">Enter grades per lesson</div>'
-    +'<div class="sr">'
-    +'<label>Class:</label><select id="gcl" onchange="sCls=this.value;sLes=1;onGrCls()">'+(CU.classes||[]).map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
-    +'<label>Date:</label><select id="gdt" onchange="sDate=this.value;sLes=1;rfGR()" style="min-width:155px"><option>Loading...</option></select>'
+    +'<div class="pt">Grades</div><div class="ps">Select a class to manage grades</div>'
+    +'<div id="gr-class-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-bottom:20px">'
+    +cls.map(c=>'<div class="cd" style="padding:18px 10px;text-align:center;cursor:pointer;margin-bottom:0" onclick="selectGrCls(\''+c+'\')">'
+      +'<div style="font-size:20px;font-weight:700;color:var(--acc)">'+c+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:3px">'+(DB.classes[c]||[]).length+' students</div>'
+      +'</div>'
+    ).join('')
+    +'</div>'
+    +'<div id="gr-detail" class="h"></div>'
+    +'</div>';
+}
+
+function selectGrCls(cls){
+  sCls=cls;
+  // Highlight selected card
+  document.querySelectorAll('#gr-class-grid .cd').forEach(el=>{
+    el.style.border=el.textContent.trim().startsWith(cls)?'2px solid var(--acc)':'';
+  });
+  const sjs=subjs();
+  if(sjs.length&&!sjs.includes(sSubj))sSubj=sjs[0];
+  const det=$('gr-detail');
+  if(!det)return;
+  det.classList.remove('h');
+  const ss=sjs.length>1?'<label>Subject:</label><select id="gss" onchange="sSubj=this.value;rfGrMonthGrid()">'+sjs.map(s=>'<option value="'+s+'"'+(s===sSubj?' selected':'')+'>'+s+'</option>').join('')+'</select>':'';
+  const ay=curAY(),ms=getMonths(ay);
+  const now=new Date(),curM=now.getFullYear()+'-'+pad(now.getMonth()+1);
+  det.innerHTML='<div class="cd" style="margin-bottom:14px"><div class="cdh"><h3>'+cls+'</h3>'
+    +'<button class="btn bg2" onclick="$(\'gr-detail\').classList.add(\'h\')">✕ Close</button></div>'
+    +'<div style="padding:14px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
     +ss
-    +'<span id="glw" style="display:none"><label>Lesson:</label><select id="gls" onchange="sLes=parseInt(this.value);rfGR()"><option value="1">Lesson 1</option><option value="2">Lesson 2</option></select></span>'
-    +'</div>'
-    +'<div class="sr" id="gr-stu-row" style="margin-bottom:10px">'
-    +'<label>Jump to student:</label>'
-    +'<select id="g-stu-jump" onchange="jumpToStu(this.value)" style="min-width:200px"><option value="">All students</option></select>'
-    +'</div>'
-    +'<div class="cd" style="margin-bottom:12px"><div class="cdh"><h3>Lesson Info</h3></div>'
-    +'<div style="padding:12px 16px;display:flex;flex-direction:column;gap:9px">'
-    +'<div style="display:flex;align-items:center;gap:9px"><label style="font-size:12px;color:var(--txt2);min-width:90px">Topic:</label><input id="gtp" style="flex:1;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Topic..."></div>'
-    +'<div style="display:flex;align-items:center;gap:9px"><label style="font-size:12px;color:var(--txt2);min-width:90px">Homework:</label><input id="ghw" style="flex:1;padding:7px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Homework..."></div>'
+    +'<label>Month:</label><select id="gr-month-grid" onchange="rfGrMonthGrid()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===curM?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
     +'</div></div>'
     +'<div id="gr-warn"></div>'
-    +'<div class="cd"><div class="cdh"><h3 id="gtit">Grades</h3><button class="btn bp2" onclick="svGR()">✓ Save</button></div>'
-    +'<div style="overflow-x:auto"><table id="gtbl"></table></div></div>'
-    +'</div>';
+    +'<div id="gr-week-table"></div>'
+    +'<div id="gr-cell-editor"></div>';
+  rfGrMonthGrid();
+}
+
+// Build a week-based grid: rows = students, columns = each lesson-date in the month
+function rfGrMonthGrid(){
+  const cls=sCls,sj=sSubj||subjs()[0]||'';
+  const mv=$('gr-month-grid')?.value;
+  if(!cls||!sj||!mv)return;
+  const sts=DB.classes[cls]||[];
+  const[yr,mo]=mv.split('-').map(Number);
+  const dk2n={'Mon':1,'Tue':2,'Wed':3,'Thu':4,'Fri':5};
+  const clsSC=SC[cls]||{};
+  const allowed=new Set();
+  Object.values(clsSC).forEach(wk=>{
+    if(wk&&typeof wk==='object'&&!Array.isArray(wk)){
+      ['Mon','Tue','Wed','Thu','Fri'].forEach(dk=>{
+        if((wk[dk]||[]).some(l=>matchSubj(l.sub,sj)))allowed.add(dk2n[dk]);
+      });
+    }
+  });
+  const hasAnySched=allowed.size>0;
+  const warnEl=$('gr-warn');
+  if(warnEl){
+    warnEl.innerHTML=hasAnySched?'':'<div style="background:var(--amb-lt);border:1px solid var(--amb);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amb)">⚠️ Դասացուցակ կազմված չէ — Admin → Schedule-ում ավելացրեք '+sj+'-ի դասերը '+cls+' դասարանի համար</div>';
+  }
+  const dates=[];
+  const d=new Date(yr,mo-1,1);
+  while(d.getMonth()===mo-1){
+    if(d.getDay()>=1&&d.getDay()<=5&&allowed.has(d.getDay()))dates.push(d2s(new Date(d)));
+    d.setDate(d.getDate()+1);
+  }
+  const wrap=$('gr-week-table');
+  if(!wrap)return;
+  if(!dates.length){
+    wrap.innerHTML=hasAnySched?'<p style="color:var(--txt3);padding:16px">No lessons fall in this month for the schedule.</p>':'';
+    return;
+  }
+  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const today=tod();
+  wrap.innerHTML='<div class="cd"><div style="overflow-x:auto"><table>'
+    +'<thead><tr><th style="position:sticky;left:0;background:var(--surf2);min-width:130px">Student</th>'
+    +dates.map(ds=>{const dt=new Date(ds);return'<th style="text-align:center;min-width:46px'+(ds===today?';color:var(--acc)':'')+'">'+dt.getDate()+'<br><span style="font-size:9px;font-weight:400">'+MN[dt.getMonth()]+'</span></th>';}).join('')
+    +'</tr></thead><tbody>'
+    +sts.map((st,si)=>{
+      return'<tr><td style="position:sticky;left:0;background:var(--surf);font-weight:500;white-space:nowrap"><div class="tf"><div class="av avb" style="width:24px;height:24px;font-size:9px">'+ini(st)+'</div>'+st+'</div></td>'
+        +dates.map(ds=>{
+          const cnt=cntSubjDay(cls,ds,sj);
+          const lk1=ds;
+          const g1=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk1])||'';
+          const g2=cnt>=2?((GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][ds+'-L2'])||''):'';
+          const cellLabel=(g1==='բ'?'<span style="color:var(--red)">բ</span>':g1?'<span class="badge b'+g1+'" style="padding:1px 5px;font-size:10px">'+g1+'</span>':'<span style="color:var(--txt3)">·</span>')
+            +(g2?'<br>'+(g2==='բ'?'<span style="color:var(--red)">բ</span>':'<span class="badge b'+g2+'" style="padding:1px 5px;font-size:10px">'+g2+'</span>'):'');
+          return'<td style="text-align:center;cursor:pointer;padding:6px 4px" onclick="openCellEditor(\''+cls+'\',\''+esc(st)+'\','+si+',\''+ds+'\',\''+sj+'\')">'+cellLabel+'</td>';
+        }).join('')
+        +'</tr>';
+    }).join('')
+    +'</tbody></table></div></div>';
+}
+
+// Click a cell -> expand a small editor card right below the table for that student+date
+function openCellEditor(cls,st,si,ds,sj){
+  const cnt=cntSubjDay(cls,ds,sj);
+  const lk1=ds,lk2=ds+'-L2';
+  const g1=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk1])||'';
+  const g2=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk2])||'';
+  const li=(LI[cls]&&LI[cls][sj]&&LI[cls][sj][lk1])||{};
+  const el=$('gr-cell-editor');
+  if(!el)return;
+  el.innerHTML='<div class="cd" style="margin-top:14px">'
+    +'<div class="cdh"><h3>'+esc2(st)+' · '+fmtD(ds)+'</h3><button class="btn bg2" onclick="$(\'gr-cell-editor\').innerHTML=\'\'">✕ Close</button></div>'
+    +'<div style="padding:16px;display:flex;flex-direction:column;gap:12px">'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
+    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Grade'+(cnt>=2?' (Lesson 1)':'')+'</label>'
+    +'<div style="display:flex;gap:6px;align-items:center">'
+    +'<input id="ce-g1" class="gi" type="number" min="1" max="10" value="'+(g1!=='բ'?g1:'')+'" placeholder="—">'
+    +'<button id="ce-abs1" onclick="tgCellAbsent(1)" style="background:'+(g1==='բ'?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(g1==='բ'?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:4px 9px;color:'+(g1==='բ'?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px">բ</button>'
+    +'</div></div>'
+    +(cnt>=2?'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Grade (Lesson 2)</label>'
+      +'<div style="display:flex;gap:6px;align-items:center">'
+      +'<input id="ce-g2" class="gi" type="number" min="1" max="10" value="'+(g2!=='բ'?g2:'')+'" placeholder="—">'
+      +'<button id="ce-abs2" onclick="tgCellAbsent(2)" style="background:'+(g2==='բ'?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(g2==='բ'?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:4px 9px;color:'+(g2==='բ'?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px">բ</button>'
+      +'</div></div>':'')
+    +'</div>'
+    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Topic (դասի թեմա)</label>'
+    +'<input id="ce-topic" value="'+esc2(li.topic||'')+'" style="width:100%;padding:8px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Topic..."></div>'
+    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Homework (տնային աշխատանք)</label>'
+    +'<input id="ce-hw" value="'+esc2(li.homework||'')+'" style="width:100%;padding:8px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Homework..."></div>'
+    +'<button class="btn bp2" onclick="saveCellEditor(\''+cls+'\',\''+esc(st)+'\',\''+ds+'\',\''+sj+'\')" style="align-self:flex-start">✓ Save</button>'
+    +'</div></div>';
+  el.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function tgCellAbsent(n){
+  const inp=$('ce-g'+n),btn=$('ce-abs'+n);
+  if(!inp||!btn)return;
+  const isAbs=inp.disabled;
+  if(isAbs){
+    inp.disabled=false;inp.value='';
+    btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';
+  }else{
+    inp.disabled=true;inp.value='';
+    btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='var(--red)';btn.style.color='var(--red)';
+  }
+}
+async function saveCellEditor(cls,st,ds,sj){
+  if(!GR[cls])GR[cls]={};
+  if(!GR[cls][st])GR[cls][st]={};
+  if(!GR[cls][st][sj])GR[cls][st][sj]={};
+  const g1inp=$('ce-g1'),g2inp=$('ce-g2');
+  const setG=(lk,inp)=>{
+    if(!inp)return;
+    if(inp.disabled){GR[cls][st][sj][lk]='բ';}
+    else{
+      const v=parseInt(inp.value);
+      if(inp.value&&v>=1&&v<=10)GR[cls][st][sj][lk]=v;
+      else delete GR[cls][st][sj][lk];
+    }
+  };
+  setG(ds,g1inp);
+  if(g2inp)setG(ds+'-L2',g2inp);
+  const topic=$('ce-topic')?.value||'',hw=$('ce-hw')?.value||'';
+  if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};
+  LI[cls][sj][ds]={topic,homework:hw};
+  sLoad('Saving...');await svGrades();hLoad();flash();
+  $('gr-cell-editor').innerHTML='';
+  rfGrMonthGrid();
 }
 
 function getDates(cls){
@@ -1235,119 +1394,6 @@ function cntSubjDay(cls,date,sj){
   return ls.filter(l=>matchSubj(l.sub,sj)).length;
 }
 
-function lKey(date){return sLes>1?date+'-L'+sLes:date}
-
-function onGrCls(){rfGR();}
-function rfGR(){
-  const cls=sCls,sj=sSubj||subjs()[0]||'';
-  // Update student jump dropdown
-  const sts=DB.classes[cls]||[];
-  const sJump=$('g-stu-jump');
-  if(sJump)sJump.innerHTML='<option value="">All students</option>'+sts.map((st,i)=>'<option value="'+i+'">'+st+'</option>').join('');
-  // Check if schedule exists for this class+subject
-  const dates=getDates(cls);
-  const hasSchSub=dates.length>0;
-  // Check if any student is absent this date for this class (xmbakayin)
-  const attToday=AT[cls]&&AT[cls][sDate]?AT[cls][sDate]:{};
-  const absentCount=Object.values(attToday).filter(v=>v==='absent').length;
-  const hasAbsentGroup=absentCount>0&&absentCount===(DB.classes[cls]||[]).length;
-  const warnEl=$('gr-warn');
-  if(warnEl){
-    if(!hasSchSub){
-      warnEl.innerHTML='<div style="background:var(--amb-lt);border:1px solid var(--amb);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amb)">⚠️ Մаtyanuma — Дасацуцаk каzмваc чe | Yntrvаc xmbum bаcаkаyum еn аshакертнеry</div>';
-    }else if(hasAbsentGroup){
-      warnEl.innerHTML='<div style="background:var(--red-lt);border:1px solid var(--red);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--red)">🚫 Yntrvаc xmbum bаcаkаyum еn аshакертнеry</div>';
-    }else{
-      warnEl.innerHTML='';
-    }
-  }
-  const dsel=$('gdt');
-  if(dsel){
-    const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-    const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    dsel.innerHTML=dates.map(d=>{const dt=new Date(d);return'<option value="'+d+'"'+(d===sDate?' selected':'')+'>'+DN[dt.getDay()]+' '+dt.getDate()+' '+MN[dt.getMonth()]+' '+dt.getFullYear()+'</option>'}).join('');
-    if(!dates.includes(sDate)&&dates.length)sDate=dates[0];
-    if(dsel.value)sDate=dsel.value;
-  }
-  const cnt=cntSubjDay(cls,sDate,sj);
-  const glw=$('glw');if(glw)glw.style.display=cnt>=2?'inline-flex':'none';
-  if(cnt<2)sLes=1;
-  const lk=lKey(sDate);
-  const tt=$('gtit');if(tt)tt.textContent=cls+' · '+sj+' · '+fmtD(sDate)+(sLes>1?' (Lesson '+sLes+')':'');
-  const li=(LI[cls]&&LI[cls][sj])?LI[cls][sj][lk]||{}:{};
-  const tp=$('gtp'),hw=$('ghw');
-  if(tp)tp.value=li.topic||'';if(hw)hw.value=li.homework||'';
-  const tbl=$('gtbl');if(!tbl)return;
-  // Check today's attendance for this class
-  const todayAtt=AT[cls]&&AT[cls][sDate]?AT[cls][sDate]:{};
-  tbl.innerHTML='<thead><tr><th>Student</th><th>Grade (1–10) or բ (absent)</th></tr></thead><tbody>'
-    +sts.map((st,i)=>{
-      const g=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj])?GR[cls][st][sj][lk]||'':'';
-      const isAbsent=g==='բ';
-      const attStatus=todayAtt[st]||null;
-      return'<tr><td><div class="tf"><div class="av avb">'+ini(st)+'</div>'+st
-        +(attStatus==='absent'?'<span class="badge ba" style="font-size:10px;margin-left:6px">absent</span>':'')
-        +'</div></td>'
-        +'<td><div style="display:flex;align-items:center;gap:6px">'
-        +'<input class="gi" type="number" min="1" max="10" value="'+(isAbsent?'':g)+'" id="gi'+i+'" placeholder="—"'
-        +(isAbsent?' disabled style="opacity:0.4" data-absent="1"':'')+' oninput="onGrInput('+i+')">'
-        +'<button id="gib'+i+'" onclick="tgAbsent('+i+',\''+esc(st)+'\')" title="Mark as absent (բ)" '
-        +'style="background:'+(isAbsent?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(isAbsent?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:3px 8px;color:'+(isAbsent?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px;font-family:inherit">բ</button>'
-        +(g&&!isAbsent?'<button onclick="clrG('+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:13px">✕</button>':'')
-        +'</div></td></tr>';
-    }).join('')+'</tbody>';
-}
-
-function jumpToStu(idx){const e=$('gi'+idx);if(e)e.scrollIntoView({behavior:'smooth',block:'center'});}
-function clrG(i){const e=$('gi'+i);if(e){e.value='';const nx=e.nextElementSibling;if(nx&&nx.tagName==='BUTTON')nx.remove()}}
-function onGrInput(i){
-  // When typing a grade, un-mark absent
-  const btn=$('gib'+i);
-  if(btn){btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';}
-  const inp=$('gi'+i);
-  if(inp){inp.disabled=false;inp.style.opacity='1';inp.removeAttribute('data-absent');}
-}
-function tgAbsent(i,st){
-  const inp=$('gi'+i),btn=$('gib'+i);
-  if(!inp||!btn)return;
-  const isAbsent=inp.getAttribute('data-absent')==='1';
-  if(isAbsent){
-    // Remove absent
-    inp.removeAttribute('data-absent');
-    inp.disabled=false;inp.style.opacity='1';inp.value='';
-    btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';
-  }else{
-    // Mark absent
-    inp.setAttribute('data-absent','1');
-    inp.disabled=true;inp.style.opacity='0.4';inp.value='';
-    btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='var(--red)';btn.style.color='var(--red)';
-  }
-}
-
-async function svGR(){
-  const cls=sCls,sj=sSubj||subjs()[0]||'',lk=lKey(sDate);
-  if(!GR[cls])GR[cls]={};
-  const sts=DB.classes[cls]||[];
-  sts.forEach((st,i)=>{
-    if(!GR[cls][st])GR[cls][st]={};
-    if(!GR[cls][st][sj])GR[cls][st][sj]={};
-    const inp=$('gi'+i);
-    const isAbsent=inp&&inp.getAttribute('data-absent')==='1';
-    const v=inp?.value;
-    if(isAbsent){
-      // Save 'բ' as absent marker
-      GR[cls][st][sj][lk]='բ';
-    }else if(v&&parseInt(v)>=1&&parseInt(v)<=10){
-      GR[cls][st][sj][lk]=parseInt(v);
-    }else{
-      delete GR[cls][st][sj][lk];
-    }
-  });
-  const tp=$('gtp')?.value||'',hw=$('ghw')?.value||'';
-  if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};
-  LI[cls][sj][lk]={topic:tp,homework:hw};
-  sLoad('Saving...');await svGrades();hLoad();flash();
-}
 
 // ── ATTENDANCE ──
 function buildAtt(){
@@ -1560,7 +1606,7 @@ function rfDi(){
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The schedule was not set.</td></tr>';
+      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The Schedule was not created.</td></tr>';
     })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
