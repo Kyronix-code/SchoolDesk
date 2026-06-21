@@ -325,7 +325,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
     <div class="ab-top">
       <div class="ic">🏫</div>
       <h1>SchoolDesk</h1>
-      <p>School Managment System</p>
+      <p>School Management System</p>
     </div>
     <div class="ab-body">
       <div id="lf">
@@ -357,7 +357,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
           <p style="color:var(--txt2);font-size:13px;line-height:1.5">Your account is pending admin approval.<br>Please enter your child's details.</p>
         </div>
         <div class="fg"><label>Child's Full Name</label><input id="pn" placeholder="Ani Hakobyan"></div>
-        <div class="fg"><label>Public ID (Հnr. hamaranishn)</label><input id="pi" placeholder="12345678"></div>
+        <div class="fg"><label>Public ID Number</label><input id="pi" placeholder="12345678"></div>
         <div class="fg"><label>Date of Birth (DD.MM.YYYY)</label><input id="pd" placeholder="10.10.2010"></div>
         <button class="bmain" onclick="subPend()">Submit Details</button>
         <div class="er" id="pe"></div>
@@ -918,7 +918,7 @@ function rfFamDi(idx){
         +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
         +'</div></td>'
         +'<td style="text-align:center">'+gBadge+g2Badge+'</td></tr>';
-    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 Դասացուցակ կազմված չէ</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 No schedule set for this day</td></tr>';
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
       +(att?'<span class="badge b'+att.charAt(0)+'">'+cap(att)+'</span>':'')+'</div>'
@@ -1170,47 +1170,73 @@ function buildDash(){
 function buildGR(){
   const cls=CU.classes||[];
   return'<div class="pg" id="gr">'
-    +'<div class="pt">Grades</div><div class="ps">Select a class to manage grades</div>'
-    +'<div id="gr-class-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:12px;margin-bottom:20px">'
-    +cls.map(c=>'<div class="cd" style="padding:18px 10px;text-align:center;cursor:pointer;margin-bottom:0" onclick="selectGrCls(\''+c+'\')">'
-      +'<div style="font-size:20px;font-weight:700;color:var(--acc)">'+c+'</div>'
-      +'<div style="font-size:11px;color:var(--txt3);margin-top:3px">'+(DB.classes[c]||[]).length+' students</div>'
-      +'</div>'
+    +'<div class="pt">Grades</div><div class="ps">Select a class</div>'
+    +'<div id="gr-class-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;margin-bottom:20px">'
+    +cls.map(c=>'<div class="cd" style="padding:18px 14px;text-align:center;margin-bottom:0">'
+      +'<div style="font-size:22px;font-weight:700;color:var(--acc);margin-bottom:3px">'+c+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:12px">'+(DB.classes[c]||[]).length+' students</div>'
+      +'<div style="display:flex;flex-direction:column;gap:6px">'
+      +'<button class="btn bg2" onclick="openGrSemester(\''+c+'\')" style="width:100%">📊 Semester Grades</button>'
+      +'<button class="btn bp2" onclick="openGrMatyan(\''+c+'\')" style="width:100%">📖 Open Grade Book</button>'
+      +'</div></div>'
     ).join('')
     +'</div>'
-    +'<div id="gr-detail" class="h"></div>'
+    +'<div id="gr-detail"></div>'
     +'</div>';
 }
 
-function selectGrCls(cls){
+function openGrSemester(cls){
   sCls=cls;
-  // Highlight selected card
-  document.querySelectorAll('#gr-class-grid .cd').forEach(el=>{
-    el.style.border=el.textContent.trim().startsWith(cls)?'2px solid var(--acc)':'';
-  });
+  showPg('semtch');
+  setTimeout(()=>{
+    const sel=$('stcl');
+    if(sel){sel.value=cls;rfSemTch();}
+  },50);
+}
+
+function openGrMatyan(cls){
+  sCls=cls;
   const sjs=subjs();
   if(sjs.length&&!sjs.includes(sSubj))sSubj=sjs[0];
+  const ay=curAY();
   const det=$('gr-detail');
   if(!det)return;
-  det.classList.remove('h');
-  const ss=sjs.length>1?'<label>Subject:</label><select id="gss" onchange="sSubj=this.value;rfGrMonthGrid()">'+sjs.map(s=>'<option value="'+s+'"'+(s===sSubj?' selected':'')+'>'+s+'</option>').join('')+'</select>':'';
-  const ay=curAY(),ms=getMonths(ay);
-  const now=new Date(),curM=now.getFullYear()+'-'+pad(now.getMonth()+1);
-  det.innerHTML='<div class="cd" style="margin-bottom:14px"><div class="cdh"><h3>'+cls+'</h3>'
-    +'<button class="btn bg2" onclick="$(\'gr-detail\').classList.add(\'h\')">✕ Close</button></div>'
-    +'<div style="padding:14px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
-    +ss
-    +'<label>Month:</label><select id="gr-month-grid" onchange="rfGrMonthGrid()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===curM?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
+  det.innerHTML='<div class="cd" style="margin-bottom:16px">'
+    +'<div class="cdh"><h3>'+cls+' — Grade Book</h3><button class="btn bg2" onclick="$(\'gr-detail\').innerHTML=\'\'">✕ Close</button></div>'
+    +'<div style="padding:16px;display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">'
+    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Semester</label>'
+    +'<select id="gr-sem" onchange="onGrSemChange()">'
+    +'<option value="S1">Semester 1 (Sep&ndash;Dec)</option>'
+    +'<option value="S2">Semester 2 (Jan&ndash;May)</option>'
+    +'</select></div>'
+    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Month</label>'
+    +'<select id="gr-month-grid" onchange="rfGrMonthGrid()"><option>Loading...</option></select></div>'
+    +(sjs.length>1?'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.05em">Subject</label>'
+      +'<select id="gr-subj" onchange="rfGrMonthGrid()">'+sjs.map(s=>'<option value="'+s+'"'+(s===sSubj?' selected':'')+'>'+s+'</option>').join('')+'</select></div>':'')
     +'</div></div>'
     +'<div id="gr-warn"></div>'
     +'<div id="gr-week-table"></div>'
-    +'<div id="gr-cell-editor"></div>';
+    +'<div style="margin-top:14px"><button class="btn bp2" onclick="saveAllGrades()" style="padding:10px 24px;font-size:14px">&check; Save All Changes</button></div>'
+    +'<div id="gr-popup"></div>';
+  onGrSemChange();
+  det.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function onGrSemChange(){
+  const sem=$('gr-sem')?.value||'S1';
+  const ay=curAY();
+  const ms=sem==='S1'?getMonths(ay).slice(0,4):getMonths(ay).slice(4,9);
+  const sel=$('gr-month-grid');
+  if(sel){sel.innerHTML=ms.map(m=>'<option value="'+m.v+'">'+m.l+'</option>').join('');}
   rfGrMonthGrid();
 }
 
-// Build a week-based grid: rows = students, columns = each lesson-date in the month
+// Build a month-based grid: rows = students, columns = each lesson-date in the month.
+// Inputs are NOT auto-saved on blur anymore -- changes are held in DOM and written
+// to GR/LI only when the teacher presses "Save All Changes".
 function rfGrMonthGrid(){
-  const cls=sCls,sj=sSubj||subjs()[0]||'';
+  sSubj=$('gr-subj')?.value||subjs()[0]||sSubj;
+  const cls=sCls,sj=sSubj;
   const mv=$('gr-month-grid')?.value;
   if(!cls||!sj||!mv)return;
   const sts=DB.classes[cls]||[];
@@ -1228,7 +1254,7 @@ function rfGrMonthGrid(){
   const hasAnySched=allowed.size>0;
   const warnEl=$('gr-warn');
   if(warnEl){
-    warnEl.innerHTML=hasAnySched?'':'<div style="background:var(--amb-lt);border:1px solid var(--amb);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amb)">⚠️ Դասացուցակ կազմված չէ — Admin → Schedule-ում ավելացրեք '+sj+'-ի դասերը '+cls+' դասարանի համար</div>';
+    warnEl.innerHTML=hasAnySched?'':'<div style="background:var(--amb-lt);border:1px solid var(--amb);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:13px;color:var(--amb)">&#9888; No schedule set for this subject &mdash; go to Admin &rarr; Schedule and add '+sj+' lessons for '+cls+'</div>';
   }
   const dates=[];
   const d=new Date(yr,mo-1,1);
@@ -1239,98 +1265,128 @@ function rfGrMonthGrid(){
   const wrap=$('gr-week-table');
   if(!wrap)return;
   if(!dates.length){
-    wrap.innerHTML=hasAnySched?'<p style="color:var(--txt3);padding:16px">No lessons fall in this month for the schedule.</p>':'';
+    wrap.innerHTML=hasAnySched?'<p style="color:var(--txt3);padding:16px">No lessons fall in this month for the current schedule.</p>':'';
     return;
   }
-  const MN=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const DN=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
   const today=tod();
-  wrap.innerHTML='<div class="cd"><div style="overflow-x:auto"><table>'
-    +'<thead><tr><th style="position:sticky;left:0;background:var(--surf2);min-width:130px">Student</th>'
-    +dates.map(ds=>{const dt=new Date(ds);return'<th style="text-align:center;min-width:46px'+(ds===today?';color:var(--acc)':'')+'">'+dt.getDate()+'<br><span style="font-size:9px;font-weight:400">'+MN[dt.getMonth()]+'</span></th>';}).join('')
-    +'</tr></thead><tbody>'
+  wrap.innerHTML='<div class="cd"><div style="overflow-x:auto"><table style="font-size:12px">'
+    +'<thead><tr><th style="position:sticky;left:0;background:var(--surf2);min-width:140px;z-index:2">Student</th>'
+    +dates.map(ds=>{const dt=new Date(ds);return'<th style="text-align:center;min-width:54px'+(ds===today?';color:var(--acc)':'')+'">'+DN[dt.getDay()].slice(0,2)+'<br>'+dt.getDate()+'.'+pad(dt.getMonth()+1)+'</th>';}).join('')
+    +'</tr></thead>'
+    +'<tr><td style="position:sticky;left:0;background:var(--surf2)"></td>'
+    +dates.map(ds=>{
+      const li=(LI[cls]&&LI[cls][sj]&&LI[cls][sj][ds])||{};
+      const hasTopic=!!li.topic,hasHw=!!li.homework;
+      return'<td style="text-align:center;padding:3px 2px;background:var(--surf2)">'
+        +'<button onclick="openTopicPopup(\''+cls+'\',\''+ds+'\',\''+sj+'\')" title="Topic" style="background:'+(hasTopic?'var(--acc)':'transparent')+';color:'+(hasTopic?'#fff':'var(--txt3)')+';border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:9px;cursor:pointer;margin-right:2px">T</button>'
+        +'<button onclick="openHwPopup(\''+cls+'\',\''+ds+'\',\''+sj+'\')" title="Homework" style="background:'+(hasHw?'var(--amb)':'transparent')+';color:'+(hasHw?'#fff':'var(--txt3)')+';border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:9px;cursor:pointer">H</button>'
+        +'</td>';
+    }).join('')
+    +'</tr>'
+    +'<tbody>'
     +sts.map((st,si)=>{
-      return'<tr><td style="position:sticky;left:0;background:var(--surf);font-weight:500;white-space:nowrap"><div class="tf"><div class="av avb" style="width:24px;height:24px;font-size:9px">'+ini(st)+'</div>'+st+'</div></td>'
+      return'<tr><td style="position:sticky;left:0;background:var(--surf);font-weight:500;white-space:nowrap;z-index:1"><div class="tf"><div class="av avb" style="width:22px;height:22px;font-size:9px">'+ini(st)+'</div><span style="font-size:11px">'+st+'</span></div></td>'
         +dates.map(ds=>{
           const cnt=cntSubjDay(cls,ds,sj);
-          const lk1=ds;
-          const g1=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk1])||'';
+          const g1=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][ds])||'';
           const g2=cnt>=2?((GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][ds+'-L2'])||''):'';
-          const cellLabel=(g1==='բ'?'<span style="color:var(--red)">բ</span>':g1?'<span class="badge b'+g1+'" style="padding:1px 5px;font-size:10px">'+g1+'</span>':'<span style="color:var(--txt3)">·</span>')
-            +(g2?'<br>'+(g2==='բ'?'<span style="color:var(--red)">բ</span>':'<span class="badge b'+g2+'" style="padding:1px 5px;font-size:10px">'+g2+'</span>'):'');
-          return'<td style="text-align:center;cursor:pointer;padding:6px 4px" onclick="openCellEditor(\''+cls+'\',\''+esc(st)+'\','+si+',\''+ds+'\',\''+sj+'\')">'+cellLabel+'</td>';
+          const inpId1='gv_'+si+'_'+ds.replace(/-/g,'')+'_1';
+          const inpId2='gv_'+si+'_'+ds.replace(/-/g,'')+'_2';
+          const disp=v=>v==='\u0562'?'B':v;
+          return'<td style="text-align:center;padding:3px">'
+            +'<input value="'+esc2(disp(g1))+'" id="'+inpId1+'" maxlength="2" data-cls="'+esc2(cls)+'" data-st="'+esc2(st)+'" data-ds="'+ds+'" data-sj="'+esc2(sj)+'" data-lesson="1" style="width:30px;text-align:center;padding:4px 2px;background:var(--surf2);border:1px solid var(--bdr);border-radius:5px;color:var(--txt);font-size:12px;font-family:inherit;outline:none">'
+            +(cnt>=2?'<br><input value="'+esc2(disp(g2))+'" id="'+inpId2+'" maxlength="2" data-cls="'+esc2(cls)+'" data-st="'+esc2(st)+'" data-ds="'+ds+'" data-sj="'+esc2(sj)+'" data-lesson="2" style="width:30px;text-align:center;padding:4px 2px;margin-top:2px;background:var(--surf2);border:1px solid var(--bdr);border-radius:5px;color:var(--txt);font-size:12px;font-family:inherit;outline:none">':'')
+            +'</td>';
         }).join('')
         +'</tr>';
     }).join('')
     +'</tbody></table></div></div>';
 }
 
-// Click a cell -> expand a small editor card right below the table for that student+date
-function openCellEditor(cls,st,si,ds,sj){
-  const cnt=cntSubjDay(cls,ds,sj);
-  const lk1=ds,lk2=ds+'-L2';
-  const g1=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk1])||'';
-  const g2=(GR[cls]&&GR[cls][st]&&GR[cls][st][sj]&&GR[cls][st][sj][lk2])||'';
-  const li=(LI[cls]&&LI[cls][sj]&&LI[cls][sj][lk1])||{};
-  const el=$('gr-cell-editor');
-  if(!el)return;
-  el.innerHTML='<div class="cd" style="margin-top:14px">'
-    +'<div class="cdh"><h3>'+esc2(st)+' · '+fmtD(ds)+'</h3><button class="btn bg2" onclick="$(\'gr-cell-editor\').innerHTML=\'\'">✕ Close</button></div>'
-    +'<div style="padding:16px;display:flex;flex-direction:column;gap:12px">'
-    +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
-    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Grade'+(cnt>=2?' (Lesson 1)':'')+'</label>'
-    +'<div style="display:flex;gap:6px;align-items:center">'
-    +'<input id="ce-g1" class="gi" type="number" min="1" max="10" value="'+(g1!=='բ'?g1:'')+'" placeholder="—">'
-    +'<button id="ce-abs1" onclick="tgCellAbsent(1)" style="background:'+(g1==='բ'?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(g1==='բ'?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:4px 9px;color:'+(g1==='բ'?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px">բ</button>'
-    +'</div></div>'
-    +(cnt>=2?'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Grade (Lesson 2)</label>'
-      +'<div style="display:flex;gap:6px;align-items:center">'
-      +'<input id="ce-g2" class="gi" type="number" min="1" max="10" value="'+(g2!=='բ'?g2:'')+'" placeholder="—">'
-      +'<button id="ce-abs2" onclick="tgCellAbsent(2)" style="background:'+(g2==='բ'?'rgba(239,68,68,.2)':'transparent')+';border:1px solid '+(g2==='բ'?'var(--red)':'var(--bdr)')+';border-radius:6px;padding:4px 9px;color:'+(g2==='բ'?'var(--red)':'var(--txt3)')+';cursor:pointer;font-size:13px">բ</button>'
-      +'</div></div>':'')
-    +'</div>'
-    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Topic (դասի թեմա)</label>'
-    +'<input id="ce-topic" value="'+esc2(li.topic||'')+'" style="width:100%;padding:8px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Topic..."></div>'
-    +'<div><label style="display:block;font-size:11px;color:var(--txt3);margin-bottom:4px">Homework (տնային աշխատանք)</label>'
-    +'<input id="ce-hw" value="'+esc2(li.homework||'')+'" style="width:100%;padding:8px 10px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none" placeholder="Homework..."></div>'
-    +'<button class="btn bp2" onclick="saveCellEditor(\''+cls+'\',\''+esc(st)+'\',\''+ds+'\',\''+sj+'\')" style="align-self:flex-start">✓ Save</button>'
-    +'</div></div>';
-  el.scrollIntoView({behavior:'smooth',block:'nearest'});
-}
-function tgCellAbsent(n){
-  const inp=$('ce-g'+n),btn=$('ce-abs'+n);
-  if(!inp||!btn)return;
-  const isAbs=inp.disabled;
-  if(isAbs){
-    inp.disabled=false;inp.value='';
-    btn.style.background='transparent';btn.style.borderColor='var(--bdr)';btn.style.color='var(--txt3)';
-  }else{
-    inp.disabled=true;inp.value='';
-    btn.style.background='rgba(239,68,68,.2)';btn.style.borderColor='var(--red)';btn.style.color='var(--red)';
-  }
-}
-async function saveCellEditor(cls,st,ds,sj){
-  if(!GR[cls])GR[cls]={};
-  if(!GR[cls][st])GR[cls][st]={};
-  if(!GR[cls][st][sj])GR[cls][st][sj]={};
-  const g1inp=$('ce-g1'),g2inp=$('ce-g2');
-  const setG=(lk,inp)=>{
-    if(!inp)return;
-    if(inp.disabled){GR[cls][st][sj][lk]='բ';}
-    else{
-      const v=parseInt(inp.value);
-      if(inp.value&&v>=1&&v<=10)GR[cls][st][sj][lk]=v;
-      else delete GR[cls][st][sj][lk];
+// Reads every visible grade input in the current table and writes them all to GR at once.
+// Accepts 1-10 or "B"/"b" (displayed) which maps internally to the \u0562 absent marker.
+async function saveAllGrades(){
+  const inputs=document.querySelectorAll('#gr-week-table tbody input');
+  let invalidCount=0;
+  inputs.forEach(inp=>{
+    const cls=inp.getAttribute('data-cls'),st=inp.getAttribute('data-st');
+    const ds=inp.getAttribute('data-ds'),sj=inp.getAttribute('data-sj');
+    const lesson=inp.getAttribute('data-lesson');
+    const lk=lesson==='2'?ds+'-L2':ds;
+    const raw=inp.value.trim();
+    if(!GR[cls])GR[cls]={};
+    if(!GR[cls][st])GR[cls][st]={};
+    if(!GR[cls][st][sj])GR[cls][st][sj]={};
+    if(!raw){
+      delete GR[cls][st][sj][lk];
+    }else if(/^[Bb]$/.test(raw)){
+      GR[cls][st][sj][lk]='\u0562';
+      inp.value='B';
+    }else{
+      const v=parseInt(raw);
+      if(v>=1&&v<=10){
+        GR[cls][st][sj][lk]=v;
+        inp.value=v;
+      }else{
+        invalidCount++;
+        inp.style.borderColor='var(--red)';
+      }
     }
-  };
-  setG(ds,g1inp);
-  if(g2inp)setG(ds+'-L2',g2inp);
-  const topic=$('ce-topic')?.value||'',hw=$('ce-hw')?.value||'';
-  if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};
-  LI[cls][sj][ds]={topic,homework:hw};
-  sLoad('Saving...');await svGrades();hLoad();flash();
-  $('gr-cell-editor').innerHTML='';
-  rfGrMonthGrid();
+  });
+  if(invalidCount){
+    alert(invalidCount+' cell(s) have an invalid value. Use a number 1-10 or "B" for absent. Those cells were not saved.');
+  }
+  sLoad('Saving...');
+  try{await svGrades();hLoad();flash();}
+  catch(e){hLoad();}
 }
+
+// ── Topic / Homework popups (per date column) ──
+function openTopicPopup(cls,ds,sj){
+  const li=(LI[cls]&&LI[cls][sj]&&LI[cls][sj][ds])||{};
+  showGrPopup('Topic covered &mdash; '+fmtD(ds),li.topic||'',(val)=>{
+    if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};if(!LI[cls][sj][ds])LI[cls][sj][ds]={};
+    LI[cls][sj][ds].topic=val;
+  });
+}
+function openHwPopup(cls,ds,sj){
+  const li=(LI[cls]&&LI[cls][sj]&&LI[cls][sj][ds])||{};
+  showGrPopup('Homework &mdash; '+fmtD(ds),li.homework||'',(val)=>{
+    if(!LI[cls])LI[cls]={};if(!LI[cls][sj])LI[cls][sj]={};if(!LI[cls][sj][ds])LI[cls][sj][ds]={};
+    LI[cls][sj][ds].homework=val;
+  });
+}
+function showGrPopup(title,currentVal,onSave){
+  const m=document.createElement('div');
+  m.className='mw';
+  m.innerHTML='<div class="md" style="max-width:420px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
+    +'<h3 style="font-size:15px;font-weight:700">'+title+'</h3>'
+    +'<button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:4px 10px;color:var(--txt2);cursor:pointer;font-family:inherit">&times;</button>'
+    +'</div>'
+    +'<textarea id="gr-popup-input" style="width:100%;min-height:90px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical">'+esc2(currentVal)+'</textarea>'
+    +'<div style="display:flex;gap:8px;margin-top:14px">'
+    +'<button class="btn bp2" id="gr-popup-save" style="flex:1">&check; Confirm</button>'
+    +'<button class="btn bd2" id="gr-popup-del" style="flex:1">&#128465; Remove</button>'
+    +'</div></div>';
+  document.body.appendChild(m);
+  m.addEventListener('click',e=>{if(e.target===m)m.remove();});
+  $('gr-popup-save').onclick=async()=>{
+    const val=$('gr-popup-input').value;
+    onSave(val);
+    m.remove();
+    sLoad('Saving...');await svGrades();hLoad();flash();
+    rfGrMonthGrid();
+  };
+  $('gr-popup-del').onclick=async()=>{
+    onSave('');
+    m.remove();
+    sLoad('Saving...');await svGrades();hLoad();flash();
+    rfGrMonthGrid();
+  };
+}
+
 
 function getDates(cls){
   const sj=sSubj||subjs()[0]||'';
@@ -1606,7 +1662,7 @@ function rfDi(){
         +'<td style="text-align:center">'+(g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>')
         +(g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">The Schedule was not created.</td></tr>';
+      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 No schedule set for this day</td></tr>';
     })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
