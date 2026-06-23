@@ -16,73 +16,81 @@
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;-webkit-font-smoothing:antialiased}
 
 :root{
-  --bg:#f7f8fc;
+  --bg:#f5f9f8;
   --surf:#ffffff;
-  --surf2:#f0f2f8;
-  --surf3:#e8ebf5;
-  --bdr:#e2e5ef;
-  --bdr2:#d0d4e8;
-  --acc:#5c35c9;
-  --acc2:#4a28b0;
-  --acc3:#7b5cd6;
-  --acc-lt:#ede9fb;
-  --acc-lt2:#f5f2ff;
+  --surf2:#eef6f3;
+  --surf3:#e3f0ec;
+  --bdr:#dcebe5;
+  --bdr2:#c5ddd4;
+  --acc:#0d8c6d;
+  --acc2:#0a6e54;
+  --acc3:#2eb894;
+  --acc-lt:#e3f5ef;
+  --acc-lt2:#f0faf6;
   --grn:#16a34a;
   --grn-lt:#dcfce7;
   --red:#dc2626;
   --red-lt:#fee2e2;
   --amb:#d97706;
   --amb-lt:#fef3c7;
-  --cyan:#0891b2;
+  --cyan:#0e7490;
   --cyan-lt:#cffafe;
-  --txt:#1a1d2e;
-  --txt2:#6b7280;
-  --txt3:#9ca3af;
+  --txt:#0f2922;
+  --txt2:#5b756d;
+  --txt3:#94aca4;
   --sh:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.04);
   --sh2:0 4px 12px rgba(0,0,0,.1),0 2px 4px rgba(0,0,0,.06);
   --sh3:0 10px 30px rgba(0,0,0,.12);
   --r:6px;--r2:10px;--r3:14px;--r4:20px;
 }
 [data-theme=dark]{
-  --bg:#0f1117;
-  --surf:#1a1f2e;
-  --surf2:#222840;
-  --surf3:#2a3150;
-  --bdr:#2e3655;
-  --bdr2:#3a4470;
-  --acc:#7c5ce6;
-  --acc2:#6a4dd4;
-  --acc3:#9d7ff0;
-  --acc-lt:rgba(124,92,230,.15);
-  --acc-lt2:rgba(124,92,230,.08);
+  --bg:#0c1614;
+  --surf:#142420;
+  --surf2:#1b2f29;
+  --surf3:#223a33;
+  --bdr:#274540;
+  --bdr2:#33564f;
+  --acc:#22c19a;
+  --acc2:#1aa382;
+  --acc3:#4fdcb8;
+  --acc-lt:rgba(34,193,154,.15);
+  --acc-lt2:rgba(34,193,154,.08);
   --grn:#22c55e;--grn-lt:rgba(34,197,94,.15);
   --red:#f87171;--red-lt:rgba(248,113,113,.15);
   --amb:#fbbf24;--amb-lt:rgba(251,191,36,.15);
   --cyan:#22d3ee;--cyan-lt:rgba(34,211,238,.15);
-  --txt:#e8eaf6;--txt2:#8b95b8;--txt3:#505880;
+  --txt:#e6f4ef;--txt2:#8fb3a8;--txt3:#4c6f64;
 }
 .h{display:none!important}
 
 /* ── AUTH ── */
 .aw{
   min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;
-  background:linear-gradient(135deg,#1a0a4a 0%,#3d1a8c 40%,#0d7ab5 100%);
+  background:linear-gradient(135deg,#06241d 0%,#0d8c6d 45%,#0e7490 100%);
   position:relative;overflow:hidden;
 }
 .aw::before{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse at 20% 50%,rgba(124,92,230,.3) 0%,transparent 60%),
-             radial-gradient(ellipse at 80% 20%,rgba(8,145,178,.25) 0%,transparent 50%);
+  background:radial-gradient(ellipse at 20% 50%,rgba(46,184,148,.3) 0%,transparent 60%),
+             radial-gradient(ellipse at 80% 20%,rgba(14,116,144,.25) 0%,transparent 50%);
 }
+.home-card{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);
+  border-radius:var(--r3);padding:26px 16px;text-align:center;cursor:pointer;
+  transition:.2s;backdrop-filter:blur(6px);
+}
+.home-card:hover{background:rgba(255,255,255,.18);transform:translateY(-3px)}
+.home-card-ic{font-size:34px;margin-bottom:10px}
+.home-card-lbl{color:#fff;font-size:14px;font-weight:600;letter-spacing:.2px}
 .ab{
   width:100%;max-width:420px;position:relative;z-index:1;
   background:rgba(255,255,255,.97);border-radius:var(--r4);
   box-shadow:0 20px 60px rgba(0,0,0,.3),0 0 0 1px rgba(255,255,255,.1);
   overflow:hidden;
 }
-[data-theme=dark] .ab{background:rgba(26,31,46,.97);border:1px solid var(--bdr)}
+[data-theme=dark] .ab{background:var(--surf);border:1px solid var(--bdr)}
 .ab-top{
-  background:linear-gradient(135deg,#5c35c9,#7c5ce6);
+  background:linear-gradient(135deg,#0d8c6d,#2eb894);
   padding:28px 24px;text-align:center;
   position:relative;overflow:hidden;
 }
@@ -90,7 +98,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
   content:'';position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
   width:80px;height:40px;background:rgba(255,255,255,.97);border-radius:50%;
 }
-[data-theme=dark] .ab-top::after{background:rgba(26,31,46,.97)}
+[data-theme=dark] .ab-top::after{background:var(--surf)}
 .ab-top .ic{
   width:60px;height:60px;background:rgba(255,255,255,.2);border-radius:16px;
   display:inline-flex;align-items:center;justify-content:center;
@@ -139,11 +147,11 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 #app{display:flex;min-height:100vh}
 .sb{
   width:228px;flex-shrink:0;
-  background:linear-gradient(180deg,#2d1b7e 0%,#1e1456 60%,#161040 100%);
+  background:linear-gradient(180deg,#0a5c47 0%,#073d30 60%,#04241c 100%);
   display:flex;flex-direction:column;
   position:sticky;top:0;height:100vh;overflow-y:auto;
 }
-[data-theme=dark] .sb{background:linear-gradient(180deg,#1a1535 0%,#141030 100%)}
+[data-theme=dark] .sb{background:linear-gradient(180deg,#0a2b22 0%,#061b15 100%)}
 .sbh{padding:20px 16px 16px;border-bottom:1px solid rgba(255,255,255,.1)}
 .sbh .brand{
   font-size:15px;font-weight:700;color:#fff;
@@ -184,7 +192,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 .mh{
   display:none;align-items:center;justify-content:space-between;
   padding:13px 16px;
-  background:linear-gradient(90deg,#2d1b7e,#1e1456);
+  background:linear-gradient(90deg,#0a5c47,#073d30);
   position:sticky;top:0;z-index:50;
 }
 .ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:98}
@@ -320,16 +328,43 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
 </head>
 <body>
 
-<div id="aw" class="aw">
+<div id="home" class="aw" style="flex-direction:column">
+  <div style="text-align:center;margin-bottom:36px;position:relative;z-index:1">
+    <div style="font-size:48px;margin-bottom:10px">🏫</div>
+    <h1 style="color:#fff;font-size:28px;font-weight:700;letter-spacing:-.3px">SchoolDesk</h1>
+    <p style="color:rgba(255,255,255,.7);font-size:14px;margin-top:4px">School Management System</p>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:480px;width:100%;position:relative;z-index:1">
+    <div class="home-card" onclick="openLoginFor('teacher')">
+      <div class="home-card-ic">📖</div>
+      <div class="home-card-lbl">Grade Book</div>
+    </div>
+    <div class="home-card" onclick="openLoginFor('student')">
+      <div class="home-card-ic">📔</div>
+      <div class="home-card-lbl">Diary</div>
+    </div>
+    <div class="home-card" onclick="openLoginFor('parent')">
+      <div class="home-card-ic">👨‍👩‍👧</div>
+      <div class="home-card-lbl">Family</div>
+    </div>
+    <div class="home-card" onclick="openLoginFor('admin')">
+      <div class="home-card-ic">⚙️</div>
+      <div class="home-card-lbl">Admin</div>
+    </div>
+  </div>
+</div>
+
+<div id="aw" class="aw h">
   <div class="ab">
     <div class="ab-top">
-      <div class="ic">🏫</div>
-      <h1>SchoolDesk</h1>
-      <p>School Management System</p>
+      <button onclick="backToHome()" style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:7px;width:30px;height:30px;color:#fff;cursor:pointer;font-size:15px">←</button>
+      <div class="ic" id="aw-ic">🏫</div>
+      <h1 id="aw-title">SchoolDesk</h1>
+      <p id="aw-subtitle">School Management System</p>
     </div>
     <div class="ab-body">
       <div id="lf">
-        <div class="rtabs" id="rtabs">
+        <div class="rtabs h" id="rtabs">
           <div class="rtab on" onclick="setRole('teacher')">Teacher</div>
           <div class="rtab" onclick="setRole('student')">Student</div>
           <div class="rtab" onclick="setRole('parent')">Family</div>
@@ -339,7 +374,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
         <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="••••••••" onkeydown="if(event.key==='Enter')login()"></div>
         <button class="bmain" onclick="login()">Sign In</button>
         <div class="er" id="le"></div>
-        <div class="af">New student? <button class="lb" onclick="showF('rf')">Register here</button></div>
+        <div class="af" id="reg-link">New student? <button class="lb" onclick="showF('rf')">Register here</button></div>
       </div>
       <div id="rf" class="h">
         <div style="margin-bottom:14px"><button class="lb" onclick="showF('lf')" style="color:var(--txt2)">← Back to login</button></div>
@@ -434,6 +469,17 @@ function sLoad(t){$('ld').classList.remove('h');$('ldt').textContent=t||'Loading
 function hLoad(){$('ld').classList.add('h')}
 function flash(){const f=$('fl');f.classList.add('on');setTimeout(()=>f.classList.remove('on'),2000)}
 function subjs(u){return((u||CU).subject||'').split('&').map(s=>s.trim()).filter(Boolean)}
+// Returns only the subjects this teacher is explicitly assigned to teach IN THIS
+// SPECIFIC CLASS, as set by the admin in Teachers -> "Which subject(s) does X
+// teach in each class?". Falls back to the teacher's full subject list if the
+// admin hasn't configured a per-class assignment yet for this class.
+function subjsForClass(cls){
+  const all=subjs();
+  if(all.length<=1)return all;
+  const cs=CU.classSubjects||{};
+  if(cs[cls]&&cs[cls].length)return cs[cls];
+  return all;
+}
 function wkStart(dt){const d=new Date(dt||new Date());const dy=d.getDay();d.setDate(d.getDate()+(dy===0?-6:1-dy));return d2s(d)}
 function getMonths(ay){
   const[y1,y2]=ay.split('-').map(Number);
@@ -600,6 +646,35 @@ function setRole(r){
   cRole=r;
   $('rtabs').querySelectorAll('.rtab').forEach((t,i)=>{t.classList.toggle('on',['teacher','student','parent','admin'][i]===r)});
 }
+
+const ROLE_INFO={
+  teacher:{ic:'📖',title:'Grade Book',sub:'Teacher sign in'},
+  student:{ic:'📔',title:'Diary',sub:'Student sign in'},
+  parent:{ic:'👨‍👩‍👧',title:'Family',sub:'Family sign in'},
+  admin:{ic:'⚙️',title:'Admin',sub:'Administrator sign in'},
+};
+// Called when a home-screen card is tapped: shows the login form pre-set to that role.
+function openLoginFor(role){
+  $('home').classList.add('h');
+  $('aw').classList.remove('h');
+  setRole(role);
+  showF('lf');
+  const info=ROLE_INFO[role]||{ic:'🏫',title:'SchoolDesk',sub:'School Management System'};
+  $('aw-ic').textContent=info.ic;
+  $('aw-title').textContent=info.title;
+  $('aw-subtitle').textContent=info.sub;
+  // Only students can self-register
+  const reg=$('reg-link');
+  if(reg)reg.style.display=role==='student'?'block':'none';
+  $('le').textContent='';
+  setTimeout(()=>$('lu')?.focus(),50);
+}
+function backToHome(){
+  $('aw').classList.add('h');
+  $('home').classList.remove('h');
+  $('lu').value='';$('lp').value='';$('le').textContent='';
+  showF('lf');
+}
 function vPass(p){return/[A-Z]/.test(p)&&/[a-z]/.test(p)&&/[0-9]/.test(p)&&/[^A-Za-z0-9]/.test(p)&&p.length>=8}
 
 function login(){
@@ -668,7 +743,8 @@ async function addChild(){
 
 function logout(){
   if(typeof stopScanner==='function')stopScanner();
-  CU=null;$('app').classList.add('h');$('aw').classList.remove('h');
+  CU=null;$('app').classList.add('h');
+  $('aw').classList.add('h');$('home').classList.remove('h');
   $('lu').value='';$('lp').value='';$('le').textContent='';showF('lf');
   // Reset family session state so PIN unlocks don't leak between different family logins
   window._famUnlocked={};
@@ -1196,7 +1272,7 @@ function openGrMatyan(cls){
 
 function buildGrBook(){
   const cls=sCls;
-  const sjs=subjs();
+  const sjs=subjsForClass(cls);
   if(sjs.length&&!sjs.includes(sSubj))sSubj=sjs[0];
   return'<div class="pg" id="gr-book">'
     +'<div class="pt">'+(cls||'')+' &mdash; Grade Book</div>'
@@ -1802,8 +1878,49 @@ function buildATch(){
       +'<div class="ff"><label>Phone</label><input id="teph'+k+'" value="'+esc2(t.phone||'')+'" placeholder="+374 XX XXX XXX"></div></div>'
       +'<button class="btn bp2" onclick="svTch(\''+k+'\')">✓ Save</button>'
       +'<button class="btn bg2" style="margin-left:6px" onclick="cnclTch(\''+k+'\')">Cancel</button>'
+      +'<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)">'
+      +'<div style="font-size:12px;font-weight:600;color:var(--acc);margin-bottom:8px">📚 Which subject(s) does '+esc2(t.name)+' teach in each class?</div>'
+      +buildClassSubjectAssign(k,t)
+      +'</div>'
       +'</td></tr>'
     ).join('')+'</tbody></table></div></div>';
+}
+
+// Builds one row per assigned class, with a checkbox for each of the teacher's
+// subjects, letting the admin explicitly say which subject(s) apply to which class.
+// Stored in t.classSubjects = { className: [subject1, subject2, ...] }.
+function buildClassSubjectAssign(k,t){
+  const allSubj=(t.subject||'').split('&').map(s=>s.trim()).filter(Boolean);
+  const classes=t.classes||[];
+  if(!classes.length)return'<p style="font-size:12px;color:var(--txt3)">Assign classes first, then save, to configure subjects per class.</p>';
+  if(!allSubj.length)return'<p style="font-size:12px;color:var(--txt3)">Add subject(s) first, then save, to configure subjects per class.</p>';
+  const cs=t.classSubjects||{};
+  return classes.map(c=>{
+    const assigned=cs[c]||allSubj; // default: all subjects checked until admin narrows it down
+    return'<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:6px 0;border-bottom:1px solid var(--bdr)">'
+      +'<span style="font-size:13px;font-weight:600;min-width:50px">'+c+'</span>'
+      +allSubj.map(s=>{
+        const id='cs_'+eid(k)+'_'+eid(c)+'_'+eid(s);
+        const checked=assigned.includes(s);
+        return'<label style="display:flex;align-items:center;gap:5px;font-size:12px;color:var(--txt2);cursor:pointer">'
+          +'<input type="checkbox" id="'+id+'" data-tk="'+esc2(k)+'" data-cls="'+esc2(c)+'" data-subj="'+esc2(s)+'"'+(checked?' checked':'')+' style="cursor:pointer">'+s+'</label>';
+      }).join('')
+      +'</div>';
+  }).join('')
+  +'<button class="btn bg2" style="margin-top:10px;font-size:11px" onclick="saveClassSubjects(\''+esc2(k)+'\')">✓ Save Subject Assignments</button>';
+}
+
+async function saveClassSubjects(k){
+  const boxes=document.querySelectorAll('input[type=checkbox][data-tk="'+k+'"]');
+  const map={};
+  boxes.forEach(b=>{
+    const cls=b.getAttribute('data-cls'),subj=b.getAttribute('data-subj');
+    if(!map[cls])map[cls]=[];
+    if(b.checked)map[cls].push(subj);
+  });
+  if(!DB.users[k])return;
+  DB.users[k].classSubjects=map;
+  sLoad('Saving...');await svSchool();hLoad();flash();
 }
 function eid(k){return k.replace(/[^a-z0-9]/gi,'')}
 function edTch(k){const id=eid(k);$('tr'+id).style.display='none';$('te'+id).style.display=''}
@@ -2331,20 +2448,28 @@ async function rejPend(email){
 
 // ── THEMATIC PLAN ──
 function buildTP(){
-  const sjs=subjs();
   const cls=CU.classes||[];
+  const firstCls=cls[0]||'';
+  const sjs=subjsForClass(firstCls);
   const n=new Date(),ay=curAY(),ms=getMonths(ay);
   const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
   return'<div class="pg" id="tp">'
     +'<div class="pt">📋 Thematic Plan</div><div class="ps">Annual lesson plan by class and subject</div>'
     +'<div class="sr" style="flex-wrap:wrap">'
-    +'<label>Class:</label><select id="tpcl" onchange="rfTP()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
-    +(sjs.length>1?'<label>Subject:</label><select id="tpsj" onchange="rfTP()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>':'<input type="hidden" id="tpsj" value="'+esc2(sjs[0]||'')+'"/>')
+    +'<label>Class:</label><select id="tpcl" onchange="onTPClassChange()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
+    +'<label>Subject:</label><select id="tpsj" onchange="rfTP()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     +'<label>Month:</label><select id="tpmo" onchange="rfTP()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
     +'</div>'
     +'<div id="tpc"></div>'
     +'<div style="margin-top:10px"><button class="btn bp2" onclick="svTP()">✓ Save Plan</button></div>'
     +'</div>';
+}
+function onTPClassChange(){
+  const cls=$('tpcl')?.value||'';
+  const sjs=subjsForClass(cls);
+  const sel=$('tpsj');
+  if(sel)sel.innerHTML=sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('');
+  rfTP();
 }
 function rfTP(){
   const cls=$('tpcl')?.value||'',sj=$('tpsj')?.value||'',mv=$('tpmo')?.value||'';
@@ -2598,7 +2723,7 @@ function rfSemTch(){
   const cls=$('stcl')?.value,sem=$('stsem')?.value||'S1';
   const el=$('semtch-content');if(!el||!cls)return;
   const ay=curAY();
-  const sjs=subjs(); // teacher's subjects
+  const sjs=subjsForClass(cls); // subjects this teacher actually teaches in THIS class
   const sts=DB.classes[cls]||[];
   if(!sts.length){el.innerHTML='<p style="color:var(--txt3);padding:16px">No students in this class.</p>';return;}
   const semKey=sem==='ANN'?getAnnKey(ay):getSemKey(sem,ay);
@@ -2983,7 +3108,7 @@ async function startNewYear(nextAY){
 </script>
 
 <!-- SPLASH SCREEN -->
-<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0a4a 0%,#3d1a8c 45%,#0d7ab5 100%);">
+<div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#06241d 0%,#0d8c6d 45%,#0e7490 100%);">
   <div id="splash-icon" style="font-size:70px;margin-bottom:20px;opacity:0;transform:scale(0.5);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1)">🏫</div>
   <div style="font-size:36px;font-weight:700;color:#fff;letter-spacing:2px;height:46px;overflow:hidden">
     <span id="splash-text" style="display:inline-block"></span><span id="splash-cursor" style="color:rgba(255,255,255,0.7);animation:blink 0.7s infinite">|</span>
