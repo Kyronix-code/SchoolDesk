@@ -337,7 +337,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:480px;width:100%;position:relative;z-index:1">
     <div class="home-card" onclick="openLoginFor('teacher')">
       <div class="home-card-ic">📖</div>
-      <div class="home-card-lbl">Journal</div>
+      <div class="home-card-lbl">Grade Book</div>
     </div>
     <div class="home-card" onclick="openLoginFor('student')">
       <div class="home-card-ic">📔</div>
@@ -456,7 +456,7 @@ const BA='69be81feaa77b81da90584fe';
 const BC='69be81efb7ec241ddc8baffe';
 const AP='SchoolAdmin2026';
 
-let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={};
+let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={};
 let CU=null,sCls=null,sDate='',sSubj=null,sLes=1,cRole='teacher';
 
 const $=id=>document.getElementById(id);
@@ -554,7 +554,7 @@ async function loadAll(){
       bGet(BC).catch(()=>null)
     ]);
     if(s&&s.users){DB=s;PE=s.pending||{};}
-    if(g){GR=g.grades||{};LI=g.lessonInfo||{};MSGS=g.messages||{};window._tp=g.thematic||{};}
+    if(g){GR=g.grades||{};LI=g.lessonInfo||{};MSGS=g.messages||{};CALLS=g.calls||{};window._tp=g.thematic||{};}
     if(a&&typeof a==='object'&&!a.type)AT=a;
     if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData)){
       SC=schedData;
@@ -598,11 +598,183 @@ async function svMsgs(){
     const r0=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
     const d0=await r0.json();
     const cur=d0.record||{};
-    const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:MSGS};
+    const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:MSGS,calls:cur.calls||CALLS||{}};
     const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
     const d=await r.json();
     if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
   }catch(e){console.error('svMsgs error:',e);alert('❌ Could not send message: '+e.message);throw e;}
+}
+
+// Pushes/updates this user's entry in the shared call-signaling table (stored in the
+// grades bin alongside messages, merge-pattern to avoid clobbering other fields).
+async function svCalls(){
+  try{
+    const r0=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d0=await r0.json();
+    const cur=d0.record||{};
+    const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:cur.messages||MSGS||{},calls:CALLS};
+    await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
+  }catch(e){console.error('svCalls error:',e);}
+}
+
+// ── IN-APP CALLING (ring tone, incoming-call popup, signaling over JsonBin polling) ──
+let _ringAudioCtx=null,_ringInterval=null,_callPollTimer=null,_activeCallWith=null;
+
+function getRingAudioCtx(){
+  if(!_ringAudioCtx)_ringAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
+  return _ringAudioCtx;
+}
+// Plays a classic two-tone "brring... brring..." ring, repeating until stopRing() is called.
+function startRing(){
+  stopRing();
+  const ctx=getRingAudioCtx();
+  function playBurst(){
+    const t0=ctx.currentTime;
+    [0,0.5].forEach(off=>{
+      const osc=ctx.createOscillator();
+      const gain=ctx.createGain();
+      osc.type='sine';
+      osc.frequency.setValueAtTime(950,t0+off);
+      gain.gain.setValueAtTime(0,t0+off);
+      gain.gain.linearRampToValueAtTime(0.18,t0+off+0.05);
+      gain.gain.setValueAtTime(0.18,t0+off+0.35);
+      gain.gain.linearRampToValueAtTime(0,t0+off+0.4);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(t0+off);osc.stop(t0+off+0.45);
+    });
+  }
+  playBurst();
+  _ringInterval=setInterval(playBurst,1800);
+}
+function stopRing(){
+  if(_ringInterval){clearInterval(_ringInterval);_ringInterval=null;}
+}
+
+// Caller side: places a call to `toKey` (their DB.users key).
+async function startCall(toKey,toName){
+  if(!CALLS)CALLS={};
+  const myKey=CU.username;
+  CALLS[toKey]={from:myKey,fromName:CU.name,fromRole:CU.role,ts:Date.now(),status:'ringing'};
+  await svCalls();
+  showOutgoingCallUI(toKey,toName);
+  pollCallStatus(toKey);
+}
+
+function showOutgoingCallUI(toKey,toName){
+  const m=document.createElement('div');
+  m.className='mw';m.id='call-ui';
+  m.style.background='rgba(0,0,0,.8)';
+  m.innerHTML='<div class="md" style="max-width:320px;text-align:center;margin-top:15vh">'
+    +'<div style="font-size:48px;margin-bottom:14px">📞</div>'
+    +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">Calling '+esc2(toName)+'...</div>'
+    +'<div style="font-size:13px;color:var(--txt2);margin-bottom:24px">Ringing</div>'
+    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(toKey)+'\')">✕</button>'
+    +'</div>';
+  document.body.appendChild(m);
+  startRing();
+}
+
+function pollCallStatus(toKey){
+  if(_callPollTimer)clearInterval(_callPollTimer);
+  _callPollTimer=setInterval(async()=>{
+    try{
+      const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+      const d=await r.json();
+      const calls=(d.record||{}).calls||{};
+      const entry=calls[toKey];
+      if(!entry||entry.status==='ended'||entry.status==='declined'){
+        clearInterval(_callPollTimer);_callPollTimer=null;
+        stopRing();
+        const ui=$('call-ui');if(ui)ui.remove();
+        if(entry&&entry.status==='declined')alert(esc2('Call was declined.'));
+      }else if(entry.status==='accepted'){
+        clearInterval(_callPollTimer);_callPollTimer=null;
+        stopRing();
+        const ui=$('call-ui');if(ui)ui.remove();
+        showActiveCallUI(toKey,entry.fromName||'');
+      }
+    }catch(e){}
+  },2500);
+}
+
+async function endCall(toKey){
+  if(CALLS&&CALLS[toKey])CALLS[toKey].status='ended';
+  await svCalls();
+  stopRing();
+  if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
+  const ui=$('call-ui');if(ui)ui.remove();
+  _activeCallWith=null;
+}
+
+// Callee side: checks every few seconds (while logged in) whether someone is calling them.
+function startIncomingCallWatcher(){
+  if(_callWatchTimer)clearInterval(_callWatchTimer);
+  _callWatchTimer=setInterval(checkIncomingCall,3000);
+  checkIncomingCall();
+}
+let _callWatchTimer=null;
+let _shownCallTs=null;
+async function checkIncomingCall(){
+  if(!CU)return;
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d=await r.json();
+    const calls=(d.record||{}).calls||{};
+    const entry=calls[CU.username];
+    if(entry&&entry.status==='ringing'&&entry.ts!==_shownCallTs&&!$('call-ui')){
+      _shownCallTs=entry.ts;
+      CALLS=calls;
+      showIncomingCallUI(entry);
+    }
+  }catch(e){}
+}
+
+function showIncomingCallUI(entry){
+  const m=document.createElement('div');
+  m.className='mw';m.id='call-ui';
+  m.style.background='rgba(0,0,0,.85)';
+  m.innerHTML='<div class="md" style="max-width:320px;text-align:center;margin-top:15vh">'
+    +'<div class="av avp" style="width:70px;height:70px;font-size:24px;margin:0 auto 14px">'+ini(entry.fromName)+'</div>'
+    +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">'+esc2(entry.fromName)+'</div>'
+    +'<div style="font-size:13px;color:var(--txt2);margin-bottom:26px">Incoming call '+(entry.fromRole==='parent'?'(Family)':'')+'</div>'
+    +'<div style="display:flex;gap:24px;justify-content:center">'
+    +'<button class="btn bd2" style="width:58px;height:58px;border-radius:50%;font-size:20px" onclick="declineCall(\''+esc2(entry.from)+'\')">✕</button>'
+    +'<button class="btn bp2" style="width:58px;height:58px;border-radius:50%;font-size:20px;background:var(--grn)" onclick="acceptCall(\''+esc2(entry.from)+'\',\''+esc2(entry.fromName)+'\')">✓</button>'
+    +'</div>'
+    +'</div>';
+  document.body.appendChild(m);
+  startRing();
+}
+
+async function declineCall(fromKey){
+  if(!CALLS)CALLS={};
+  if(!CALLS[CU.username])CALLS[CU.username]={};
+  CALLS[CU.username]={...CALLS[CU.username],status:'declined'};
+  await svCalls();
+  stopRing();
+  const ui=$('call-ui');if(ui)ui.remove();
+}
+
+async function acceptCall(fromKey,fromName){
+  CALLS[CU.username]={...CALLS[CU.username],status:'accepted'};
+  await svCalls();
+  stopRing();
+  const ui=$('call-ui');if(ui)ui.remove();
+  showActiveCallUI(fromKey,fromName);
+}
+
+function showActiveCallUI(otherKey,otherName){
+  _activeCallWith=otherKey;
+  const m=document.createElement('div');
+  m.className='mw';m.id='call-ui';
+  m.style.background='rgba(0,0,0,.85)';
+  m.innerHTML='<div class="md" style="max-width:320px;text-align:center;margin-top:15vh">'
+    +'<div class="av avp" style="width:70px;height:70px;font-size:24px;margin:0 auto 14px">'+ini(otherName)+'</div>'
+    +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">'+esc2(otherName)+'</div>'
+    +'<div style="font-size:13px;color:var(--grn);margin-bottom:26px">🟢 Call connected</div>'
+    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(otherKey)+'\')">📞</button>'
+    +'</div>';
+  document.body.appendChild(m);
 }
 
 async function svGrades(){
@@ -743,6 +915,10 @@ async function addChild(){
 
 function logout(){
   if(typeof stopScanner==='function')stopScanner();
+  if(_callWatchTimer){clearInterval(_callWatchTimer);_callWatchTimer=null;}
+  if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
+  stopRing();
+  const callUi=$('call-ui');if(callUi)callUi.remove();
   CU=null;$('app').classList.add('h');
   $('aw').classList.add('h');$('home').classList.remove('h');
   $('lu').value='';$('lp').value='';$('le').textContent='';showF('lf');
@@ -758,6 +934,7 @@ function startApp(){
   sCls=(CU.classes||[])[0]||Object.keys(DB.classes||{})[0]||null;
   sSubj=subjs()[0]||null;sDate=tod();sLes=1;
   buildNav();
+  startIncomingCallWatcher();
 }
 
 function showPg(id){
@@ -1101,7 +1278,7 @@ function buildFamContact(idx){
       +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
       +'<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
       +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">✉️ Message</button>'
-      +(t.phone?'<a href="tel:'+t.phone.replace(/\s+/g,'')+'" class="btn bg2" style="text-decoration:none;display:inline-flex;align-items:center;white-space:nowrap">📞 Call</a>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
+      +(t.phone?'<button class="btn bg2" onclick="startCall(\''+k+'\',\''+esc(t.name)+'\')" style="white-space:nowrap">📞 Call</button>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
       +'</div></td></tr>'
     ).join('')+'</tbody></table></div></div>'
     +'<div id="fam-msg-thread"></div>'
@@ -1180,12 +1357,13 @@ function buildTchMsg(){
   return'<div class="pg" id="tmsg">'
     +'<div class="pt">💬 Messages</div>'
     +'<div class="ps">Conversations with families</div>'
-    +(rows.length?'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>From</th><th>Regarding</th><th>Last message</th><th></th></tr></thead><tbody>'
-      +rows.map(r=>'<tr style="cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">'
-        +'<td><div class="tf"><div class="av avb">'+ini(r.famName)+'</div><span style="word-break:break-word">'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</span></div></td>'
-        +'<td style="font-size:12px">👶 '+esc2(r.childName)+'</td>'
-        +'<td style="font-size:12px;color:var(--txt2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(r.last?esc2(r.last.text):'—')+'</td>'
-        +'<td style="font-size:11px;color:var(--txt3);white-space:nowrap">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td></tr>'
+    +(rows.length?'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>From</th><th>Regarding</th><th>Last message</th><th></th><th></th></tr></thead><tbody>'
+      +rows.map(r=>'<tr>'
+        +'<td style="cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')"><div class="tf"><div class="av avb">'+ini(r.famName)+'</div><span style="word-break:break-word">'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</span></div></td>'
+        +'<td style="font-size:12px;cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">👶 '+esc2(r.childName)+'</td>'
+        +'<td style="font-size:12px;color:var(--txt2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">'+(r.last?esc2(r.last.text):'—')+'</td>'
+        +'<td style="font-size:11px;color:var(--txt3);white-space:nowrap">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td>'
+        +'<td><button class="btn bg2" onclick="startCall(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\')" style="white-space:nowrap">📞</button></td></tr>'
       ).join('')+'</tbody></table></div></div>'
       :'<p style="color:var(--txt3);padding:16px">No messages from families yet.</p>')
     +'<div id="tch-msg-thread"></div>'
