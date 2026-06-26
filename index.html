@@ -617,44 +617,102 @@ async function svCalls(){
   }catch(e){console.error('svCalls error:',e);}
 }
 
-// ── IN-APP CALLING (ring tone, incoming-call popup, signaling over JsonBin polling) ──
+// ── IN-APP CALLING ──
+// Real two-way audio via WebRTC (mic-to-mic). Signaling (offer/answer/ICE candidates)
+// is exchanged through the shared `calls` object in the grades JsonBin, since this is
+// a static site with no server of its own — polling stands in for a signaling server.
 let _ringAudioCtx=null,_ringInterval=null,_callPollTimer=null,_activeCallWith=null;
+let _pc=null,_localStream=null,_remoteAudioEl=null,_isMuted=false;
+let _iceQueue=[]; // candidates that arrived before the remote description was set
 
 function getRingAudioCtx(){
   if(!_ringAudioCtx)_ringAudioCtx=new(window.AudioContext||window.webkitAudioContext)();
   return _ringAudioCtx;
 }
-// Plays a classic two-tone "brring... brring..." ring, repeating until stopRing() is called.
+// A soft, friendly two-note chime (like a doorbell) instead of a harsh buzz, repeating
+// every 2.2s until stopRing() is called.
 function startRing(){
   stopRing();
   const ctx=getRingAudioCtx();
-  function playBurst(){
+  function playChime(){
     const t0=ctx.currentTime;
-    [0,0.5].forEach(off=>{
+    const notes=[{f:587.33,t:0},{f:880,t:0.18}]; // D5 then A5 — gentle two-tone chime
+    notes.forEach(n=>{
       const osc=ctx.createOscillator();
       const gain=ctx.createGain();
       osc.type='sine';
-      osc.frequency.setValueAtTime(950,t0+off);
-      gain.gain.setValueAtTime(0,t0+off);
-      gain.gain.linearRampToValueAtTime(0.18,t0+off+0.05);
-      gain.gain.setValueAtTime(0.18,t0+off+0.35);
-      gain.gain.linearRampToValueAtTime(0,t0+off+0.4);
+      osc.frequency.setValueAtTime(n.f,t0+n.t);
+      gain.gain.setValueAtTime(0,t0+n.t);
+      gain.gain.linearRampToValueAtTime(0.12,t0+n.t+0.04);
+      gain.gain.exponentialRampToValueAtTime(0.0001,t0+n.t+0.55);
       osc.connect(gain);gain.connect(ctx.destination);
-      osc.start(t0+off);osc.stop(t0+off+0.45);
+      osc.start(t0+n.t);osc.stop(t0+n.t+0.6);
     });
   }
-  playBurst();
-  _ringInterval=setInterval(playBurst,1800);
+  playChime();
+  _ringInterval=setInterval(playChime,2200);
 }
 function stopRing(){
   if(_ringInterval){clearInterval(_ringInterval);_ringInterval=null;}
 }
 
+const ICE_SERVERS={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
+
+async function setupPeerConnection(toKey){
+  _pc=new RTCPeerConnection(ICE_SERVERS);
+  try{
+    _localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+  }catch(e){
+    alert('❌ Microphone access is required to make calls: '+e.message);
+    throw e;
+  }
+  _localStream.getTracks().forEach(t=>_pc.addTrack(t,_localStream));
+  _pc.ontrack=(ev)=>{
+    if(!_remoteAudioEl){
+      _remoteAudioEl=document.createElement('audio');
+      _remoteAudioEl.autoplay=true;
+      _remoteAudioEl.id='call-remote-audio';
+      document.body.appendChild(_remoteAudioEl);
+    }
+    _remoteAudioEl.srcObject=ev.streams[0];
+  };
+  _pc.onicecandidate=(ev)=>{
+    if(ev.candidate){
+      if(!CALLS[toKey])CALLS[toKey]={};
+      if(!CALLS[toKey].iceFromCaller)CALLS[toKey].iceFromCaller=[];
+      // Candidates are appended locally and flushed on next svCalls() call by the caller flow;
+      // for the callee side they're pushed under iceFromCallee (see acceptCall).
+    }
+  };
+  return _pc;
+}
+
+function teardownCall(){
+  stopRing();
+  if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
+  if(_pc){try{_pc.close();}catch(e){}_pc=null;}
+  if(_localStream){_localStream.getTracks().forEach(t=>t.stop());_localStream=null;}
+  if(_remoteAudioEl){_remoteAudioEl.remove();_remoteAudioEl=null;}
+  const ui=$('call-ui');if(ui)ui.remove();
+  _activeCallWith=null;_isMuted=false;_iceQueue=[];
+}
+
 // Caller side: places a call to `toKey` (their DB.users key).
 async function startCall(toKey,toName){
   if(!CALLS)CALLS={};
-  const myKey=CU.username;
-  CALLS[toKey]={from:myKey,fromName:CU.name,fromRole:CU.role,ts:Date.now(),status:'ringing'};
+  try{
+    await setupPeerConnection(toKey);
+  }catch(e){return;} // mic permission denied — already alerted
+  const offer=await _pc.createOffer();
+  await _pc.setLocalDescription(offer);
+  CALLS[toKey]={from:CU.username,fromName:CU.name,fromRole:CU.role,ts:Date.now(),status:'ringing',offer:offer,iceCaller:[]};
+  _pc.onicecandidate=(ev)=>{
+    if(ev.candidate){
+      CALLS[toKey].iceCaller=CALLS[toKey].iceCaller||[];
+      CALLS[toKey].iceCaller.push(ev.candidate.toJSON());
+      svCalls().catch(()=>{});
+    }
+  };
   await svCalls();
   showOutgoingCallUI(toKey,toName);
   pollCallStatus(toKey);
@@ -683,33 +741,63 @@ function pollCallStatus(toKey){
       const calls=(d.record||{}).calls||{};
       const entry=calls[toKey];
       if(!entry||entry.status==='ended'||entry.status==='declined'){
+        const wasDeclined=entry&&entry.status==='declined';
+        teardownCall();
+        if(wasDeclined)alert('Call was declined.');
+      }else if(entry.status==='accepted'&&_pc&&_pc.signalingState!=='closed'){
         clearInterval(_callPollTimer);_callPollTimer=null;
         stopRing();
         const ui=$('call-ui');if(ui)ui.remove();
-        if(entry&&entry.status==='declined')alert(esc2('Call was declined.'));
-      }else if(entry.status==='accepted'){
-        clearInterval(_callPollTimer);_callPollTimer=null;
-        stopRing();
-        const ui=$('call-ui');if(ui)ui.remove();
-        showActiveCallUI(toKey,entry.fromName||'');
+        if(entry.answer&&_pc.signalingState==='have-local-offer'){
+          await _pc.setRemoteDescription(new RTCSessionDescription(entry.answer));
+        }
+        (entry.iceCallee||[]).forEach(c=>{
+          _pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{});
+        });
+        showActiveCallUI(toKey,entry.fromName||'',toName_global());
+        watchForRemoteHangup(toKey);
       }
     }catch(e){}
-  },2500);
+  },1500);
+}
+function toName_global(){return window._curOtherName||''}
+
+// Watches the OTHER side's call entry to detect if they hang up while we're connected.
+let _hangupWatchTimer=null;
+function watchForRemoteHangup(otherKey){
+  if(_hangupWatchTimer)clearInterval(_hangupWatchTimer);
+  _hangupWatchTimer=setInterval(async()=>{
+    try{
+      const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+      const d=await r.json();
+      const calls=(d.record||{}).calls||{};
+      const entry=calls[otherKey]||calls[CU.username];
+      const stillActive=(calls[otherKey]&&calls[otherKey].status==='accepted')||(calls[CU.username]&&calls[CU.username].status==='accepted');
+      if(!stillActive){
+        clearInterval(_hangupWatchTimer);_hangupWatchTimer=null;
+        teardownCall();
+        const banner=document.createElement('div');
+        banner.className='fl on';
+        banner.textContent='Call ended';
+        banner.style.background='var(--txt3)';
+        document.body.appendChild(banner);
+        setTimeout(()=>banner.remove(),2500);
+      }
+    }catch(e){}
+  },2000);
 }
 
 async function endCall(toKey){
   if(CALLS&&CALLS[toKey])CALLS[toKey].status='ended';
+  if(CU&&CALLS&&CALLS[CU.username])CALLS[CU.username].status='ended';
   await svCalls();
-  stopRing();
-  if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
-  const ui=$('call-ui');if(ui)ui.remove();
-  _activeCallWith=null;
+  teardownCall();
 }
 
 // Callee side: checks every few seconds (while logged in) whether someone is calling them.
 function startIncomingCallWatcher(){
   if(_callWatchTimer)clearInterval(_callWatchTimer);
-  _callWatchTimer=setInterval(checkIncomingCall,3000);
+  _callWatchTimer=setInterval(checkIncomingCall,2000);
   checkIncomingCall();
 }
 let _callWatchTimer=null;
@@ -756,15 +844,36 @@ async function declineCall(fromKey){
 }
 
 async function acceptCall(fromKey,fromName){
-  CALLS[CU.username]={...CALLS[CU.username],status:'accepted'};
-  await svCalls();
   stopRing();
   const ui=$('call-ui');if(ui)ui.remove();
+  try{
+    await setupPeerConnection(fromKey);
+  }catch(e){return;} // mic permission denied
+  const myEntry=CALLS[CU.username]||{};
+  if(myEntry.offer){
+    await _pc.setRemoteDescription(new RTCSessionDescription(myEntry.offer));
+    (myEntry.iceCaller||[]).forEach(c=>{
+      _pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{});
+    });
+  }
+  const answer=await _pc.createAnswer();
+  await _pc.setLocalDescription(answer);
+  CALLS[CU.username]={...myEntry,status:'accepted',answer:answer,iceCallee:[]};
+  _pc.onicecandidate=(ev)=>{
+    if(ev.candidate){
+      CALLS[CU.username].iceCallee=CALLS[CU.username].iceCallee||[];
+      CALLS[CU.username].iceCallee.push(ev.candidate.toJSON());
+      svCalls().catch(()=>{});
+    }
+  };
+  await svCalls();
   showActiveCallUI(fromKey,fromName);
+  watchForRemoteHangup(fromKey);
 }
 
 function showActiveCallUI(otherKey,otherName){
   _activeCallWith=otherKey;
+  window._curOtherName=otherName;
   const m=document.createElement('div');
   m.className='mw';m.id='call-ui';
   m.style.background='rgba(0,0,0,.85)';
@@ -772,9 +881,24 @@ function showActiveCallUI(otherKey,otherName){
     +'<div class="av avp" style="width:70px;height:70px;font-size:24px;margin:0 auto 14px">'+ini(otherName)+'</div>'
     +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">'+esc2(otherName)+'</div>'
     +'<div style="font-size:13px;color:var(--grn);margin-bottom:26px">🟢 Call connected</div>'
+    +'<div style="display:flex;gap:18px;justify-content:center">'
+    +'<button class="btn bg2" id="call-mute-btn" style="width:54px;height:54px;border-radius:50%;font-size:18px" onclick="toggleMute()">🎤</button>'
     +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(otherKey)+'\')">📞</button>'
+    +'</div>'
     +'</div>';
   document.body.appendChild(m);
+}
+
+function toggleMute(){
+  if(!_localStream)return;
+  _isMuted=!_isMuted;
+  _localStream.getAudioTracks().forEach(t=>t.enabled=!_isMuted);
+  const btn=$('call-mute-btn');
+  if(btn){
+    btn.textContent=_isMuted?'🔇':'🎤';
+    btn.style.background=_isMuted?'var(--red-lt)':'';
+    btn.style.color=_isMuted?'var(--red)':'';
+  }
 }
 
 async function svGrades(){
@@ -916,9 +1040,8 @@ async function addChild(){
 function logout(){
   if(typeof stopScanner==='function')stopScanner();
   if(_callWatchTimer){clearInterval(_callWatchTimer);_callWatchTimer=null;}
-  if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
-  stopRing();
-  const callUi=$('call-ui');if(callUi)callUi.remove();
+  if(_hangupWatchTimer){clearInterval(_hangupWatchTimer);_hangupWatchTimer=null;}
+  teardownCall();
   CU=null;$('app').classList.add('h');
   $('aw').classList.add('h');$('home').classList.remove('h');
   $('lu').value='';$('lp').value='';$('le').textContent='';showF('lf');
