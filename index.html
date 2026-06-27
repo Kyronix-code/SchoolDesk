@@ -420,14 +420,20 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   <div class="mh">
     <button onclick="tgSb()" style="background:none;border:none;cursor:pointer;color:#fff;font-size:22px;line-height:1">☰</button>
     <span style="font-size:15px;font-weight:700;color:#fff">🏫 SchoolDesk</span>
-    <button onclick="tgTheme()" id="tmbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;color:#fff;cursor:pointer;font-size:15px">🌙</button>
+    <div style="display:flex;gap:6px">
+      <button onclick="toggleNotifPanel()" id="notif-btn-m" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 9px;color:#fff;cursor:pointer;font-size:15px">🔔<span id="notif-badge-m" class="h" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
+      <button onclick="tgTheme()" id="tmbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;color:#fff;cursor:pointer;font-size:15px">🌙</button>
+    </div>
   </div>
   <div class="ov" id="ov" onclick="tgSb()"></div>
   <div class="sb" id="sb">
     <div class="sbh">
       <div class="brand">
         <span>🏫 SchoolDesk</span>
-        <button onclick="tgTheme()" id="tbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 8px;color:#fff;cursor:pointer;font-size:13px">🌙</button>
+        <div style="display:flex;gap:5px">
+          <button onclick="toggleNotifPanel()" id="notif-btn" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 7px;color:#fff;cursor:pointer;font-size:13px">🔔<span id="notif-badge" class="h" style="position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:8px;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
+          <button onclick="tgTheme()" id="tbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 8px;color:#fff;cursor:pointer;font-size:13px">🌙</button>
+        </div>
       </div>
       <div class="un" id="sbn"></div>
       <div class="ur" id="sbr"></div>
@@ -436,6 +442,13 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
     <div class="sbf">
       <button class="bout" onclick="logout()">← Sign Out</button>
     </div>
+  </div>
+  <div id="notif-panel" class="h" style="position:fixed;top:60px;right:16px;width:320px;max-height:420px;overflow-y:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r3);box-shadow:var(--sh3);z-index:300">
+    <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center">
+      <h3 style="font-size:13px;font-weight:700">🔔 Notifications</h3>
+      <button onclick="markAllNotifsRead()" style="font-size:11px;background:none;border:none;color:var(--acc);cursor:pointer">Mark all read</button>
+    </div>
+    <div id="notif-list" style="padding:6px"></div>
   </div>
   <div class="mn" id="mn"></div>
 </div>
@@ -658,43 +671,61 @@ function stopRing(){
 
 const ICE_SERVERS={iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]};
 
-async function setupPeerConnection(toKey){
+let _remoteStreamRef=null;
+
+async function setupPeerConnection(toKey,withVideo){
   _pc=new RTCPeerConnection(ICE_SERVERS);
   try{
-    _localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});
+    _localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:withVideo?{facingMode:_facingMode}:false});
   }catch(e){
-    alert('❌ Microphone access is required to make calls: '+e.message);
-    throw e;
+    if(withVideo){
+      // Camera may be unavailable -- fall back to audio-only rather than failing the whole call.
+      try{_localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}
+      catch(e2){alert('❌ Microphone access is required to make calls: '+e2.message);throw e2;}
+    }else{
+      alert('❌ Microphone access is required to make calls: '+e.message);
+      throw e;
+    }
   }
+  _videoEnabled=_localStream.getVideoTracks().length>0;
   _localStream.getTracks().forEach(t=>_pc.addTrack(t,_localStream));
   _pc.ontrack=(ev)=>{
+    _remoteStreamRef=ev.streams[0];
+    attachRemoteStream(_remoteStreamRef);
+  };
+  return _pc;
+}
+
+// Routes the remote MediaStream to either the <video> (if it has a video track) or a
+// hidden <audio> element (voice-only calls). Safe to call again if the call UI gets
+// rebuilt after the track already arrived.
+function attachRemoteStream(stream){
+  const hasVideo=stream.getVideoTracks().length>0;
+  if(hasVideo){
+    const v=$('call-remote-video');
+    if(v){v.srcObject=stream;v.style.display='block';}
+    const av=$('call-avatar-block');if(av)av.style.display='none';
+  }else{
     if(!_remoteAudioEl){
       _remoteAudioEl=document.createElement('audio');
       _remoteAudioEl.autoplay=true;
       _remoteAudioEl.id='call-remote-audio';
       document.body.appendChild(_remoteAudioEl);
     }
-    _remoteAudioEl.srcObject=ev.streams[0];
-  };
-  _pc.onicecandidate=(ev)=>{
-    if(ev.candidate){
-      if(!CALLS[toKey])CALLS[toKey]={};
-      if(!CALLS[toKey].iceFromCaller)CALLS[toKey].iceFromCaller=[];
-      // Candidates are appended locally and flushed on next svCalls() call by the caller flow;
-      // for the callee side they're pushed under iceFromCallee (see acceptCall).
-    }
-  };
-  return _pc;
+    _remoteAudioEl.srcObject=stream;
+  }
 }
 
 function teardownCall(){
   stopRing();
+  releaseWakeLock();
   if(_callPollTimer){clearInterval(_callPollTimer);_callPollTimer=null;}
   if(_pc){try{_pc.close();}catch(e){}_pc=null;}
   if(_localStream){_localStream.getTracks().forEach(t=>t.stop());_localStream=null;}
   if(_remoteAudioEl){_remoteAudioEl.remove();_remoteAudioEl=null;}
+  _remoteStreamRef=null;
   const ui=$('call-ui');if(ui)ui.remove();
-  _activeCallWith=null;_isMuted=false;_iceQueue=[];
+  _activeCallWith=null;_isMuted=false;_iceQueue=[];_videoEnabled=false;_screenLocked=false;
 }
 
 // Caller side: places a call to `toKey` (their DB.users key).
@@ -715,7 +746,7 @@ async function startCall(toKey,toName){
   };
   await svCalls();
   showOutgoingCallUI(toKey,toName);
-  pollCallStatus(toKey);
+  pollCallStatus(toKey,toName);
 }
 
 function showOutgoingCallUI(toKey,toName){
@@ -732,7 +763,7 @@ function showOutgoingCallUI(toKey,toName){
   startRing();
 }
 
-function pollCallStatus(toKey){
+function pollCallStatus(toKey,toName){
   if(_callPollTimer)clearInterval(_callPollTimer);
   _callPollTimer=setInterval(async()=>{
     try{
@@ -754,13 +785,12 @@ function pollCallStatus(toKey){
         (entry.iceCallee||[]).forEach(c=>{
           _pc.addIceCandidate(new RTCIceCandidate(c)).catch(()=>{});
         });
-        showActiveCallUI(toKey,entry.fromName||'',toName_global());
+        showActiveCallUI(toKey,toName);
         watchForRemoteHangup(toKey);
       }
     }catch(e){}
   },1500);
 }
-function toName_global(){return window._curOtherName||''}
 
 // Watches the OTHER side's call entry to detect if they hang up while we're connected.
 let _hangupWatchTimer=null;
@@ -795,6 +825,175 @@ async function endCall(toKey){
 }
 
 // Callee side: checks every few seconds (while logged in) whether someone is calling them.
+// ── NOTIFICATIONS ──
+// In-memory list for the current session; persisted per-user in localStorage so
+// read/unread state and history survive a page reload (but isn't synced across devices --
+// each device just re-derives "what's new" from the shared data the next time it checks).
+let NOTIFS=[];
+let _notifWatchTimer=null;
+let _lastSeenMsgCount={}; // threadKey -> count, to detect new messages
+let _lastSeenGradeCount=null; // total grade entries seen, for family role
+
+function notifStoreKey(){return'notifs_'+(CU?CU.username:'anon')}
+function loadNotifs(){
+  try{NOTIFS=JSON.parse(localStorage.getItem(notifStoreKey())||'[]');}catch(e){NOTIFS=[];}
+}
+function saveNotifs(){
+  try{localStorage.setItem(notifStoreKey(),JSON.stringify(NOTIFS.slice(0,50)));}catch(e){}
+}
+function addNotif(icon,title,body,onClick){
+  NOTIFS.unshift({id:Date.now()+Math.random(),icon,title,body,onClick:onClick||null,read:false,ts:Date.now()});
+  saveNotifs();
+  renderNotifBadge();
+  showNotifToast(icon,title,body);
+}
+function renderNotifBadge(){
+  const unread=NOTIFS.filter(n=>!n.read).length;
+  ['notif-badge','notif-badge-m'].forEach(id=>{
+    const el=$(id);
+    if(!el)return;
+    if(unread>0){el.textContent=unread>9?'9+':unread;el.classList.remove('h');}
+    else el.classList.add('h');
+  });
+}
+function toggleNotifPanel(){
+  const p=$('notif-panel');
+  if(!p)return;
+  if(p.classList.contains('h')){
+    renderNotifList();
+    p.classList.remove('h');
+  }else{
+    p.classList.add('h');
+  }
+}
+function renderNotifList(){
+  const list=$('notif-list');
+  if(!list)return;
+  if(!NOTIFS.length){
+    list.innerHTML='<p style="color:var(--txt3);font-size:12px;text-align:center;padding:20px">No notifications yet</p>';
+    return;
+  }
+  list.innerHTML=NOTIFS.map(n=>'<div onclick="onNotifClick(\''+n.id+'\')" style="display:flex;gap:10px;padding:10px;border-radius:8px;cursor:pointer;background:'+(n.read?'transparent':'var(--acc-lt)')+';margin-bottom:2px" onmouseover="this.style.background=\'var(--surf2)\'" onmouseout="this.style.background=\''+(n.read?'transparent':'var(--acc-lt)')+'\'">'
+    +'<div style="font-size:20px;flex-shrink:0">'+n.icon+'</div>'
+    +'<div style="flex:1;min-width:0">'
+    +'<div style="font-size:12px;font-weight:600;color:var(--txt)">'+esc2(n.title)+'</div>'
+    +'<div style="font-size:11px;color:var(--txt2);margin-top:1px">'+esc2(n.body)+'</div>'
+    +'<div style="font-size:10px;color:var(--txt3);margin-top:3px">'+new Date(n.ts).toLocaleString()+'</div>'
+    +'</div></div>'
+  ).join('');
+}
+function onNotifClick(id){
+  const n=NOTIFS.find(x=>String(x.id)===String(id));
+  if(!n)return;
+  n.read=true;saveNotifs();renderNotifBadge();renderNotifList();
+  if(n.onClick)n.onClick();
+  $('notif-panel')?.classList.add('h');
+}
+function markAllNotifsRead(){
+  NOTIFS.forEach(n=>n.read=true);
+  saveNotifs();renderNotifBadge();renderNotifList();
+}
+// A brief toast in the corner, separate from the permanent notification list, so
+// something is visible even if the person never opens the bell.
+function showNotifToast(icon,title,body){
+  const t=document.createElement('div');
+  t.style="position:fixed;bottom:24px;right:24px;max-width:300px;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r2);box-shadow:var(--sh3);padding:12px 14px;display:flex;gap:10px;z-index:998;animation:slideIn .25s ease";
+  t.innerHTML='<div style="font-size:22px">'+icon+'</div><div><div style="font-size:12px;font-weight:700;color:var(--txt)">'+esc2(title)+'</div><div style="font-size:11px;color:var(--txt2);margin-top:2px">'+esc2(body)+'</div></div>';
+  document.body.appendChild(t);
+  setTimeout(()=>{t.style.transition='opacity .3s';t.style.opacity='0';setTimeout(()=>t.remove(),300);},4500);
+}
+
+// Polls the shared data every few seconds while logged in, comparing against what this
+// device has already seen, to surface: new messages addressed to this user, and (for
+// Family accounts) new grades recorded for their children.
+function startNotifWatcher(){
+  loadNotifs();
+  renderNotifBadge();
+  _lastSeenMsgCount={};
+  if(CU.role==='teacher'){
+    Object.entries(MSGS[CU.username]||{}).forEach(([famUser,children])=>{
+      Object.entries(children).forEach(([child,msgs])=>{
+        _lastSeenMsgCount[CU.username+'|'+famUser+'|'+child]=msgs.length;
+      });
+    });
+  }else if(CU.role==='parent'){
+    (CU.children||[]).forEach(ch=>{
+      Object.keys(DB.users||{}).forEach(tk=>{
+        const thread=(MSGS[tk]&&MSGS[tk][CU.username]&&MSGS[tk][CU.username][ch.name])||[];
+        _lastSeenMsgCount[tk+'|'+CU.username+'|'+ch.name]=thread.length;
+      });
+    });
+    _lastSeenGradeCount={};
+    (CU.children||[]).forEach(ch=>{
+      const cls=ch.cls||ch.class||'';
+      const subjMap=(GR[cls]&&GR[cls][ch.name])||{};
+      let count=0;
+      Object.values(subjMap).forEach(dates=>{count+=Object.keys(dates).length;});
+      _lastSeenGradeCount[ch.name]=count;
+    });
+  }
+  if(_notifWatchTimer)clearInterval(_notifWatchTimer);
+  _notifWatchTimer=setInterval(checkForNewNotifs,4000);
+}
+
+async function checkForNewNotifs(){
+  if(!CU)return;
+  try{
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d=await r.json();
+    const rec=d.record||{};
+    const freshMsgs=rec.messages||{};
+    const freshGrades=rec.grades||{};
+
+    if(CU.role==='teacher'){
+      const myThreads=freshMsgs[CU.username]||{};
+      Object.entries(myThreads).forEach(([famUser,children])=>{
+        Object.entries(children).forEach(([child,msgs])=>{
+          const key=CU.username+'|'+famUser+'|'+child;
+          const prevCount=_lastSeenMsgCount[key]||0;
+          if(msgs.length>prevCount){
+            const newOnes=msgs.slice(prevCount).filter(m=>m.from==='family');
+            if(newOnes.length){
+              const fam=DB.users[famUser];
+              const famName=fam?fam.name:famUser;
+              addNotif('💬','New message from '+famName,newOnes[newOnes.length-1].text,()=>{showPg('tmsg');setTimeout(()=>openTchMsg(famUser,famName,child),100);});
+            }
+          }
+          _lastSeenMsgCount[key]=msgs.length;
+        });
+      });
+    }else if(CU.role==='parent'){
+      Object.keys(DB.users||{}).forEach(tk=>{
+        (CU.children||[]).forEach(ch=>{
+          const thread=(freshMsgs[tk]&&freshMsgs[tk][CU.username]&&freshMsgs[tk][CU.username][ch.name])||[];
+          const key=tk+'|'+CU.username+'|'+ch.name;
+          const prevCount=_lastSeenMsgCount[key]||0;
+          if(thread.length>prevCount){
+            const newOnes=thread.slice(prevCount).filter(m=>m.from==='teacher');
+            if(newOnes.length){
+              const t=DB.users[tk];
+              const tName=t?t.name:'Teacher';
+              addNotif('💬',tName+' sent a message',newOnes[newOnes.length-1].text+' (re: '+ch.name+')',null);
+            }
+          }
+          _lastSeenMsgCount[key]=thread.length;
+        });
+      });
+      (CU.children||[]).forEach(ch=>{
+        const cls=ch.cls||ch.class||'';
+        const subjMap=(freshGrades[cls]&&freshGrades[cls][ch.name])||{};
+        let count=0;
+        Object.values(subjMap).forEach(dates=>{count+=Object.keys(dates).length;});
+        const prevCount=_lastSeenGradeCount[ch.name]||0;
+        if(count>prevCount){
+          addNotif('⭐','New grade for '+ch.name,'Check the latest grade in their diary',null);
+        }
+        _lastSeenGradeCount[ch.name]=count;
+      });
+    }
+  }catch(e){}
+}
+
 function startIncomingCallWatcher(){
   if(_callWatchTimer)clearInterval(_callWatchTimer);
   _callWatchTimer=setInterval(checkIncomingCall,2000);
@@ -871,22 +1070,67 @@ async function acceptCall(fromKey,fromName){
   watchForRemoteHangup(fromKey);
 }
 
+let _wakeLock=null,_facingMode='user',_videoEnabled=false,_screenLocked=false;
+
+async function requestWakeLock(){
+  try{
+    if('wakeLock' in navigator)_wakeLock=await navigator.wakeLock.request('screen');
+  }catch(e){}
+}
+function releaseWakeLock(){
+  if(_wakeLock){_wakeLock.release().catch(()=>{});_wakeLock=null;}
+}
+
 function showActiveCallUI(otherKey,otherName){
   _activeCallWith=otherKey;
   window._curOtherName=otherName;
+  window._curOtherKey=otherKey;
+  requestWakeLock();
   const m=document.createElement('div');
   m.className='mw';m.id='call-ui';
-  m.style.background='rgba(0,0,0,.85)';
-  m.innerHTML='<div class="md" style="max-width:320px;text-align:center;margin-top:15vh">'
-    +'<div class="av avp" style="width:70px;height:70px;font-size:24px;margin:0 auto 14px">'+ini(otherName)+'</div>'
-    +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">'+esc2(otherName)+'</div>'
-    +'<div style="font-size:13px;color:var(--grn);margin-bottom:26px">🟢 Call connected</div>'
-    +'<div style="display:flex;gap:18px;justify-content:center">'
-    +'<button class="btn bg2" id="call-mute-btn" style="width:54px;height:54px;border-radius:50%;font-size:18px" onclick="toggleMute()">🎤</button>'
-    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(otherKey)+'\')">📞</button>'
+  m.style.background='rgba(0,0,0,.92)';
+  m.style.padding='0';
+  m.innerHTML='<div id="call-screen" style="width:100%;max-width:380px;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 20px;position:relative">'
+    // Lock overlay -- shown when the call screen is manually locked (e.g. phone near the ear)
+    +'<div id="call-lock-overlay" class="h" onclick="unlockCallScreen()" style="position:absolute;inset:0;background:#000;z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;cursor:pointer">'
+    +'<div style="font-size:13px;color:rgba(255,255,255,.5)">🔒 Screen locked during call</div>'
+    +'<div style="font-size:11px;color:rgba(255,255,255,.3)">Tap to unlock</div>'
+    +'</div>'
+    +'<div id="call-remote-video-wrap" style="width:100%;flex:1;display:flex;align-items:center;justify-content:center;position:relative">'
+    +'<video id="call-remote-video" autoplay playsinline style="width:100%;border-radius:12px;display:none;background:#000;max-height:280px;object-fit:cover"></video>'
+    +'<div id="call-avatar-block" style="text-align:center">'
+    +'<div class="av avp" style="width:84px;height:84px;font-size:28px;margin:0 auto 14px">'+ini(otherName)+'</div>'
+    +'<div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">'+esc2(otherName)+'</div>'
+    +'<div style="font-size:13px;color:var(--grn)">🟢 Call connected</div>'
+    +'</div>'
+    +'<video id="call-local-video" autoplay playsinline muted style="display:none;position:absolute;bottom:10px;right:10px;width:90px;height:120px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,.4)"></video>'
+    +'</div>'
+    +'<div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:20px">'
+    +'<button class="btn bg2" id="call-mute-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleMute()" title="Mute">🎤</button>'
+    +'<button class="btn bg2" id="call-video-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleVideo()" title="Camera">📷</button>'
+    +'<button class="btn bg2" id="call-flip-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px;display:none" onclick="flipCamera()" title="Switch camera">🔄</button>'
+    +'<button class="btn bg2" id="call-lock-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="lockCallScreen()" title="Lock screen (during a phone call)">🔒</button>'
+    +'<button class="btn bd2" style="width:60px;height:60px;border-radius:50%;font-size:20px" onclick="endCall(\''+esc2(otherKey)+'\')" title="Hang up">📞</button>'
     +'</div>'
     +'</div>';
   document.body.appendChild(m);
+  // Auto re-attach remote stream if ontrack fired before this UI existed
+  if(_remoteStreamRef)attachRemoteStream(_remoteStreamRef);
+}
+
+// Manually lock the screen (dim + ignore taps except the unlock tap itself) -- useful
+// for voice-only calls held up to the ear, where accidental cheek/ear touches would
+// otherwise hit the hang-up button. There's no reliable cross-browser proximity sensor
+// API, so this is an explicit toggle the person taps before holding the phone up.
+function lockCallScreen(){
+  _screenLocked=true;
+  const ov=$('call-lock-overlay');
+  if(ov)ov.classList.remove('h');
+}
+function unlockCallScreen(){
+  _screenLocked=false;
+  const ov=$('call-lock-overlay');
+  if(ov)ov.classList.add('h');
 }
 
 function toggleMute(){
@@ -899,6 +1143,72 @@ function toggleMute(){
     btn.style.background=_isMuted?'var(--red-lt)':'';
     btn.style.color=_isMuted?'var(--red)':'';
   }
+}
+
+// Turns the camera on/off mid-call. Adding a fresh video track and replacing it on the
+// existing peer connection's sender (renegotiation-free for the common case where the
+// other side already has a transceiver, otherwise triggers a fresh negotiation round).
+async function toggleVideo(){
+  if(!_pc||!_localStream)return;
+  const btn=$('call-video-btn'),flipBtn=$('call-flip-btn');
+  if(_videoEnabled){
+    _localStream.getVideoTracks().forEach(t=>{t.stop();_localStream.removeTrack(t);});
+    const sender=_pc.getSenders().find(s=>s.track&&s.track.kind==='video');
+    if(sender)_pc.removeTrack(sender);
+    _videoEnabled=false;
+    const lv=$('call-local-video');if(lv){lv.style.display='none';lv.srcObject=null;}
+    if(btn){btn.textContent='📷';btn.style.background='';}
+    if(flipBtn)flipBtn.style.display='none';
+  }else{
+    try{
+      const camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:_facingMode}});
+      const track=camStream.getVideoTracks()[0];
+      _localStream.addTrack(track);
+      _pc.addTrack(track,_localStream);
+      _videoEnabled=true;
+      const lv=$('call-local-video');
+      if(lv){lv.srcObject=_localStream;lv.style.display='block';}
+      if(btn){btn.textContent='📷';btn.style.background='var(--acc-lt)';}
+      if(flipBtn)flipBtn.style.display='inline-flex';
+      // Renegotiate so the other side receives the new video track
+      if(typeof renegotiateCall==='function')renegotiateCall();
+    }catch(e){
+      alert('❌ Could not access camera: '+e.message);
+    }
+  }
+}
+
+// Switches between front/back camera while video is on.
+async function flipCamera(){
+  if(!_videoEnabled||!_localStream)return;
+  _facingMode=_facingMode==='user'?'environment':'user';
+  const oldTrack=_localStream.getVideoTracks()[0];
+  try{
+    const camStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:_facingMode}});
+    const newTrack=camStream.getVideoTracks()[0];
+    const sender=_pc.getSenders().find(s=>s.track&&s.track.kind==='video');
+    if(sender)await sender.replaceTrack(newTrack);
+    if(oldTrack){oldTrack.stop();_localStream.removeTrack(oldTrack);}
+    _localStream.addTrack(newTrack);
+    const lv=$('call-local-video');if(lv)lv.srcObject=_localStream;
+  }catch(e){
+    alert('❌ Could not switch camera: '+e.message);
+  }
+}
+
+// Re-runs offer/answer exchange when tracks are added mid-call (e.g. turning the camera
+// on partway through a voice call). Caller re-offers; callee re-answers via the same
+// CALLS bin fields, reusing the existing signaling channel.
+async function renegotiateCall(){
+  if(!_pc||!window._curOtherKey)return;
+  const otherKey=window._curOtherKey;
+  try{
+    const offer=await _pc.createOffer();
+    await _pc.setLocalDescription(offer);
+    if(!CALLS[otherKey])CALLS[otherKey]={};
+    CALLS[otherKey].renegotiateOffer=offer;
+    await svCalls();
+  }catch(e){}
 }
 
 async function svGrades(){
