@@ -338,19 +338,19 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   </div>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:480px;width:100%;position:relative;z-index:1">
     <div class="home-card" onclick="openLoginFor('teacher')">
-      <div class="home-card-ic">??</div>
+      <div class="home-card-ic">📖</div>
       <div class="home-card-lbl">Journal</div>
     </div>
     <div class="home-card" onclick="openLoginFor('student')">
-      <div class="home-card-ic">??</div>
+      <div class="home-card-ic">📔</div>
       <div class="home-card-lbl">Diary</div>
     </div>
     <div class="home-card" onclick="openLoginFor('parent')">
-      <div class="home-card-ic">????????</div>
+      <div class="home-card-ic">👨‍👩‍👧</div>
       <div class="home-card-lbl">Family</div>
     </div>
     <div class="home-card" onclick="openLoginFor('admin')">
-      <div class="home-card-ic">??</div>
+      <div class="home-card-ic">⚙</div>
       <div class="home-card-lbl">SMIS</div>
     </div>
   </div>
@@ -360,7 +360,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   <div class="ab">
     <div class="ab-top">
       <button onclick="backToHome()" style="position:absolute;top:14px;left:14px;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:7px;width:30px;height:30px;color:#fff;cursor:pointer;font-size:15px"><</button>
-      <div class="ic" id="aw-ic">??</div>
+      <div class="ic" id="aw-ic">🏫</div>
       <h1 id="aw-title">SchoolDesk</h1>
       <p id="aw-subtitle">School Management System</p>
     </div>
@@ -373,7 +373,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
           <div class="rtab" onclick="setRole('admin')">Admin</div>
         </div>
         <div class="fg"><label>Username</label><input id="lu" type="text" placeholder="your@email.com" onkeydown="if(event.key==='Enter')login()"></div>
-        <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="��������" onkeydown="if(event.key==='Enter')login()"></div>
+        <div class="fg"><label>Password</label><input id="lp" type="password" placeholder=".........." onkeydown="if(event.key==='Enter')login()"></div>
         <button class="bmain" onclick="login()">Sign In</button>
         <div class="er" id="le"></div>
         <div class="af" id="reg-link">New student? <button class="lb" onclick="showF('rf')">Register here</button></div>
@@ -543,14 +543,14 @@ function tgTheme(){
   const nt=t==='dark'?'light':'dark';
   document.documentElement.setAttribute('data-theme',nt);
   localStorage.setItem('th',nt);
-  const ic=nt==='dark'?'??':'??';
+  const ic=nt==='dark'?'🌙':'☀️';
   ['tbtn','tmbtn'].forEach(id=>{const e=$(id);if(e)e.textContent=ic});
 }
 (function(){
   const t=localStorage.getItem('th')||'dark';
   document.documentElement.setAttribute('data-theme',t);
   window.addEventListener('DOMContentLoaded',()=>{
-    const ic=t==='dark'?'??':'??';
+    const ic=t==='dark'?'🌙':'☀️';
     ['tbtn','tmbtn'].forEach(id=>{const e=$(id);if(e)e.textContent=ic});
   });
 })();
@@ -764,10 +764,10 @@ function showOutgoingCallUI(toKey,toName){
   m.className='mw';m.id='call-ui';
   m.style.background='rgba(0,0,0,.8)';
   m.innerHTML='<div class="md" style="max-width:320px;text-align:center;margin-top:15vh">'
-    +'<div style="font-size:48px;margin-bottom:14px">??</div>'
+    +'<div style="font-size:48px;margin-bottom:14px">📞</div>'
     +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">Calling '+esc2(toName)+'...</div>'
     +'<div style="font-size:13px;color:var(--txt2);margin-bottom:24px">Ringing</div>'
-    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(toKey)+'\')">?</button>'
+    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(toKey)+'\')">✕</button>'
     +'</div>';
   document.body.appendChild(m);
   startRing();
@@ -985,21 +985,21 @@ async function checkForNewNotifs(){
           _lastSeenMsgCount[key]=thread.length;
         });
       });
-      (CU.children||[]).forEach(ch=>{
+       (CU.children||[]).forEach(ch=>{
         const cls=ch.cls||ch.class||'';
         const subjMap=(freshGrades[cls]&&freshGrades[cls][ch.name])||{};
         let count=0;
         Object.values(subjMap).forEach(dates=>{count+=Object.keys(dates).length;});
         const prevCount=_lastSeenGradeCount[ch.name]||0;
         if(count>prevCount){
-          addNotif('?','New grade for '+ch.name,'Check the latest grade in their diary',null);
+          addNotif('⭐','New grade for '+ch.name,'Check the latest grade in their diary',null);
         }
         _lastSeenGradeCount[ch.name]=count;
       });
     }
   }catch(e){}
 }
-
+   
 function startIncomingCallWatcher(){
   if(_callWatchTimer)clearInterval(_callWatchTimer);
   _callWatchTimer=setInterval(checkIncomingCall,2000);
@@ -1098,7 +1098,7 @@ function showActiveCallUI(otherKey,otherName){
   m.innerHTML='<div id="call-screen" style="width:100%;max-width:380px;min-height:520px;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:30px 20px;position:relative">'
     // Lock overlay -- shown when the call screen is manually locked (e.g. phone near the ear)
     +'<div id="call-lock-overlay" class="h" onclick="unlockCallScreen()" style="position:absolute;inset:0;background:#000;z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:10px;cursor:pointer">'
-    +'<div style="font-size:13px;color:rgba(255,255,255,.5)">?? Screen locked during call</div>'
+    +'<div style="font-size:13px;color:rgba(255,255,255,.5)">🔒 Screen locked during call</div>'
     +'<div style="font-size:11px;color:rgba(255,255,255,.3)">Tap to unlock</div>'
     +'</div>'
     +'<div id="call-remote-video-wrap" style="width:100%;flex:1;display:flex;align-items:center;justify-content:center;position:relative">'
@@ -1106,7 +1106,7 @@ function showActiveCallUI(otherKey,otherName){
     +'<div id="call-avatar-block" style="text-align:center">'
     +'<div class="av avp" style="width:84px;height:84px;font-size:28px;margin:0 auto 14px">'+ini(otherName)+'</div>'
     +'<div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">'+esc2(otherName)+'</div>'
-    +'<div style="font-size:13px;color:var(--grn)">?? Call connected</div>'
+    +'<div style="font-size:13px;color:var(--grn)">🟢 Call connected</div>'
     +'</div>'
     +'<video id="call-local-video" autoplay playsinline muted style="display:none;position:absolute;bottom:10px;right:10px;width:90px;height:120px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,.4)"></video>'
     +'</div>'
@@ -1144,7 +1144,7 @@ function toggleMute(){
   _localStream.getAudioTracks().forEach(t=>t.enabled=!_isMuted);
   const btn=$('call-mute-btn');
   if(btn){
-    btn.textContent=_isMuted?'??':'??';
+    btn.textContent=_isMuted?'🔇':'🎤';
     btn.style.background=_isMuted?'var(--red-lt)':'';
     btn.style.color=_isMuted?'var(--red)':'';
   }
@@ -1162,7 +1162,7 @@ async function toggleVideo(){
     if(sender)_pc.removeTrack(sender);
     _videoEnabled=false;
     const lv=$('call-local-video');if(lv){lv.style.display='none';lv.srcObject=null;}
-    if(btn){btn.textContent='??';btn.style.background='';}
+    if(btn){btn.textContent='📷';btn.style.background='';}
     if(flipBtn)flipBtn.style.display='none';
   }else{
     try{
@@ -1173,12 +1173,12 @@ async function toggleVideo(){
       _videoEnabled=true;
       const lv=$('call-local-video');
       if(lv){lv.srcObject=_localStream;lv.style.display='block';}
-      if(btn){btn.textContent='??';btn.style.background='var(--acc-lt)';}
+      if(btn){btn.textContent='📷';btn.style.background='var(--acc-lt)';}
       if(flipBtn)flipBtn.style.display='inline-flex';
       // Renegotiate so the other side receives the new video track
       if(typeof renegotiateCall==='function')renegotiateCall();
     }catch(e){
-      alert('? Could not access camera: '+e.message);
+      alert('❌ Could not access camera: '+e.message);
     }
   }
 }
@@ -1254,10 +1254,11 @@ function setRole(r){
 }
 
 const ROLE_INFO={
-  teacher:{ic:'??',title:'Grade Book',sub:'Teacher sign in'},
-  student:{ic:'??',title:'Diary',sub:'Student sign in'},
-  parent:{ic:'????????',title:'Family',sub:'Family sign in'},
-  admin:{ic:'??',title:'Admin',sub:'Administrator sign in'},
+  teacher:{ic:'📖',title:'Grade Book',sub:'Teacher sign in'},
+  student:{ic:'📔',title:'Diary',sub:'Student sign in'},
+  parent:{ic:'👨‍👩‍👧',title:'Family',sub:'Family sign in'},
+  admin:{ic:'⚙️',title:'Admin',sub:'Administrator sign in'},
+};
 };
 // Called when a home-screen card is tapped: shows the login form pre-set to that role.
 function openLoginFor(role){
@@ -1265,7 +1266,8 @@ function openLoginFor(role){
   $('aw').classList.remove('h');
   setRole(role);
   showF('lf');
-  const info=ROLE_INFO[role]||{ic:'??',title:'SchoolDesk',sub:'School Management System'};
+  const info=ROLE_INFO[role]||{ic:'🏫',title:'SchoolDesk',sub:'School Management System'};
+  $('aw-ic').textContent=info.ic;
   $('aw-ic').textContent=info.ic;
   $('aw-title').textContent=info.title;
   $('aw-subtitle').textContent=info.sub;
@@ -1290,7 +1292,7 @@ function login(){
   // Check maintenance mode (except admin)
   if(cRole!=='admin'&&DB.maintenance){
     er.innerHTML='<div style="text-align:center;padding:10px 0">'
-      +'<div style="font-size:28px;margin-bottom:8px">??</div>'
+      +'<div style="font-size:28px;margin-bottom:8px">🔧</div>'
       +'<div style="font-size:14px;font-weight:600;margin-bottom:6px">SchoolDesk is temporarily closed</div>'
       +'<div style="font-size:12px;color:var(--txt2)">'+(DB.maintMsg||'We are making improvements. Please try again later.')+'</div>'
       +'</div>';
@@ -1401,31 +1403,31 @@ function buildNav(){
   const nav=$('nav'),mn=$('mn');
   if(CU.role==='admin'){
     nav.innerHTML='<div class="sbs">Overview</div>'
-      +'<div class="ni on" onclick="showPg(\'adash\')" data-p="adash">?? Dashboard</div>'
+      +'<div class="ni on" onclick="showPg(\'adash\')" data-p="adash">📊 Dashboard</div>'
       +'<div class="sbs">Manage</div>'
-      +'<div class="ni" onclick="showPg(\'atch\')" data-p="atch">????? Teachers</div>'
-      +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">?? Students</div>'
-      +'<div class="ni" onclick="showPg(\'acls\')" data-p="acls">?? Classes</div>'
-      +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">?? Schedule</div>'
-      +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">? Pending <span class="pb" id="pc"></span></div>'
-      +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">?? Check-in (Barcode)</div>'
+      +'<div class="ni" onclick="showPg(\'atch\')" data-p="atch">👨‍🏫 Teachers</div>'
+      +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'acls\')" data-p="acls">🏫 Classes</div>'
+      +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">📅 Schedule</div>'
+      +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>'
+      +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">🔍 Check-in (Barcode)</div>'
       +'<div class="sbs">System</div>'
-      +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">?? School Open</div>'
-      +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">?? New Academic Year</div>';
+      +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">🟢 School Open</div>'
+      +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">🎓 New Academic Year</div>';
     mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin();
     updPC();updMaintNi();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
-    const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">?? Homeroom ('+CU.homeroom+')</div>':'';
+    const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
     nav.innerHTML='<div class="sbs">Overview</div>'
-      +'<div class="ni on" onclick="showPg(\'dash\')" data-p="dash">?? Dashboard</div>'
+      +'<div class="ni on" onclick="showPg(\'dash\')" data-p="dash">📊 Dashboard</div>'
       +'<div class="sbs">Teaching</div>'
-      +'<div class="ni" onclick="showPg(\'gr\')" data-p="gr">?? Grades</div>'
-      +'<div class="ni" onclick="showPg(\'semtch\')" data-p="semtch">?? Semester Grades</div>'
+      +'<div class="ni" onclick="showPg(\'gr\')" data-p="gr">📝 Grades</div>'
+      +'<div class="ni" onclick="showPg(\'semtch\')" data-p="semtch">📊 Semester Grades</div>'
       +'<div class="sbs">Other</div>'
-      +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">?? Students</div>'
-      +'<div class="ni" onclick="showPg(\'tp\')" data-p="tp">?? Thematic Plan</div>'
-      +'<div class="ni" onclick="showPg(\'tmsg\')" data-p="tmsg">?? Messages</div>'
-      +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">?? My Profile</div>'
+      +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'tp\')" data-p="tp">📋 Thematic Plan</div>'
+      +'<div class="ni" onclick="showPg(\'tmsg\')" data-p="tmsg">💬 Messages</div>'
+      +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>'
       +hr;
     mn.innerHTML=buildDash()+buildGR()+buildGrBook()+buildStu()+(CU.homeroom?buildHR():'')+buildTP()+buildSemTch()+buildTchMsg()+buildProf();
     showPg('dash');
@@ -1433,23 +1435,23 @@ function buildNav(){
     buildFamilyNav();
   }else{
     nav.innerHTML='<div class="sbs">Diary</div>'
-      +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">?? My Diary</div>'
+      +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">📖 My Diary</div>'
       +'<div class="sbs">Grades</div>'
-      +'<div class="ni" onclick="showPg(\'sem\')" data-p="sem">?? Semester Grades</div>'
+      +'<div class="ni" onclick="showPg(\'sem\')" data-p="sem">📊 Semester Grades</div>'
       +'<div class="sbs">Account</div>'
-      +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">?? My Profile</div>';
+      +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>';
     mn.innerHTML=buildDi()+buildSem()+buildProf();
     initDi();initSem();showPg('di');
   }
 }
 
-// -- FAMILY (PARENT) FLOW --
+// ── FAMILY (PARENT) FLOW ──
 function buildFamilyNav(){
   const nav=$('nav'),mn=$('mn');
   const kids=CU.children||[];
   window._famUnlocked={}; // always start locked on a fresh login
   nav.innerHTML='<div class="sbs">Family</div>'
-    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">???????? Select Child</div>';
+    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧 Select Child</div>';
   mn.innerHTML=buildFamSelect();
   showPg('fam-select');
 }
@@ -1458,7 +1460,7 @@ function buildFamSelect(){
   const kids=CU.children||[];
   window._famUnlocked=window._famUnlocked||{};
   return'<div class="pg" id="fam-select">'
-    +'<div class="pt">???????? '+esc2(CU.name)+'</div>'
+    +'<div class="pt">👨‍👩‍👧 '+esc2(CU.name)+'</div>'
     +'<div class="ps">Select a child to view their school information</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">'
     +kids.map((ch,i)=>{
@@ -1467,7 +1469,7 @@ function buildFamSelect(){
         +'<div class="av avp" style="width:56px;height:56px;font-size:18px;margin:0 auto 12px">'+ini(ch.name)+'</div>'
         +'<div style="font-weight:700;font-size:15px;color:var(--txt)">'+esc2(ch.name)+'</div>'
         +'<div style="font-size:12px;color:var(--txt2);margin-top:3px">Class '+(ch.cls||ch.class||'�')+'</div>'
-        +(unlocked?'<div style="margin-top:10px"><span class="badge bp">?? Unlocked</span></div>':'<div style="margin-top:10px"><span class="badge ba">?? PIN required</span></div>')
+        +(unlocked?'<div style="margin-top:10px"><span class="badge bp">🔓 Unlocked</span></div>':'<div style="margin-top:10px"><span class="badge ba">🔒 PIN required</span></div>')
         +'</div>';
     }).join('')
     +'</div>'
@@ -1488,10 +1490,10 @@ function selectFamChild(idx){
   const m=document.createElement('div');
   m.className='mw';
   m.innerHTML='<div class="md" style="max-width:340px;text-align:center">'
-    +'<div style="font-size:36px;margin-bottom:10px">??</div>'
+    +'<div style="font-size:36px;margin-bottom:10px">🔒</div>'
     +'<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+esc2(ch.name)+'</div>'
     +'<div style="font-size:12px;color:var(--txt2);margin-bottom:18px">Enter the 4-digit PIN provided by the school</div>'
-    +'<input id="fam-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder="� � � �" style="width:100%;padding:14px;font-size:26px;letter-spacing:14px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')checkFamPin()">'
+    +'<input id="fam-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder=". . . ." style="width:100%;padding:14px;font-size:26px;letter-spacing:14px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')checkFamPin()">'
     +'<div class="er" id="fam-pin-err" style="margin-top:8px"></div>'
     +'<div style="display:flex;gap:8px;margin-top:14px">'
     +'<button class="btn bg2" style="flex:1" onclick="this.closest(\'.mw\').remove()">Cancel</button>'
@@ -1523,12 +1525,12 @@ function showFamilyChild(idx){
   const ch=(CU.children||[])[idx];if(!ch)return;
   const nav=$('nav');
   nav.innerHTML='<div class="sbs">Family</div>'
-    +'<div class="ni" onclick="backToFamSelect()" data-p="fam-select">< Switch Child</div>'
+    +'<div class="ni" onclick="backToFamSelect()" data-p="fam-select">← Switch Child</div>'
     +'<div class="sbs">'+esc2(ch.name)+'</div>'
-    +'<div class="ni on" onclick="showPg(\'fc-diary\')" data-p="fc-diary">?? Diary</div>'
-    +'<div class="ni" onclick="showPg(\'fc-grades\')" data-p="fc-grades">? Grades</div>'
-    +'<div class="ni" onclick="showPg(\'fc-profile\')" data-p="fc-profile">?? Profile</div>'
-    +'<div class="ni" onclick="showPg(\'fc-contact\')" data-p="fc-contact">?? Contact Teachers</div>';
+    +'<div class="ni on" onclick="showPg(\'fc-diary\')" data-p="fc-diary">📖 Diary</div>'
+    +'<div class="ni" onclick="showPg(\'fc-grades\')" data-p="fc-grades">⭐ Grades</div>'
+    +'<div class="ni" onclick="showPg(\'fc-profile\')" data-p="fc-profile">👤 Profile</div>'
+    +'<div class="ni" onclick="showPg(\'fc-contact\')" data-p="fc-contact">💬 Contact Teachers</div>';
   const mn=$('mn');
   mn.innerHTML=buildFamDiary(idx)+buildFamGrades(idx)+buildFamProfile(idx)+buildFamContact(idx);
   initFamDiary(idx);
@@ -1544,14 +1546,14 @@ function backToFamSelect(){
   showPg('fam-select');
 }
 
-// -- FAMILY: DIARY --
+// ── FAMILY: DIARY ──
 function buildFamDiary(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
   const n=new Date(),ay=curAY(),ms=getMonths(ay);
   const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
   return'<div class="pg" id="fc-diary">'
-    +'<div class="pt">?? '+esc2(ch.name)+'\'s Diary</div><div class="ps">Class '+cls+'</div>'
+    +'<div class="pt">📖 '+esc2(ch.name)+'\'s Diary</div><div class="ps">Class '+cls+'</div>'
     +'<div class="sr">'
     +'<label>Month:</label><select id="fdm'+idx+'" onchange="onFamDiM('+idx+')">'
     +ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
@@ -1593,17 +1595,17 @@ function rfFamDi(idx){
       const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
       const hi=inf.topic||inf.homework;
       const iid='faminf'+ds.replace(/-/g,'')+i+idx;
-      const gBadge=g==='?'?'<span class="badge ba">?</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">�</span>';
-      const g2Badge=g2==='?'?'<span class="badge ba" style="margin-left:3px">?</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'';
+      const gBadge=g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>';
+      const g2Badge=g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'';
       return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
         +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
-        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">?</button>':'')
+        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
         +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
-        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">?? '+inf.topic+'</div>':'')
-        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">?? '+inf.homework+'</div>':'')
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
         +'</div></td>'
         +'<td style="text-align:center">'+gBadge+g2Badge+'</td></tr>';
-    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">?? No schedule set for this day</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 No schedule set for this day</td></tr>';
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
       +'</div>'
@@ -1612,15 +1614,15 @@ function rfFamDi(idx){
   }).join('');
 }
 
-// -- FAMILY: GRADES (Semester view) --
+// ── FAMILY: GRADES (Semester view) ──
 function buildFamGrades(idx){
   const ch=(CU.children||[])[idx];
   return'<div class="pg" id="fc-grades">'
-    +'<div class="pt">? '+esc2(ch.name)+'\'s Grades</div>'
+    +'<div class="pt">⭐ '+esc2(ch.name)+'\'s Grades</div>'
     +'<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'
     +'<button id="ftab-s1-'+idx+'" class="btn bp2" onclick="showFamSemTab('+idx+',\'S1\')">Semester 1</button>'
     +'<button id="ftab-s2-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'S2\')">Semester 2</button>'
-    +'<button id="ftab-ann-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'ANN\')">?? Annual</button>'
+    +'<button id="ftab-ann-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'ANN\')">🎓 Annual</button>'
     +'</div>'
     +'<div id="fam-sem-content-'+idx+'"></div>'
     +'</div>';
@@ -1655,37 +1657,37 @@ function rfFamSem(idx,tab){
       const s2=getStoredSemGrade(cls,nm,sj,getSemKey('S2',ay))??calcSemGrade(dates,'S2',ay);
       const ann=getStoredSemGrade(cls,nm,sj,getAnnKey(ay))??(s1!=null&&s2!=null?((s1+s2)/2):s1!=null?s1:s2);
       return'<tr><td style="font-weight:500">'+sj+'</td>'
-        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'�')+'</td>'
-        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'�')+'</td>'
-        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:14px;padding:4px 12px">'+ann.toFixed(1)+'</span>':'�')+'</td></tr>';
+        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'—')+'</td>'
+        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'—')+'</td>'
+        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:14px;padding:4px 12px">'+ann.toFixed(1)+'</span>':'—')+'</td></tr>';
     }).join('');
-    el.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th style="text-align:center">Sem 1</th><th style="text-align:center">Sem 2</th><th style="text-align:center">?? Annual</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    el.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th style="text-align:center">Sem 1</th><th style="text-align:center">Sem 2</th><th style="text-align:center">🎓 Annual</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
     return;
   }
-  const semLabel=tab==='S1'?'Semester 1 (Sep�Dec)':'Semester 2 (Jan�May)';
+  const semLabel=tab==='S1'?'Semester 1 (Sep–Dec)':'Semester 2 (Jan–May)';
   const rows=allSubjs.map(sj=>{
     const dates=sg[sj]||{};
     const stored=getStoredSemGrade(cls,nm,sj,getSemKey(tab,ay));
     const auto=calcSemGrade(dates,tab,ay);
     const vals=Object.entries(dates).filter(([dk,g])=>{const ds=dk.replace(/-L\d$/,'');return typeof g==='number'&&getSemester(ds)===tab&&getSemYear(ds)===ay;}).sort((a,b)=>a[0].localeCompare(b[0]));
-    const gradeList=vals.map(([d,g])=>g==='?'?'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">?</span></span>':'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+    const gradeList=vals.map(([d,g])=>g==='բ'?'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">բ</span></span>':'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
     const semG=stored!=null?stored:auto;
     return'<tr><td style="font-weight:500">'+sj+'</td>'
       +'<td style="font-size:12px">'+(gradeList||'<span style="color:var(--txt3)">No grades yet</span>')+'</td>'
-      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'�')+'</td>'
-      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'�')+'</td></tr>';
+      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'—')+'</td>'
+      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'—')+'</td></tr>';
   }).join('');
   el.innerHTML='<div class="cd"><div class="cdh"><h3>'+semLabel+'</h3></div><table><thead><tr><th>Subject</th><th>Lesson Grades</th><th style="text-align:center">Auto Avg</th><th style="text-align:center">Semester Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
-// -- FAMILY: CHILD PROFILE --
+// ── FAMILY: CHILD PROFILE ──
 function buildFamProfile(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
   const sts=DB.classes[cls]||[];
   const ab=countAbsencesFromGrades(cls,ch.name);
   return'<div class="pg" id="fc-profile">'
-    +'<div class="pt">?? '+esc2(ch.name)+'\'s Profile</div>'
+    +'<div class="pt">👤 '+esc2(ch.name)+'\'s Profile</div>'
     +'<div class="srow" style="grid-template-columns:repeat(2,1fr)">'
     +'<div class="sc"><div class="sl">Class</div><div class="sv" style="font-size:22px">'+cls+'</div></div>'
     +'<div class="sc c-red"><div class="sl">Absences</div><div class="sv">'+ab+'</div></div>'
@@ -1698,27 +1700,27 @@ function buildFamProfile(idx){
     +'</div>';
 }
 
-// -- FAMILY: CONTACT TEACHERS --
+// ── FAMILY: CONTACT TEACHERS ──
 function buildFamContact(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
   const teachers=Object.entries(DB.users||{}).filter(([k,u])=>u.role==='teacher'&&(u.classes||[]).includes(cls));
   return'<div class="pg" id="fc-contact">'
-    +'<div class="pt">?? Contact Teachers</div>'
+    +'<div class="pt">💬 Contact Teachers</div>'
     +'<div class="ps">Teachers for class '+cls+'</div>'
     +'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
     +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div><span>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</span></div></td>'
-      +'<td style="font-size:12px">'+(t.subject||'�')+'</td>'
+      +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
       +'<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
-      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">?? Message</button>'
-      +(t.phone?'<button class="btn bg2" onclick="startCall(\''+k+'\',\''+esc(t.name)+'\')" style="white-space:nowrap">?? Call</button>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
+      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">✉️ Message</button>'
+      +(t.phone?'<button class="btn bg2" onclick="startCall(\''+k+'\',\''+esc(t.name)+'\')" style="white-space:nowrap">📞 Call</button>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
       +'</div></td></tr>'
     ).join('')+'</tbody></table></div></div>'
     +'<div id="fam-msg-thread"></div>'
     +'</div>';
 }
 
-// -- MESSAGE SYSTEM (safe nested structure � no string-key collisions) --
+// ── MESSAGE SYSTEM (safe nested structure — no string-key collisions) ──
 // MSGS shape: { [teacherKey]: { [famUsername]: { [childName]: [ {from,fromName,fromFamily,childName,text,ts,readByTeacher} ] } } }
 function getThread(tchKey,famUser,childName){
   return(MSGS[tchKey]&&MSGS[tchKey][famUser]&&MSGS[tchKey][famUser][childName])||[];
@@ -1733,12 +1735,12 @@ function pushThread(tchKey,famUser,childName,msg){
 function renderMsgThread(elId,tchKey,famUser,childName,headerLabel,myRole){
   const el=$(elId);if(!el)return;
   const msgs=getThread(tchKey,famUser,childName);
-  el.innerHTML='<div class="cd"><div class="cdh"><h3 style="word-break:break-word">?? '+esc2(headerLabel)+'</h3></div>'
+  el.innerHTML='<div class="cd"><div class="cdh"><h3 style="word-break:break-word">💬 '+esc2(headerLabel)+'</h3></div>'
     +'<div id="msg-list-'+elId+'" style="padding:14px;max-height:300px;overflow-y:auto">'
     +(msgs.length?msgs.slice().sort((a,b)=>a.ts-b.ts).map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from===myRole?'var(--acc-lt)':'var(--surf2)')+';max-width:85%;word-break:break-word;'+(m.from===myRole?'margin-left:auto':'')+'">'
-      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||'Unknown'))+' � '+new Date(m.ts).toLocaleString()+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||'Unknown'))+' · '+new Date(m.ts).toLocaleString()+'</div>'
       +'<div style="font-size:13px">'+esc2(m.text)+'</div></div>'
-    ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet � send the first one</p>')
+    ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet — send the first one</p>')
     +'</div>'
     +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr);flex-wrap:wrap">'
     +'<input id="msg-input-'+elId+'" placeholder="Type a message..." style="flex:1;min-width:160px;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
@@ -1756,7 +1758,7 @@ async function sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole){
   if(!text)return;
   const msg={from:myRole,fromName:CU.name,text,ts:Date.now()};
   if(myRole==='family'){
-    // Tag who's writing clearly: "<Family name> Family � regarding <Child name>"
+    // Tag who's writing clearly: "<Family name> Family — regarding <Child name>"
     msg.fromName=CU.name+' Family (re: '+childName+')';
   }
   pushThread(tchKey,famUser,childName,msg);
@@ -1768,11 +1770,11 @@ async function sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole){
 
 function openFamMsg(tchKey,tchName,idx){
   const ch=(CU.children||[])[idx];
-  const headerLabel=tchName+' � '+CU.name+' (re: '+ch.name+')';
+  const headerLabel=tchName+' — '+CU.name+' (re: '+ch.name+')';
   renderMsgThread('fam-msg-thread',tchKey,CU.username,ch.name,headerLabel,'family');
 }
 
-// -- TEACHER: MESSAGES INBOX --
+   // -- TEACHER: MESSAGES INBOX --
 function buildTchMsg(){
   const myKey=CU.username;
   const myThreads=MSGS[myKey]||{};
