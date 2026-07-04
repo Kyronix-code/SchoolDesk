@@ -8,8 +8,6 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <style>
 /* =======================================
    SCHOOLDESK � Modern Clean Design
@@ -332,25 +330,25 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
 
 <div id="home" class="aw" style="flex-direction:column">
   <div style="text-align:center;margin-bottom:36px;position:relative;z-index:1">
-    <div style="font-size:48px;margin-bottom:10px">??</div>
+    <div style="font-size:48px;margin-bottom:10px">🏫</div>
     <h1 style="color:#fff;font-size:28px;font-weight:700;letter-spacing:-.3px">SchoolDesk</h1>
     <p style="color:rgba(255,255,255,.7);font-size:14px;margin-top:4px">School Management System</p>
   </div>
   <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:480px;width:100%;position:relative;z-index:1">
     <div class="home-card" onclick="openLoginFor('teacher')">
-      <div class="home-card-ic">📖</div>
+      <div class="home-card-ic">📔</div>
       <div class="home-card-lbl">Journal</div>
     </div>
     <div class="home-card" onclick="openLoginFor('student')">
-      <div class="home-card-ic">📔</div>
+      <div class="home-card-ic">📖</div>
       <div class="home-card-lbl">Diary</div>
     </div>
     <div class="home-card" onclick="openLoginFor('parent')">
-      <div class="home-card-ic">👨‍👩‍👧</div>
+      <div class="home-card-ic">👨‍👩‍👧‍👦</div>
       <div class="home-card-lbl">Family</div>
     </div>
     <div class="home-card" onclick="openLoginFor('admin')">
-      <div class="home-card-ic">⚙</div>
+      <div class="home-card-ic">🏛️</div>
       <div class="home-card-lbl">SMIS</div>
     </div>
   </div>
@@ -373,7 +371,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
           <div class="rtab" onclick="setRole('admin')">Admin</div>
         </div>
         <div class="fg"><label>Username</label><input id="lu" type="text" placeholder="your@email.com" onkeydown="if(event.key==='Enter')login()"></div>
-        <div class="fg"><label>Password</label><input id="lp" type="password" placeholder=".........." onkeydown="if(event.key==='Enter')login()"></div>
+        <div class="fg"><label>Password</label><input id="lp" type="password" placeholder="��������" onkeydown="if(event.key==='Enter')login()"></div>
         <button class="bmain" onclick="login()">Sign In</button>
         <div class="er" id="le"></div>
         <div class="af" id="reg-link">New student? <button class="lb" onclick="showF('rf')">Register here</button></div>
@@ -389,7 +387,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
       </div>
       <div id="pf" class="h">
         <div style="text-align:center;padding:16px 0 20px">
-          <div style="font-size:42px;margin-bottom:12px">?</div>
+          <div style="font-size:42px;margin-bottom:12px">⏳</div>
           <h2 style="font-size:18px;font-weight:700;margin-bottom:6px">Waiting for approval</h2>
           <p style="color:var(--txt2);font-size:13px;line-height:1.5">Your account is pending admin approval.<br>Please enter your child's details.</p>
         </div>
@@ -401,7 +399,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
       </div>
       <div id="cf" class="h">
         <div style="text-align:center;padding:12px 0 18px">
-          <div style="font-size:38px;margin-bottom:10px">?</div>
+          <div style="font-size:38px;margin-bottom:10px">✅</div>
           <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Submitted!</h2>
           <p style="color:var(--txt2);font-size:13px">Want to add another child?</p>
         </div>
@@ -420,21 +418,21 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
 
 <div id="app" class="h">
   <div class="mh">
-    <button onclick="tgSb()" style="background:none;border:none;cursor:pointer;color:#fff;font-size:22px;line-height:1">?</button>
-    <span style="font-size:15px;font-weight:700;color:#fff">?? SchoolDesk</span>
+    <button onclick="tgSb()" style="background:none;border:none;cursor:pointer;color:#fff;font-size:22px;line-height:1">☰</button>
+    <span style="font-size:15px;font-weight:700;color:#fff">🏫 SchoolDesk</span>
     <div style="display:flex;gap:6px">
-      <button onclick="toggleNotifPanel()" id="notif-btn-m" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 9px;color:#fff;cursor:pointer;font-size:15px">??<span id="notif-badge-m" class="h" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
-      <button onclick="tgTheme()" id="tmbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;color:#fff;cursor:pointer;font-size:15px">??</button>
+      <button onclick="toggleNotifPanel()" id="notif-btn-m" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 9px;color:#fff;cursor:pointer;font-size:15px">🔔<span id="notif-badge-m" class="h" style="position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;border-radius:50%;width:16px;height:16px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
+      <button onclick="tgTheme()" id="tmbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.25);border-radius:8px;padding:5px 10px;color:#fff;cursor:pointer;font-size:15px">🌙</button>
     </div>
   </div>
   <div class="ov" id="ov" onclick="tgSb()"></div>
   <div class="sb" id="sb">
     <div class="sbh">
       <div class="brand">
-        <span>?? SchoolDesk</span>
+        <span>🏫 SchoolDesk</span>
         <div style="display:flex;gap:5px">
-          <button onclick="toggleNotifPanel()" id="notif-btn" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 7px;color:#fff;cursor:pointer;font-size:13px">??<span id="notif-badge" class="h" style="position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:8px;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
-          <button onclick="tgTheme()" id="tbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 8px;color:#fff;cursor:pointer;font-size:13px">??</button>
+          <button onclick="toggleNotifPanel()" id="notif-btn" style="position:relative;background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 7px;color:#fff;cursor:pointer;font-size:13px">🔔<span id="notif-badge" class="h" style="position:absolute;top:-3px;right:-3px;background:var(--red);color:#fff;font-size:8px;border-radius:50%;width:14px;height:14px;display:flex;align-items:center;justify-content:center;font-weight:700">0</span></button>
+          <button onclick="tgTheme()" id="tbtn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);border-radius:7px;padding:3px 8px;color:#fff;cursor:pointer;font-size:13px">🌙</button>
         </div>
       </div>
       <div class="un" id="sbn"></div>
@@ -447,7 +445,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   </div>
   <div id="notif-panel" class="h" style="position:fixed;top:60px;right:16px;width:320px;max-height:420px;overflow-y:auto;background:var(--surf);border:1px solid var(--bdr);border-radius:var(--r3);box-shadow:var(--sh3);z-index:300">
     <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center">
-      <h3 style="font-size:13px;font-weight:700">?? Notifications</h3>
+      <h3 style="font-size:13px;font-weight:700">🔔 Notifications</h3>
       <button onclick="markAllNotifsRead()" style="font-size:11px;background:none;border:none;color:var(--acc);cursor:pointer">Mark all read</button>
     </div>
     <div id="notif-list" style="padding:6px"></div>
@@ -459,27 +457,16 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
   <div class="sp"></div>
   <p id="ldt">Loading...</p>
 </div>
-<div class="fl" id="fl">? Saved successfully</div>
+<div class="fl" id="fl">✅ Saved successfully</div>
 
 <script>
 
 
-const firebaseConfig={
-  apiKey:"AIzaSyCVu1ufZ7pH-4xOInQKH7uX69Iq18LFvms",
-  authDomain:"schooldesk-77b86.firebaseapp.com",
-  projectId:"schooldesk-77b86",
-  storageBucket:"schooldesk-77b86.firebasestorage.app",
-  messagingSenderId:"869910042993",
-  appId:"1:869910042993:web:d1dcb869b1e8a1d4edfed0",
-  measurementId:"G-Y3ELSR2BQH"
-};
-firebase.initializeApp(firebaseConfig);
-const fsdb=firebase.firestore();
-const FS_COL='schooldesk';
-const BS='school';
-const BG='grades';
-const BA='attendance';
-const BC='schedule';
+const AK='$2a$10$Gi.k.77zA4oqHpM7hiWOPu.sz164TIhfB/m5M0o91k2DOfHCi08b6';
+const BS='69be81f0b7ec241ddc8bb006';
+const BG='69be81fdaa77b81da90584f9';
+const BA='69be81feaa77b81da90584fe';
+const BC='69be81efb7ec241ddc8baffe';
 const AP='SchoolAdmin2026';
 
 let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={};
@@ -559,19 +546,14 @@ function tgTheme(){
 function tgSb(){$('sb').classList.toggle('op');$('ov').classList.toggle('op')}
 function clSb(){$('sb').classList.remove('op');$('ov').classList.remove('op')}
 
-// API (Firestore-backed; keeps the same bGet/bSet signature every call site already relies on)
-function fsClean(data){
-  // Firestore rejects `undefined` field values (JSONBin didn't care), so strip them.
-  return JSON.parse(JSON.stringify(data===undefined?null:data));
-}
+// API
 async function bGet(id){
-  const snap=await fsdb.collection(FS_COL).doc(id).get();
-  return snap.exists?snap.data():{};
+  const r=await fetch('https://api.jsonbin.io/v3/b/'+id+'/latest',{headers:{'X-Master-Key':AK}});
+  return(await r.json()).record;
 }
 async function bSet(id,data){
-  try{
-    await fsdb.collection(FS_COL).doc(id).set(fsClean(data));
-  }catch(e){throw new Error(e.message||'Firestore write failed');}
+  const r=await fetch('https://api.jsonbin.io/v3/b/'+id,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(data)});
+  if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.message||'HTTP '+r.status);}
 }
 
 // LOAD/SAVE
@@ -618,31 +600,39 @@ async function loadAll(){
 async function svSchool(){
   try{
     const payload={users:DB.users,classes:DB.classes,pending:PE,maintenance:DB.maintenance||false,maintMsg:DB.maintMsg||'',academicYear:DB.academicYear||''};
-    await bSet(BS,payload);
-  }catch(e){hLoad();alert('? Save error (School): '+e.message);throw e;}
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BS,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (School): '+e.message);throw e;}
 }
 async function svMsgs(){
   try{
     // Fetch latest to avoid clobbering grades/thematic saved elsewhere
-    const cur=(await bGet(BG))||{};
+    const r0=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d0=await r0.json();
+    const cur=d0.record||{};
     const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:MSGS,calls:cur.calls||CALLS||{}};
-    await bSet(BG,payload);
-  }catch(e){console.error('svMsgs error:',e);alert('? Could not send message: '+e.message);throw e;}
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){console.error('svMsgs error:',e);alert('❌ Could not send message: '+e.message);throw e;}
 }
 
 // Pushes/updates this user's entry in the shared call-signaling table (stored in the
-// grades doc alongside messages, merge-pattern to avoid clobbering other fields).
+// grades bin alongside messages, merge-pattern to avoid clobbering other fields).
 async function svCalls(){
   try{
-    const cur=(await bGet(BG))||{};
+    const r0=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d0=await r0.json();
+    const cur=d0.record||{};
     const payload={grades:cur.grades||GR,lessonInfo:cur.lessonInfo||LI,thematic:cur.thematic||window._tp||{},messages:cur.messages||MSGS||{},calls:CALLS};
-    await bSet(BG,payload);
+    await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(payload)});
   }catch(e){console.error('svCalls error:',e);}
 }
 
 // -- IN-APP CALLING --
 // Real two-way audio via WebRTC (mic-to-mic). Signaling (offer/answer/ICE candidates)
-// is exchanged through the shared `calls` object in the grades Firestore doc, since this is
+// is exchanged through the shared `calls` object in the grades JsonBin, since this is
 // a static site with no server of its own � polling stands in for a signaling server.
 let _ringAudioCtx=null,_ringInterval=null,_callPollTimer=null,_activeCallWith=null;
 let _pc=null,_localStream=null,_remoteAudioEl=null,_isMuted=false;
@@ -691,9 +681,9 @@ async function setupPeerConnection(toKey,withVideo){
     if(withVideo){
       // Camera may be unavailable -- fall back to audio-only rather than failing the whole call.
       try{_localStream=await navigator.mediaDevices.getUserMedia({audio:true,video:false});}
-      catch(e2){alert('? Microphone access is required to make calls: '+e2.message);throw e2;}
+      catch(e2){alert('❌ Microphone access is required to make calls: '+e2.message);throw e2;}
     }else{
-      alert('? Microphone access is required to make calls: '+e.message);
+      alert('❌ Microphone access is required to make calls: '+e.message);
       throw e;
     }
   }
@@ -767,7 +757,7 @@ function showOutgoingCallUI(toKey,toName){
     +'<div style="font-size:48px;margin-bottom:14px">📞</div>'
     +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">Calling '+esc2(toName)+'...</div>'
     +'<div style="font-size:13px;color:var(--txt2);margin-bottom:24px">Ringing</div>'
-    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(toKey)+'\')">✕</button>'
+    +'<button class="btn bd2" style="width:64px;height:64px;border-radius:50%;font-size:22px" onclick="endCall(\''+esc2(toKey)+'\')">📵</button>'
     +'</div>';
   document.body.appendChild(m);
   startRing();
@@ -777,8 +767,9 @@ function pollCallStatus(toKey,toName){
   if(_callPollTimer)clearInterval(_callPollTimer);
   _callPollTimer=setInterval(async()=>{
     try{
-      const rec=(await bGet(BG))||{};
-      const calls=rec.calls||{};
+      const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+      const d=await r.json();
+      const calls=(d.record||{}).calls||{};
       const entry=calls[toKey];
       if(!entry||entry.status==='ended'||entry.status==='declined'){
         const wasDeclined=entry&&entry.status==='declined';
@@ -807,8 +798,9 @@ function watchForRemoteHangup(otherKey){
   if(_hangupWatchTimer)clearInterval(_hangupWatchTimer);
   _hangupWatchTimer=setInterval(async()=>{
     try{
-      const rec=(await bGet(BG))||{};
-      const calls=rec.calls||{};
+      const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+      const d=await r.json();
+      const calls=(d.record||{}).calls||{};
       const entry=calls[otherKey]||calls[CU.username];
       const stillActive=(calls[otherKey]&&calls[otherKey].status==='accepted')||(calls[CU.username]&&calls[CU.username].status==='accepted');
       if(!stillActive){
@@ -947,7 +939,9 @@ function startNotifWatcher(){
 async function checkForNewNotifs(){
   if(!CU)return;
   try{
-    const rec=(await bGet(BG))||{};
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d=await r.json();
+    const rec=d.record||{};
     const freshMsgs=rec.messages||{};
     const freshGrades=rec.grades||{};
 
@@ -962,7 +956,7 @@ async function checkForNewNotifs(){
             if(newOnes.length){
               const fam=DB.users[famUser];
               const famName=fam?fam.name:famUser;
-              addNotif('??','New message from '+famName,newOnes[newOnes.length-1].text,()=>{showPg('tmsg');setTimeout(()=>openTchMsg(famUser,famName,child),100);});
+              addNotif('💬','New message from '+famName,newOnes[newOnes.length-1].text,()=>{showPg('tmsg');setTimeout(()=>openTchMsg(famUser,famName,child),100);});
             }
           }
           _lastSeenMsgCount[key]=msgs.length;
@@ -979,27 +973,27 @@ async function checkForNewNotifs(){
             if(newOnes.length){
               const t=DB.users[tk];
               const tName=t?t.name:'Teacher';
-              addNotif('??',tName+' sent a message',newOnes[newOnes.length-1].text+' (re: '+ch.name+')',null);
+              addNotif('💬',tName+' sent a message',newOnes[newOnes.length-1].text+' (re: '+ch.name+')',null);
             }
           }
           _lastSeenMsgCount[key]=thread.length;
         });
       });
-       (CU.children||[]).forEach(ch=>{
+      (CU.children||[]).forEach(ch=>{
         const cls=ch.cls||ch.class||'';
         const subjMap=(freshGrades[cls]&&freshGrades[cls][ch.name])||{};
         let count=0;
         Object.values(subjMap).forEach(dates=>{count+=Object.keys(dates).length;});
         const prevCount=_lastSeenGradeCount[ch.name]||0;
         if(count>prevCount){
-          addNotif('⭐','New grade for '+ch.name,'Check the latest grade in their diary',null);
+          addNotif('📊','New grade for '+ch.name,'Check the latest grade in their diary',null);
         }
         _lastSeenGradeCount[ch.name]=count;
       });
     }
   }catch(e){}
 }
-   
+
 function startIncomingCallWatcher(){
   if(_callWatchTimer)clearInterval(_callWatchTimer);
   _callWatchTimer=setInterval(checkIncomingCall,2000);
@@ -1010,8 +1004,9 @@ let _shownCallTs=null;
 async function checkIncomingCall(){
   if(!CU)return;
   try{
-    const rec=(await bGet(BG))||{};
-    const calls=rec.calls||{};
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG+'/latest',{headers:{'X-Master-Key':AK}});
+    const d=await r.json();
+    const calls=(d.record||{}).calls||{};
     const entry=calls[CU.username];
     if(entry&&entry.status==='ringing'&&entry.ts!==_shownCallTs&&!$('call-ui')){
       _shownCallTs=entry.ts;
@@ -1030,8 +1025,8 @@ function showIncomingCallUI(entry){
     +'<div style="font-size:17px;font-weight:700;margin-bottom:4px">'+esc2(entry.fromName)+'</div>'
     +'<div style="font-size:13px;color:var(--txt2);margin-bottom:26px">Incoming call '+(entry.fromRole==='parent'?'(Family)':'')+'</div>'
     +'<div style="display:flex;gap:24px;justify-content:center">'
-    +'<button class="btn bd2" style="width:58px;height:58px;border-radius:50%;font-size:20px" onclick="declineCall(\''+esc2(entry.from)+'\')">?</button>'
-    +'<button class="btn bp2" style="width:58px;height:58px;border-radius:50%;font-size:20px;background:var(--grn)" onclick="acceptCall(\''+esc2(entry.from)+'\',\''+esc2(entry.fromName)+'\')">?</button>'
+    +'<button class="btn bd2" style="width:58px;height:58px;border-radius:50%;font-size:20px" onclick="declineCall(\''+esc2(entry.from)+'\')">❌</button>'
+    +'<button class="btn bp2" style="width:58px;height:58px;border-radius:50%;font-size:20px;background:var(--grn)" onclick="acceptCall(\''+esc2(entry.from)+'\',\''+esc2(entry.fromName)+'\')">✅</button>'
     +'</div>'
     +'</div>';
   document.body.appendChild(m);
@@ -1106,16 +1101,16 @@ function showActiveCallUI(otherKey,otherName){
     +'<div id="call-avatar-block" style="text-align:center">'
     +'<div class="av avp" style="width:84px;height:84px;font-size:28px;margin:0 auto 14px">'+ini(otherName)+'</div>'
     +'<div style="font-size:18px;font-weight:700;color:#fff;margin-bottom:4px">'+esc2(otherName)+'</div>'
-    +'<div style="font-size:13px;color:var(--grn)">🟢 Call connected</div>'
+    +'<div style="font-size:13px;color:var(--grn)">✅ Call connected</div>'
     +'</div>'
     +'<video id="call-local-video" autoplay playsinline muted style="display:none;position:absolute;bottom:10px;right:10px;width:90px;height:120px;border-radius:8px;object-fit:cover;border:2px solid rgba(255,255,255,.4)"></video>'
     +'</div>'
     +'<div style="display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:20px">'
-    +'<button class="btn bg2" id="call-mute-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleMute()" title="Mute">??</button>'
-    +'<button class="btn bg2" id="call-video-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleVideo()" title="Camera">??</button>'
-    +'<button class="btn bg2" id="call-flip-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px;display:none" onclick="flipCamera()" title="Switch camera">??</button>'
-    +'<button class="btn bg2" id="call-lock-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="lockCallScreen()" title="Lock screen (during a phone call)">??</button>'
-    +'<button class="btn bd2" style="width:60px;height:60px;border-radius:50%;font-size:20px" onclick="endCall(\''+esc2(otherKey)+'\')" title="Hang up">??</button>'
+    +'<button class="btn bg2" id="call-mute-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleMute()" title="Mute">🎙️</button>'
+    +'<button class="btn bg2" id="call-video-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="toggleVideo()" title="Camera">📷</button>'
+    +'<button class="btn bg2" id="call-flip-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px;display:none" onclick="flipCamera()" title="Switch camera">🔄</button>'
+    +'<button class="btn bg2" id="call-lock-btn" style="width:52px;height:52px;border-radius:50%;font-size:17px" onclick="lockCallScreen()" title="Lock screen (during a phone call)">🔒</button>'
+    +'<button class="btn bd2" style="width:60px;height:60px;border-radius:50%;font-size:20px" onclick="endCall(\''+esc2(otherKey)+'\')" title="Hang up">📵</button>'
     +'</div>'
     +'</div>';
   document.body.appendChild(m);
@@ -1144,7 +1139,7 @@ function toggleMute(){
   _localStream.getAudioTracks().forEach(t=>t.enabled=!_isMuted);
   const btn=$('call-mute-btn');
   if(btn){
-    btn.textContent=_isMuted?'🔇':'🎤';
+    btn.textContent=_isMuted?'🔇':'🎙️';
     btn.style.background=_isMuted?'var(--red-lt)':'';
     btn.style.color=_isMuted?'var(--red)':'';
   }
@@ -1173,7 +1168,7 @@ async function toggleVideo(){
       _videoEnabled=true;
       const lv=$('call-local-video');
       if(lv){lv.srcObject=_localStream;lv.style.display='block';}
-      if(btn){btn.textContent='📷';btn.style.background='var(--acc-lt)';}
+      if(btn){btn.textContent='📹';btn.style.background='var(--acc-lt)';}
       if(flipBtn)flipBtn.style.display='inline-flex';
       // Renegotiate so the other side receives the new video track
       if(typeof renegotiateCall==='function')renegotiateCall();
@@ -1197,7 +1192,7 @@ async function flipCamera(){
     _localStream.addTrack(newTrack);
     const lv=$('call-local-video');if(lv)lv.srcObject=_localStream;
   }catch(e){
-    alert('? Could not switch camera: '+e.message);
+    alert('❌ Could not switch camera: '+e.message);
   }
 }
 
@@ -1218,17 +1213,20 @@ async function renegotiateCall(){
 
 async function svGrades(){
   try{
-    await bSet(BG,{grades:GR,lessonInfo:LI,thematic:window._tp||{},messages:MSGS});
-  }catch(e){hLoad();alert('? Save error (Grades): '+e.message);throw e;}
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BG,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify({grades:GR,lessonInfo:LI,thematic:window._tp||{},messages:MSGS})});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Grades): '+e.message);throw e;}
 }
 async function svAtt(){
   try{
-    await bSet(BA,AT);
-  }catch(e){hLoad();alert('? Save error (Attendance): '+e.message);throw e;}
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BA,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:JSON.stringify(AT)});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Attendance): '+e.message);throw e;}
 }
 async function svSched(){
-  // Trim old weeks so the doc doesn't grow forever (Firestore doc limit is ~1MiB, far more
-  // headroom than JSONBin's old ~100KB free-tier cap, but trimming still keeps things fast)
+  // Trim old weeks to stay under 100KB
   Object.keys(SC).forEach(cls=>{
     const wks=Object.keys(SC[cls]).filter(k=>/^\d{4}-\d{2}-\d{2}$/.test(k)).sort();
     if(wks.length>16)wks.slice(0,wks.length-16).forEach(w=>delete SC[cls][w]);
@@ -1236,10 +1234,12 @@ async function svSched(){
   // Check size
   const json=JSON.stringify(SC);
   const kb=Math.round(json.length/1024);
-  if(kb>900){hLoad();alert('? Schedule is too large ('+kb+'KB). Delete old weeks first.');return;}
+  if(kb>90){hLoad();alert('❌ Schedule is too large ('+kb+'KB). Delete old weeks first.');return;}
   try{
-    await bSet(BC,SC);
-  }catch(e){hLoad();alert('? Save error (Schedule): '+e.message+' ('+kb+'KB)');throw e;}
+    const r=await fetch('https://api.jsonbin.io/v3/b/'+BC,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':AK},body:json});
+    const d=await r.json();
+    if(!r.ok)throw new Error(d.message||'Save failed ('+r.status+')');
+  }catch(e){hLoad();alert('❌ Save error (Schedule): '+e.message+' ('+kb+'KB)');throw e;}
 }
 
 // CAPTCHA
@@ -1254,11 +1254,10 @@ function setRole(r){
 }
 
 const ROLE_INFO={
-  teacher:{ic:'📖',title:'Grade Book',sub:'Teacher sign in'},
-  student:{ic:'📔',title:'Diary',sub:'Student sign in'},
-  parent:{ic:'👨‍👩‍👧',title:'Family',sub:'Family sign in'},
-  admin:{ic:'⚙️',title:'Admin',sub:'Administrator sign in'},
-};
+  teacher:{ic:'📔',title:'Grade Book',sub:'Teacher sign in'},
+  student:{ic:'📖',title:'Diary',sub:'Student sign in'},
+  parent:{ic:'👨‍👩‍👧‍👦',title:'Family',sub:'Family sign in'},
+  admin:{ic:'🏛️',title:'Admin',sub:'Administrator sign in'},
 };
 // Called when a home-screen card is tapped: shows the login form pre-set to that role.
 function openLoginFor(role){
@@ -1267,7 +1266,6 @@ function openLoginFor(role){
   setRole(role);
   showF('lf');
   const info=ROLE_INFO[role]||{ic:'🏫',title:'SchoolDesk',sub:'School Management System'};
-  $('aw-ic').textContent=info.ic;
   $('aw-ic').textContent=info.ic;
   $('aw-title').textContent=info.title;
   $('aw-subtitle').textContent=info.sub;
@@ -1292,7 +1290,7 @@ function login(){
   // Check maintenance mode (except admin)
   if(cRole!=='admin'&&DB.maintenance){
     er.innerHTML='<div style="text-align:center;padding:10px 0">'
-      +'<div style="font-size:28px;margin-bottom:8px">🔧</div>'
+      +'<div style="font-size:28px;margin-bottom:8px">🚧</div>'
       +'<div style="font-size:14px;font-weight:600;margin-bottom:6px">SchoolDesk is temporarily closed</div>'
       +'<div style="font-size:12px;color:var(--txt2)">'+(DB.maintMsg||'We are making improvements. Please try again later.')+'</div>'
       +'</div>';
@@ -1405,15 +1403,15 @@ function buildNav(){
     nav.innerHTML='<div class="sbs">Overview</div>'
       +'<div class="ni on" onclick="showPg(\'adash\')" data-p="adash">📊 Dashboard</div>'
       +'<div class="sbs">Manage</div>'
-      +'<div class="ni" onclick="showPg(\'atch\')" data-p="atch">👨‍🏫 Teachers</div>'
-      +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'atch\')" data-p="atch">👩‍🏫 Teachers</div>'
+      +'<div class="ni" onclick="showPg(\'astu\')" data-p="astu">🎓 Students</div>'
       +'<div class="ni" onclick="showPg(\'acls\')" data-p="acls">🏫 Classes</div>'
-      +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">📅 Schedule</div>'
+      +'<div class="ni" onclick="showPg(\'asc\')" data-p="asc">🗓️ Schedule</div>'
       +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>'
-      +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">🔍 Check-in (Barcode)</div>'
+      +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">📷 Check-in (Barcode)</div>'
       +'<div class="sbs">System</div>'
       +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">🟢 School Open</div>'
-      +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">🎓 New Academic Year</div>';
+      +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">🆕 New Academic Year</div>';
     mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin();
     updPC();updMaintNi();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
@@ -1422,9 +1420,9 @@ function buildNav(){
       +'<div class="ni on" onclick="showPg(\'dash\')" data-p="dash">📊 Dashboard</div>'
       +'<div class="sbs">Teaching</div>'
       +'<div class="ni" onclick="showPg(\'gr\')" data-p="gr">📝 Grades</div>'
-      +'<div class="ni" onclick="showPg(\'semtch\')" data-p="semtch">📊 Semester Grades</div>'
+      +'<div class="ni" onclick="showPg(\'semtch\')" data-p="semtch">📈 Semester Grades</div>'
       +'<div class="sbs">Other</div>'
-      +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">👥 Students</div>'
+      +'<div class="ni" onclick="showPg(\'stu\')" data-p="stu">🎓 Students</div>'
       +'<div class="ni" onclick="showPg(\'tp\')" data-p="tp">📋 Thematic Plan</div>'
       +'<div class="ni" onclick="showPg(\'tmsg\')" data-p="tmsg">💬 Messages</div>'
       +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>'
@@ -1437,7 +1435,7 @@ function buildNav(){
     nav.innerHTML='<div class="sbs">Diary</div>'
       +'<div class="ni on" onclick="showPg(\'di\')" data-p="di">📖 My Diary</div>'
       +'<div class="sbs">Grades</div>'
-      +'<div class="ni" onclick="showPg(\'sem\')" data-p="sem">📊 Semester Grades</div>'
+      +'<div class="ni" onclick="showPg(\'sem\')" data-p="sem">📈 Semester Grades</div>'
       +'<div class="sbs">Account</div>'
       +'<div class="ni" onclick="showPg(\'prof\')" data-p="prof">👤 My Profile</div>';
     mn.innerHTML=buildDi()+buildSem()+buildProf();
@@ -1445,13 +1443,13 @@ function buildNav(){
   }
 }
 
-// ── FAMILY (PARENT) FLOW ──
+// -- FAMILY (PARENT) FLOW --
 function buildFamilyNav(){
   const nav=$('nav'),mn=$('mn');
   const kids=CU.children||[];
   window._famUnlocked={}; // always start locked on a fresh login
   nav.innerHTML='<div class="sbs">Family</div>'
-    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧 Select Child</div>';
+    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧‍👦 Select Child</div>';
   mn.innerHTML=buildFamSelect();
   showPg('fam-select');
 }
@@ -1460,7 +1458,7 @@ function buildFamSelect(){
   const kids=CU.children||[];
   window._famUnlocked=window._famUnlocked||{};
   return'<div class="pg" id="fam-select">'
-    +'<div class="pt">👨‍👩‍👧 '+esc2(CU.name)+'</div>'
+    +'<div class="pt">👨‍👩‍👧‍👦 '+esc2(CU.name)+'</div>'
     +'<div class="ps">Select a child to view their school information</div>'
     +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:16px">'
     +kids.map((ch,i)=>{
@@ -1490,10 +1488,10 @@ function selectFamChild(idx){
   const m=document.createElement('div');
   m.className='mw';
   m.innerHTML='<div class="md" style="max-width:340px;text-align:center">'
-    +'<div style="font-size:36px;margin-bottom:10px">🔒</div>'
+    +'<div style="font-size:36px;margin-bottom:10px">🔐</div>'
     +'<div style="font-size:16px;font-weight:700;margin-bottom:4px">'+esc2(ch.name)+'</div>'
     +'<div style="font-size:12px;color:var(--txt2);margin-bottom:18px">Enter the 4-digit PIN provided by the school</div>'
-    +'<input id="fam-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder=". . . ." style="width:100%;padding:14px;font-size:26px;letter-spacing:14px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')checkFamPin()">'
+    +'<input id="fam-pin-input" type="password" maxlength="4" inputmode="numeric" placeholder="� � � �" style="width:100%;padding:14px;font-size:26px;letter-spacing:14px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')checkFamPin()">'
     +'<div class="er" id="fam-pin-err" style="margin-top:8px"></div>'
     +'<div style="display:flex;gap:8px;margin-top:14px">'
     +'<button class="btn bg2" style="flex:1" onclick="this.closest(\'.mw\').remove()">Cancel</button>'
@@ -1525,12 +1523,12 @@ function showFamilyChild(idx){
   const ch=(CU.children||[])[idx];if(!ch)return;
   const nav=$('nav');
   nav.innerHTML='<div class="sbs">Family</div>'
-    +'<div class="ni" onclick="backToFamSelect()" data-p="fam-select">← Switch Child</div>'
+    +'<div class="ni" onclick="backToFamSelect()" data-p="fam-select">< Switch Child</div>'
     +'<div class="sbs">'+esc2(ch.name)+'</div>'
     +'<div class="ni on" onclick="showPg(\'fc-diary\')" data-p="fc-diary">📖 Diary</div>'
-    +'<div class="ni" onclick="showPg(\'fc-grades\')" data-p="fc-grades">⭐ Grades</div>'
+    +'<div class="ni" onclick="showPg(\'fc-grades\')" data-p="fc-grades">📈 Grades</div>'
     +'<div class="ni" onclick="showPg(\'fc-profile\')" data-p="fc-profile">👤 Profile</div>'
-    +'<div class="ni" onclick="showPg(\'fc-contact\')" data-p="fc-contact">💬 Contact Teachers</div>';
+    +'<div class="ni" onclick="showPg(\'fc-contact\')" data-p="fc-contact">📞 Contact Teachers</div>';
   const mn=$('mn');
   mn.innerHTML=buildFamDiary(idx)+buildFamGrades(idx)+buildFamProfile(idx)+buildFamContact(idx);
   initFamDiary(idx);
@@ -1540,13 +1538,13 @@ function showFamilyChild(idx){
 function backToFamSelect(){
   const nav=$('nav');
   nav.innerHTML='<div class="sbs">Family</div>'
-    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">???????? Select Child</div>';
+    +'<div class="ni on" onclick="showPg(\'fam-select\')" data-p="fam-select">👨‍👩‍👧‍👦 Select Child</div>';
   const mn=$('mn');
   mn.innerHTML=buildFamSelect();
   showPg('fam-select');
 }
 
-// ── FAMILY: DIARY ──
+// -- FAMILY: DIARY --
 function buildFamDiary(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
@@ -1595,17 +1593,17 @@ function rfFamDi(idx){
       const inf=(LI[cls]&&LI[cls][les.sub])?LI[cls][les.sub][ds]||{}:{};
       const hi=inf.topic||inf.homework;
       const iid='faminf'+ds.replace(/-/g,'')+i+idx;
-      const gBadge=g==='բ'?'<span class="badge ba">բ</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">—</span>';
-      const g2Badge=g2==='բ'?'<span class="badge ba" style="margin-left:3px">բ</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'';
+      const gBadge=g==='?'?'<span class="badge ba">?</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">�</span>';
+      const g2Badge=g2==='?'?'<span class="badge ba" style="margin-left:3px">?</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'';
       return'<tr><td style="font-size:11px;color:var(--txt3)">'+(i+1)+'</td>'
         +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
-        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">ℹ</button>':'')
+        +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">?</button>':'')
         +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
-        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📖 '+inf.topic+'</div>':'')
-        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">✏️ '+inf.homework+'</div>':'')
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📘 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">📝 '+inf.homework+'</div>':'')
         +'</div></td>'
         +'<td style="text-align:center">'+gBadge+g2Badge+'</td></tr>';
-    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">📅 No schedule set for this day</td></tr>';
+    }).join(''):'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">🗓️ No schedule set for this day</td></tr>';
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
       +'</div>'
@@ -1614,15 +1612,15 @@ function rfFamDi(idx){
   }).join('');
 }
 
-// ── FAMILY: GRADES (Semester view) ──
+// -- FAMILY: GRADES (Semester view) --
 function buildFamGrades(idx){
   const ch=(CU.children||[])[idx];
   return'<div class="pg" id="fc-grades">'
-    +'<div class="pt">⭐ '+esc2(ch.name)+'\'s Grades</div>'
+    +'<div class="pt">📈 '+esc2(ch.name)+'\'s Grades</div>'
     +'<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'
     +'<button id="ftab-s1-'+idx+'" class="btn bp2" onclick="showFamSemTab('+idx+',\'S1\')">Semester 1</button>'
     +'<button id="ftab-s2-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'S2\')">Semester 2</button>'
-    +'<button id="ftab-ann-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'ANN\')">🎓 Annual</button>'
+    +'<button id="ftab-ann-'+idx+'" class="btn bg2" onclick="showFamSemTab('+idx+',\'ANN\')">📅 Annual</button>'
     +'</div>'
     +'<div id="fam-sem-content-'+idx+'"></div>'
     +'</div>';
@@ -1657,30 +1655,30 @@ function rfFamSem(idx,tab){
       const s2=getStoredSemGrade(cls,nm,sj,getSemKey('S2',ay))??calcSemGrade(dates,'S2',ay);
       const ann=getStoredSemGrade(cls,nm,sj,getAnnKey(ay))??(s1!=null&&s2!=null?((s1+s2)/2):s1!=null?s1:s2);
       return'<tr><td style="font-weight:500">'+sj+'</td>'
-        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'—')+'</td>'
-        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'—')+'</td>'
-        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:14px;padding:4px 12px">'+ann.toFixed(1)+'</span>':'—')+'</td></tr>';
+        +'<td style="text-align:center">'+(s1!=null?'<span class="badge b'+Math.round(s1)+'">'+s1.toFixed(1)+'</span>':'�')+'</td>'
+        +'<td style="text-align:center">'+(s2!=null?'<span class="badge b'+Math.round(s2)+'">'+s2.toFixed(1)+'</span>':'�')+'</td>'
+        +'<td style="text-align:center">'+(ann!=null?'<span class="badge b'+Math.round(ann)+'" style="font-size:14px;padding:4px 12px">'+ann.toFixed(1)+'</span>':'�')+'</td></tr>';
     }).join('');
-    el.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th style="text-align:center">Sem 1</th><th style="text-align:center">Sem 2</th><th style="text-align:center">🎓 Annual</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+    el.innerHTML='<div class="cd"><table><thead><tr><th>Subject</th><th style="text-align:center">Sem 1</th><th style="text-align:center">Sem 2</th><th style="text-align:center">📅 Annual</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
     return;
   }
-  const semLabel=tab==='S1'?'Semester 1 (Sep–Dec)':'Semester 2 (Jan–May)';
+  const semLabel=tab==='S1'?'Semester 1 (Sep�Dec)':'Semester 2 (Jan�May)';
   const rows=allSubjs.map(sj=>{
     const dates=sg[sj]||{};
     const stored=getStoredSemGrade(cls,nm,sj,getSemKey(tab,ay));
     const auto=calcSemGrade(dates,tab,ay);
     const vals=Object.entries(dates).filter(([dk,g])=>{const ds=dk.replace(/-L\d$/,'');return typeof g==='number'&&getSemester(ds)===tab&&getSemYear(ds)===ay;}).sort((a,b)=>a[0].localeCompare(b[0]));
-    const gradeList=vals.map(([d,g])=>g==='բ'?'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">բ</span></span>':'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
+    const gradeList=vals.map(([d,g])=>g==='?'?'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge ba">?</span></span>':'<span style="font-size:11px;color:var(--txt2);margin-right:5px">'+fmtD(d)+': <span class="badge b'+g+'">'+g+'</span></span>').join('');
     const semG=stored!=null?stored:auto;
     return'<tr><td style="font-weight:500">'+sj+'</td>'
       +'<td style="font-size:12px">'+(gradeList||'<span style="color:var(--txt3)">No grades yet</span>')+'</td>'
-      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'—')+'</td>'
-      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'—')+'</td></tr>';
+      +'<td style="text-align:center">'+(auto!=null?'<span style="font-size:12px;color:var(--txt2)">'+auto.toFixed(1)+'</span>':'�')+'</td>'
+      +'<td style="text-align:center">'+(semG!=null?'<span class="badge b'+Math.round(semG)+'" style="font-size:14px;padding:3px 12px">'+semG.toFixed(1)+'</span>':'�')+'</td></tr>';
   }).join('');
   el.innerHTML='<div class="cd"><div class="cdh"><h3>'+semLabel+'</h3></div><table><thead><tr><th>Subject</th><th>Lesson Grades</th><th style="text-align:center">Auto Avg</th><th style="text-align:center">Semester Grade</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
 }
 
-// ── FAMILY: CHILD PROFILE ──
+// -- FAMILY: CHILD PROFILE --
 function buildFamProfile(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
@@ -1700,19 +1698,19 @@ function buildFamProfile(idx){
     +'</div>';
 }
 
-// ── FAMILY: CONTACT TEACHERS ──
+// -- FAMILY: CONTACT TEACHERS --
 function buildFamContact(idx){
   const ch=(CU.children||[])[idx];
   const cls=ch.cls||ch.class||'';
   const teachers=Object.entries(DB.users||{}).filter(([k,u])=>u.role==='teacher'&&(u.classes||[]).includes(cls));
   return'<div class="pg" id="fc-contact">'
-    +'<div class="pt">💬 Contact Teachers</div>'
+    +'<div class="pt">📞 Contact Teachers</div>'
     +'<div class="ps">Teachers for class '+cls+'</div>'
     +'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>Teacher</th><th>Subject</th><th></th></tr></thead><tbody>'
     +teachers.map(([k,t])=>'<tr><td><div class="tf"><div class="av avb">'+ini(t.name)+'</div><span>'+t.name+(t.homeroom===cls?' <span class="badge bp" style="margin-left:6px;font-size:10px">Homeroom</span>':'')+'</span></div></td>'
-      +'<td style="font-size:12px">'+(t.subject||'—')+'</td>'
+      +'<td style="font-size:12px">'+(t.subject||'�')+'</td>'
       +'<td><div style="display:flex;gap:6px;flex-wrap:wrap">'
-      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">✉️ Message</button>'
+      +'<button class="btn bp2" onclick="openFamMsg(\''+k+'\',\''+esc(t.name)+'\','+idx+')" style="white-space:nowrap">💬 Message</button>'
       +(t.phone?'<button class="btn bg2" onclick="startCall(\''+k+'\',\''+esc(t.name)+'\')" style="white-space:nowrap">📞 Call</button>':'<span style="font-size:11px;color:var(--txt3);padding:7px 4px;white-space:nowrap">No phone</span>')
       +'</div></td></tr>'
     ).join('')+'</tbody></table></div></div>'
@@ -1720,7 +1718,7 @@ function buildFamContact(idx){
     +'</div>';
 }
 
-// ── MESSAGE SYSTEM (safe nested structure — no string-key collisions) ──
+// -- MESSAGE SYSTEM (safe nested structure � no string-key collisions) --
 // MSGS shape: { [teacherKey]: { [famUsername]: { [childName]: [ {from,fromName,fromFamily,childName,text,ts,readByTeacher} ] } } }
 function getThread(tchKey,famUser,childName){
   return(MSGS[tchKey]&&MSGS[tchKey][famUser]&&MSGS[tchKey][famUser][childName])||[];
@@ -1738,9 +1736,9 @@ function renderMsgThread(elId,tchKey,famUser,childName,headerLabel,myRole){
   el.innerHTML='<div class="cd"><div class="cdh"><h3 style="word-break:break-word">💬 '+esc2(headerLabel)+'</h3></div>'
     +'<div id="msg-list-'+elId+'" style="padding:14px;max-height:300px;overflow-y:auto">'
     +(msgs.length?msgs.slice().sort((a,b)=>a.ts-b.ts).map(m=>'<div style="margin-bottom:10px;padding:8px 12px;border-radius:8px;background:'+(m.from===myRole?'var(--acc-lt)':'var(--surf2)')+';max-width:85%;word-break:break-word;'+(m.from===myRole?'margin-left:auto':'')+'">'
-      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||'Unknown'))+' · '+new Date(m.ts).toLocaleString()+'</div>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-bottom:2px">'+(m.from===myRole?'You':esc2(m.fromName||'Unknown'))+' � '+new Date(m.ts).toLocaleString()+'</div>'
       +'<div style="font-size:13px">'+esc2(m.text)+'</div></div>'
-    ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet — send the first one</p>')
+    ).join(''):'<p style="color:var(--txt3);font-size:13px;text-align:center">No messages yet � send the first one</p>')
     +'</div>'
     +'<div style="display:flex;gap:8px;padding:14px;border-top:1px solid var(--bdr);flex-wrap:wrap">'
     +'<input id="msg-input-'+elId+'" placeholder="Type a message..." style="flex:1;min-width:160px;padding:9px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
@@ -1758,7 +1756,7 @@ async function sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole){
   if(!text)return;
   const msg={from:myRole,fromName:CU.name,text,ts:Date.now()};
   if(myRole==='family'){
-    // Tag who's writing clearly: "<Family name> Family — regarding <Child name>"
+    // Tag who's writing clearly: "<Family name> Family � regarding <Child name>"
     msg.fromName=CU.name+' Family (re: '+childName+')';
   }
   pushThread(tchKey,famUser,childName,msg);
@@ -1770,11 +1768,11 @@ async function sendMsgTo(elId,tchKey,famUser,childName,headerLabel,myRole){
 
 function openFamMsg(tchKey,tchName,idx){
   const ch=(CU.children||[])[idx];
-  const headerLabel=tchName+' — '+CU.name+' (re: '+ch.name+')';
+  const headerLabel=tchName+' � '+CU.name+' (re: '+ch.name+')';
   renderMsgThread('fam-msg-thread',tchKey,CU.username,ch.name,headerLabel,'family');
 }
 
-   // -- TEACHER: MESSAGES INBOX --
+// -- TEACHER: MESSAGES INBOX --
 function buildTchMsg(){
   const myKey=CU.username;
   const myThreads=MSGS[myKey]||{};
@@ -1790,15 +1788,15 @@ function buildTchMsg(){
   });
   rows.sort((a,b)=>(b.last?.ts||0)-(a.last?.ts||0));
   return'<div class="pg" id="tmsg">'
-    +'<div class="pt">?? Messages</div>'
+    +'<div class="pt">💬 Messages</div>'
     +'<div class="ps">Conversations with families</div>'
     +(rows.length?'<div class="cd"><div style="overflow-x:auto"><table><thead><tr><th>From</th><th>Regarding</th><th>Last message</th><th></th><th></th></tr></thead><tbody>'
       +rows.map(r=>'<tr>'
         +'<td style="cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')"><div class="tf"><div class="av avb">'+ini(r.famName)+'</div><span style="word-break:break-word">'+esc2(r.famName)+(r.unread?' <span class="badge ba" style="margin-left:6px;font-size:10px">New</span>':'')+'</span></div></td>'
-        +'<td style="font-size:12px;cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">?? '+esc2(r.childName)+'</td>'
+        +'<td style="font-size:12px;cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">🎒 '+esc2(r.childName)+'</td>'
         +'<td style="font-size:12px;color:var(--txt2);max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer" onclick="openTchMsg(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\',\''+esc(r.childName)+'\')">'+(r.last?esc2(r.last.text):'�')+'</td>'
         +'<td style="font-size:11px;color:var(--txt3);white-space:nowrap">'+(r.last?new Date(r.last.ts).toLocaleDateString():'')+'</td>'
-        +'<td><button class="btn bg2" onclick="startCall(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\')" style="white-space:nowrap">??</button></td></tr>'
+        +'<td><button class="btn bg2" onclick="startCall(\''+esc(r.famUser)+'\',\''+esc(r.famName)+'\')" style="white-space:nowrap">📞</button></td></tr>'
       ).join('')+'</tbody></table></div></div>'
       :'<p style="color:var(--txt3);padding:16px">No messages from families yet.</p>')
     +'<div id="tch-msg-thread"></div>'
@@ -1825,7 +1823,7 @@ function buildDash(){
   if(hr&&DB.classes[hr]){
     const sts=DB.classes[hr]||[];
     hrH='<div class="cd">'
-      +'<div class="cdh"><h3>?? Homeroom � '+hr+'</h3></div>'
+      +'<div class="cdh"><h3>🏠 Homeroom � '+hr+'</h3></div>'
       +'<table><thead><tr><th>Student</th><th>Today</th><th>Absent (year)</th></tr></thead><tbody>'
       +sts.map(s=>{
         const wasAbsentToday=wasAbsentOnDate(hr,s,t);
@@ -1861,8 +1859,8 @@ function buildGR(){
       +'<div style="font-size:22px;font-weight:700;color:var(--acc);margin-bottom:3px">'+c+'</div>'
       +'<div style="font-size:11px;color:var(--txt3);margin-bottom:12px">'+(DB.classes[c]||[]).length+' students</div>'
       +'<div style="display:flex;gap:8px;justify-content:center">'
-      +'<button class="btn bg2" onclick="openGrSemester(\''+c+'\')" title="Semester Grades" style="width:44px;height:38px;font-size:17px;display:flex;align-items:center;justify-content:center">??</button>'
-      +'<button class="btn bp2" onclick="openGrMatyan(\''+c+'\')" title="Grade Book" style="width:44px;height:38px;font-size:17px;display:flex;align-items:center;justify-content:center">??</button>'
+      +'<button class="btn bg2" onclick="openGrSemester(\''+c+'\')" title="Semester Grades" style="width:44px;height:38px;font-size:17px;display:flex;align-items:center;justify-content:center">📈</button>'
+      +'<button class="btn bp2" onclick="openGrMatyan(\''+c+'\')" title="Grade Book" style="width:44px;height:38px;font-size:17px;display:flex;align-items:center;justify-content:center">📓</button>'
       +'</div></div>'
     ).join('')
     +'</div>'
@@ -2184,7 +2182,7 @@ function buildHR(){
   const cls=CU.homeroom;if(!cls)return'<div class="pg" id="hr"></div>';
   const sts=DB.classes[cls]||[];
   const t=tod();
-  return'<div class="pg" id="hr"><div class="pt">?? Homeroom � '+cls+'</div>'
+  return'<div class="pg" id="hr"><div class="pt">🏠 Homeroom � '+cls+'</div>'
     +'<div class="ps">Click student for full details</div>'
     +'<div class="cd"><table><thead><tr><th>Student</th><th>Today</th><th>Absences (year)</th></tr></thead><tbody>'
     +sts.map(st=>{
@@ -2227,7 +2225,7 @@ function stuModal(cls,st){
   m.innerHTML='<div class="md">'
     +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
     +'<div><div style="font-size:17px;font-weight:700">'+st+'</div><div style="font-size:12px;color:var(--txt2)">Class '+cls+'</div></div>'
-    +'<button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">? Close</button>'
+    +'<button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">✖️ Close</button>'
     +'</div>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:12px">Click a grade to edit it</p>'
     +'<div class="srow" style="grid-template-columns:repeat(2,1fr)">'
@@ -2254,7 +2252,7 @@ function buildDi(){
   const ys=[];const cy=n.getFullYear();
   for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
   return'<div class="pg" id="di">'
-    +'<div class="pt">?? My Diary</div><div class="ps" id="dis"></div>'
+    +'<div class="pt">📖 My Diary</div><div class="ps" id="dis"></div>'
     +'<div class="sr">'
     +'<label>Year:</label><select id="diy" onchange="onDiY()">'
     +ys.map(y=>'<option value="'+y+'"'+(y===ay?' selected':'')+'>'+y+'</option>').join('')+'</select>'
@@ -2322,13 +2320,13 @@ function rfDi(){
         +'<td><div style="display:flex;align-items:center;gap:7px"><span style="font-size:13px;font-weight:500">'+les.sub+'</span>'
         +(hi?'<button onclick="tgInf(\''+iid+'\')" style="background:none;border:1px solid var(--bdr);border-radius:5px;padding:1px 5px;font-size:10px;color:var(--txt2);cursor:pointer">?</button>':'')
         +'</div><div id="'+iid+'" style="display:none;margin-top:3px">'
-        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">?? '+inf.topic+'</div>':'')
-        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">?? '+inf.homework+'</div>':'')
+        +(inf.topic?'<div style="font-size:11px;color:var(--txt2)">📘 '+inf.topic+'</div>':'')
+        +(inf.homework?'<div style="font-size:11px;color:var(--amb)">📝 '+inf.homework+'</div>':'')
         +'</div></td>'
         +'<td style="text-align:center">'+(g==='?'?'<span class="badge ba">?</span>':g?'<span class="badge b'+g+'">'+g+'</span>':'<span style="color:var(--txt3)">�</span>')
         +(g2==='?'?'<span class="badge ba" style="margin-left:3px">?</span>':g2?'<span class="badge b'+g2+'" style="margin-left:3px">'+g2+'</span>':'')+'</td></tr>';
     }).join(''):(()=>{
-      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">?? No schedule set for this day</td></tr>';
+      return'<tr><td colspan="3" style="padding:12px;text-align:center;font-size:12px;color:var(--txt3)">🗓️ No schedule set for this day</td></tr>';
     })();
     return'<div class="cd" style="margin-bottom:11px">'
       +'<div class="ddh"><span>'+DN[day.getDay()-1]+', '+day.getDate()+' '+MN[day.getMonth()]+' '+day.getFullYear()+'</span>'
@@ -2340,7 +2338,7 @@ function rfDi(){
 function tgInf(id){const e=$(id);if(e)e.style.display=e.style.display==='none'?'block':'none'}
 
 // -- MY GRADES --
-function buildMG(){return'<div class="pg" id="mg"><div class="pt">? My Grades</div><div class="ps">Academic overview</div><div id="mgc"></div></div>'}
+function buildMG(){return'<div class="pg" id="mg"><div class="pt">📈 My Grades</div><div class="ps">Academic overview</div><div id="mgc"></div></div>'}
 function rfMG(){
   const cls=CU.class||CU.studentClass||'',nm=CU.name||'';
   const el=$('mgc');if(!el)return;
@@ -2374,8 +2372,8 @@ function buildADash(){
   // Detect invalid class names (numeric or very short)
   const badCls=cls.filter(c=>!isNaN(c)||c.length<2);
   const badWarn=badCls.length?'<div style="background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px">'
-    +'<div><span style="color:var(--red);font-weight:600">?? Invalid class names detected:</span> <span style="font-size:13px;color:var(--txt2)">'+badCls.join(', ')+'</span></div>'
-    +'<button class="btn bd2" onclick="cleanBadCls()">?? Delete invalid classes</button>'
+    +'<div><span style="color:var(--red);font-weight:600">⚠️ Invalid class names detected:</span> <span style="font-size:13px;color:var(--txt2)">'+badCls.join(', ')+'</span></div>'
+    +'<button class="btn bd2" onclick="cleanBadCls()">🗑️ Delete invalid classes</button>'
     +'</div>':'';
   const rows=cls.map(c=>{
     const sts=DB.classes[c]||[];
@@ -2386,7 +2384,7 @@ function buildADash(){
       +'<td>'+sts.length+'</td>'
       +'<td>'+(hr?'<div class="tf"><div class="av avb">'+ini(hr.name)+'</div>'+hr.name+'</div>':'�')+'</td>'
       +'<td>'+(ab>0?'<span class="badge ba">'+ab+'</span>':'<span class="badge bp">0</span>')+'</td>'
-      +'<td><button class="btn bg2" style="font-size:11px" onclick="showAbsModal(\''+c+'\')">?? Absences</button></td>'
+      +'<td><button class="btn bg2" style="font-size:11px" onclick="showAbsModal(\''+c+'\')">📉 Absences</button></td>'
       +'</tr>';
   }).join('');
   return'<div class="pg" id="adash"><div class="pt">Dashboard</div><div class="ps">School overview � Academic Year: <b>'+curAY()+'</b></div>'
@@ -2453,7 +2451,7 @@ function showAbsModal(cls){
 function mkModal(html){
   const m=document.createElement('div');m.className='mw';
   m.innerHTML='<div class="md"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">'
-    +'<span></span><button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">? Close</button></div>'+html+'</div>';
+    +'<span></span><button onclick="this.closest(\'.mw\').remove()" style="background:none;border:1px solid var(--bdr);border-radius:7px;padding:5px 12px;color:var(--txt2);cursor:pointer;font-family:inherit">✖️ Close</button></div>'+html+'</div>';
   document.body.appendChild(m);m.addEventListener('click',e=>{if(e.target===m)m.remove()});
 }
 
@@ -2462,13 +2460,13 @@ function buildATch(){
   const tchs=Object.entries(DB.users||{}).filter(([k,v])=>v.role==='teacher');
   const co=Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'">'+c+'</option>').join('');
   return'<div class="pg" id="atch"><div class="pt">Teachers</div>'
-    +'<div class="fc"><h3>?? Bulk Import Teachers</h3>'
+    +'<div class="fc"><h3>📥 Bulk Import Teachers</h3>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:6px">One teacher per line, fields separated by <b>|</b>:</p>'
     +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject | Name | Username | Password | Classes (comma sep.) | Homeroom (optional) | Phone (optional)</code>'
     +'<p style="font-size:11px;color:var(--txt3);margin-bottom:8px">Example: Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A | 7A | +374 99 123456</p>'
     +'<textarea id="bulk-tch" placeholder="Armenian Language | Armen Danielyan | Armen_Danielyan | Armen90@ | 7A, 8A, 9A&#10;Math | Ani Karapetyan | Ani_Karapetyan | Ani90@ | 8B, 9B | 8B" style="width:100%;min-height:140px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.7"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
-    +'<button class="btn bp2" onclick="bulkImportTch()" style="padding:9px 20px;font-size:14px">? Import Teachers</button>'
+    +'<button class="btn bp2" onclick="bulkImportTch()" style="padding:9px 20px;font-size:14px">📥 Import Teachers</button>'
     +'<span id="bulk-tch-msg" style="font-size:13px;color:var(--grn)"></span>'
     +'</div></div>'
     +'<div class="fc"><h3>Add Single Teacher</h3>'
@@ -2489,10 +2487,10 @@ function buildATch(){
       +'<div class="ff"><label>Classes</label><input id="tec'+k+'" value="'+esc2((t.classes||[]).join(', '))+'"></div>'
       +'<div class="ff"><label>Homeroom</label><input id="teh'+k+'" value="'+esc2(t.homeroom||'')+'"></div>'
       +'<div class="ff"><label>Phone</label><input id="teph'+k+'" value="'+esc2(t.phone||'')+'" placeholder="+374 XX XXX XXX"></div></div>'
-      +'<button class="btn bp2" onclick="svTch(\''+k+'\')">? Save</button>'
+      +'<button class="btn bp2" onclick="svTch(\''+k+'\')">✅ Save</button>'
       +'<button class="btn bg2" style="margin-left:6px" onclick="cnclTch(\''+k+'\')">Cancel</button>'
       +'<div style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bdr)">'
-      +'<div style="font-size:12px;font-weight:600;color:var(--acc);margin-bottom:8px">?? Which subject(s) does '+esc2(t.name)+' teach in each class?</div>'
+      +'<div style="font-size:12px;font-weight:600;color:var(--acc);margin-bottom:8px">📚 Which subject(s) does '+esc2(t.name)+' teach in each class?</div>'
       +buildClassSubjectAssign(k,t)
       +'</div>'
       +'</td></tr>'
@@ -2520,7 +2518,7 @@ function buildClassSubjectAssign(k,t){
       }).join('')
       +'</div>';
   }).join('')
-  +'<button class="btn bg2" style="margin-top:10px;font-size:11px" onclick="saveClassSubjects(\''+esc2(k)+'\')">? Save Subject Assignments</button>';
+  +'<button class="btn bg2" style="margin-top:10px;font-size:11px" onclick="saveClassSubjects(\''+esc2(k)+'\')">✅ Save Subject Assignments</button>';
 }
 
 async function saveClassSubjects(k){
@@ -2566,7 +2564,7 @@ async function bulkImportTch(){
   if(errs.length){alert('Errors:\n'+errs.join('\n'));return;}
   sLoad('Saving...');await svSchool();hLoad();
   const msg=$('bulk-tch-msg');
-  if(msg)msg.textContent='? Imported '+added+' teachers';
+  if(msg)msg.textContent='✅ Imported '+added+' teachers';
   $('bulk-tch').value='';
   showPg('atch');
 }
@@ -2608,12 +2606,12 @@ function buildAStu(){
       +'<div class="fr"><div class="ff"><label>Name</label><input id="sten'+k+'" value="'+esc2(s.name)+'"></div>'
       +'<div class="ff"><label>Password</label><input id="step'+k+'" value="'+esc2(s.pass)+'"></div>'
       +'<div class="ff"><label>Class</label><select id="stec'+k+'">'+Object.keys(DB.classes||{}).map(c=>'<option value="'+c+'"'+(s.class===c?' selected':'')+'>'+c+'</option>').join('')+'</select></div></div>'
-      +'<button class="btn bp2" onclick="svStu(\''+k+'\')">? Save</button>'
+      +'<button class="btn bp2" onclick="svStu(\''+k+'\')">✅ Save</button>'
       +'<button class="btn bg2" style="margin-left:6px" onclick="cnclStu(\''+k+'\')">Cancel</button>'
       +'</td></tr>'
     ).join('')+'</tbody></table></div>'
     // -- FAMILY SECTION --
-    +'<div class="fc" style="margin-top:24px"><h3>???????? Add Family Account</h3>'
+    +'<div class="fc" style="margin-top:24px"><h3>👨‍👩‍👧‍👦 Add Family Account</h3>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Family logs in with username/password, then selects a child and enters that child\'s PIN to view their diary.</p>'
     +'<div class="fr"><div class="ff"><label>Family Name</label><input id="fam-n" placeholder="Hakobyan Family"></div>'
     +'<div class="ff"><label>Username</label><input id="fam-u" placeholder="hakobyan_family"></div>'
@@ -2678,7 +2676,7 @@ function buildACls(){
     +'<div class="fc"><h3>Add Class</h3><div style="display:flex;gap:8px">'
     +'<input id="ncls" placeholder="e.g. 10A" style="padding:8px 11px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none">'
     +'<button class="btn bp2" onclick="addCls()">+ Add</button></div></div>'
-    +'<div class="fc" style="margin-bottom:16px"><h3>?? Bulk Import Students</h3>'
+    +'<div class="fc" style="margin-bottom:16px"><h3>📥 Bulk Import Students</h3>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:10px">Select class, then paste student names � one per line. They will all be added at once.</p>'
     +'<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;align-items:center">'
     +'<label style="font-size:13px;color:var(--txt2)">Class:</label>'
@@ -2688,7 +2686,7 @@ function buildACls(){
     +'<textarea id="bulk-names" placeholder="Ani Hakobyan&#10;Aram Petrosyan&#10;Mari Simonyan&#10;..." '
     +'style="width:100%;min-height:150px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.6"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
-    +'<button class="btn bp2" onclick="bulkImport()" style="padding:9px 20px;font-size:14px">? Add All Students</button>'
+    +'<button class="btn bp2" onclick="bulkImport()" style="padding:9px 20px;font-size:14px">✅ Add All Students</button>'
     +'<span id="bulk-msg" style="font-size:13px;color:var(--grn)"></span>'
     +'</div></div>'
     +Object.entries(DB.classes||{}).map(([cls,sts])=>'<div class="cd">'
@@ -2700,7 +2698,7 @@ function buildACls(){
       +'<button class="btn bd2" onclick="delCls(\''+cls+'\')">Del Class</button></div></div>'
       +'<div id="rn'+cls+'" style="display:none;padding:9px 15px;border-bottom:1px solid var(--bdr)">'
       +'<div style="display:flex;gap:7px"><input id="rni'+cls+'" value="'+cls+'" style="padding:6px 9px;background:var(--surf2);border:1px solid var(--bdr);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;width:120px">'
-      +'<button class="btn bp2" onclick="rnCls(\''+cls+'\')">?</button><button class="btn bg2" onclick="tgRn(\''+cls+'\')">?</button></div></div>'
+      +'<button class="btn bp2" onclick="rnCls(\''+cls+'\')">✅</button><button class="btn bg2" onclick="tgRn(\''+cls+'\')">✖️</button></div></div>'
       +'<ul style="list-style:none;padding:0;margin:0" id="sl'+cls+'">'
       +sts.map((st,idx)=>'<li draggable="true" data-st="'+esc2(st)+'" data-cls="'+cls+'"'
         +' ondragstart="dSt(event)" ondragover="dOv(event)" ondrop="dDp(event)"'
@@ -2736,7 +2734,7 @@ async function bulkImport(){
   });
   sLoad('Saving...');await svSchool();hLoad();
   const msg=$('bulk-msg');
-  if(msg)msg.textContent='? Added '+added+' students ('+names.length+' total, '+(names.length-added)+' already existed)';
+  if(msg)msg.textContent='✅ Added '+added+' students ('+names.length+' total, '+(names.length-added)+' already existed)';
   $('bulk-names').value='';
   // Refresh classes page to show updated lists
   showPg('acls');
@@ -2791,7 +2789,7 @@ function buildASc(){
   const ys=[];const cy=n.getFullYear();
   for(let y=cy+1;y>=cy-2;y--)ys.push((y-1)+'-'+y);
   return'<div class="pg" id="asc"><div class="pt">Schedule</div>'
-    +'<div class="fc" style="margin-bottom:14px"><h3>?? Bulk Import � Full Day Schedule</h3>'
+    +'<div class="fc" style="margin-bottom:14px"><h3>📥 Bulk Import � Full Day Schedule</h3>'
     +'<p style="font-size:12px;color:var(--txt2);margin-bottom:6px">Select class, week, day � then paste lessons one per line:</p>'
     +'<code style="display:block;font-size:11px;background:var(--surf3);padding:8px 12px;border-radius:7px;margin-bottom:10px;color:var(--acc)">Subject � Teacher Name</code>'
     +'<p style="font-size:11px;color:var(--txt3);margin-bottom:10px">Example:<br>Armenian Language � Armen Danielyan<br>Mathematics � Gor Petrosyan<br>English � Aram Vardanyan</p>'
@@ -2804,7 +2802,7 @@ function buildASc(){
     +'</div>'
     +'<textarea id="bi-lines" placeholder="Armenian Language � Armen Danielyan&#10;Mathematics � Gor Petrosyan&#10;English � Aram Vardanyan&#10;Natural Science � Lilia Sargsyan" style="width:100%;min-height:160px;padding:10px 12px;background:var(--surf2);border:1px solid var(--bdr);border-radius:8px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical;line-height:1.7"></textarea>'
     +'<div style="display:flex;gap:8px;margin-top:10px;align-items:center">'
-    +'<button class="btn bp2" onclick="bulkImportSched()" style="padding:9px 20px;font-size:14px">? Import Schedule</button>'
+    +'<button class="btn bp2" onclick="bulkImportSched()" style="padding:9px 20px;font-size:14px">📥 Import Schedule</button>'
     +'<span id="bi-msg" style="font-size:13px;color:var(--grn)"></span>'
     +'</div></div>'
     +'<div class="sr" style="flex-wrap:wrap">'
@@ -2862,7 +2860,7 @@ async function bulkImportSched(){
   SC[cls][wk][day]=lessons;
   sLoad('Saving...');await svSched();hLoad();
   const msg=$('bi-msg');
-  if(msg)msg.textContent='? Saved '+lessons.length+' lessons for '+cls+' '+day+' week '+wk;
+  if(msg)msg.textContent='✅ Saved '+lessons.length+' lessons for '+cls+' '+day+' week '+wk;
   $('bi-lines').value='';
 }
 
@@ -2955,8 +2953,8 @@ function rfSc(){
       +'<div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center">'
       +'<select id="ses'+i+'" style="'+selSt+'"><option value="">Subject...</option>'+scSubjOpts(l.sub)+'</select>'
       +'<select id="set'+i+'" style="'+selSt+'"><option value="">Teacher...</option>'+scTchOpts(l.teacher||'')+'</select>'
-      +'<button class="btn bp2" onclick="svLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">? Save</button>'
-      +'<button class="btn bg2" onclick="cnLs('+i+')">?</button>'
+      +'<button class="btn bp2" onclick="svLs(\''+cls+'\',\''+wk+'\',\''+day+'\','+i+')">✅ Save</button>'
+      +'<button class="btn bg2" onclick="cnLs('+i+')">✖️</button>'
       +'</div></td></tr>'
     ).join('')+'</tbody></table>'
     +'<div style="padding:12px 16px;border-top:1px solid var(--bdr)">'
@@ -3004,13 +3002,13 @@ async function cpWk(){
 // -- ADMIN PENDING --
 function buildAPend(){
   const pl=Object.entries(PE||{});
-  return'<div class="pg" id="apend"><div class="pt">? Pending</div><div class="ps">Students waiting for approval</div>'
+  return'<div class="pg" id="apend"><div class="pt">⏳ Pending</div><div class="ps">Students waiting for approval</div>'
     +(pl.length===0?'<p style="color:var(--txt3);padding:16px">No pending registrations.</p>':'')
     +pl.map(([email,data])=>'<div class="cd" style="margin-bottom:12px">'
       +'<div class="cdh"><div><b>'+email+'</b><span class="pb" style="margin-left:8px">Pending</span></div>'
       +'<div style="display:flex;gap:6px">'
-      +'<button class="btn bp2" onclick="apprPend(\''+email+'\')">? Approve</button>'
-      +'<button class="btn bd2" onclick="rejPend(\''+email+'\')">? Reject</button></div></div>'
+      +'<button class="btn bp2" onclick="apprPend(\''+email+'\')">✅ Approve</button>'
+      +'<button class="btn bd2" onclick="rejPend(\''+email+'\')">❌ Reject</button></div></div>'
       +'<div style="padding:11px 16px">'
       +(data.children||[]).map((c,ci)=>'<div style="display:flex;gap:12px;font-size:13px;padding:6px 0;border-bottom:1px solid var(--bdr);flex-wrap:wrap">'
         +'<span><b>'+c.name+'</b></span>'
@@ -3026,9 +3024,9 @@ function updPC(){const cnt=Object.keys(PE||{}).length;const e=$('pc');if(e)e.tex
 function updMaintNi(){
   const ni=$('maint-ni');if(!ni)return;
   if(DB.maintenance){
-    ni.textContent='?? School Closed';ni.style.color='var(--red)';
+    ni.textContent='🔴 School Closed';ni.style.color='var(--red)';
   }else{
-    ni.textContent='?? School Open';ni.style.color='var(--grn)';
+    ni.textContent='🟢 School Open';ni.style.color='var(--grn)';
   }
 }
 async function toggleMaint(){
@@ -3067,14 +3065,14 @@ function buildTP(){
   const n=new Date(),ay=curAY(),ms=getMonths(ay);
   const cm=n.getFullYear()+'-'+pad(n.getMonth()+1);
   return'<div class="pg" id="tp">'
-    +'<div class="pt">?? Thematic Plan</div><div class="ps">Annual lesson plan by class and subject</div>'
+    +'<div class="pt">📋 Thematic Plan</div><div class="ps">Annual lesson plan by class and subject</div>'
     +'<div class="sr" style="flex-wrap:wrap">'
     +'<label>Class:</label><select id="tpcl" onchange="onTPClassChange()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
     +'<label>Subject:</label><select id="tpsj" onchange="rfTP()">'+sjs.map(s=>'<option value="'+s+'">'+s+'</option>').join('')+'</select>'
     +'<label>Month:</label><select id="tpmo" onchange="rfTP()">'+ms.map(m=>'<option value="'+m.v+'"'+(m.v===cm?' selected':'')+'>'+m.l+'</option>').join('')+'</select>'
     +'</div>'
     +'<div id="tpc"></div>'
-    +'<div style="margin-top:10px"><button class="btn bp2" onclick="svTP()">? Save Plan</button></div>'
+    +'<div style="margin-top:10px"><button class="btn bp2" onclick="svTP()">✅ Save Plan</button></div>'
     +'</div>';
 }
 function onTPClassChange(){
@@ -3203,12 +3201,12 @@ function getStoredSemGrade(cls,st,subj,semKey){
 function buildSem(){
   const ay=curAY();
   return'<div class="pg" id="sem">'
-    +'<div class="pt">?? Semester Grades</div>'
+    +'<div class="pt">📈 Semester Grades</div>'
     +'<div class="ps" id="sem-sub"></div>'
     +'<div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap">'
     +'<button id="stab-s1" class="btn bp2" onclick="showSemTab(\'S1\')">Semester 1 (Sep�Dec)</button>'
     +'<button id="stab-s2" class="btn bg2" onclick="showSemTab(\'S2\')">Semester 2 (Jan�May)</button>'
-    +'<button id="stab-ann" class="btn bg2" onclick="showSemTab(\'ANN\')">?? Annual</button>'
+    +'<button id="stab-ann" class="btn bg2" onclick="showSemTab(\'ANN\')">📅 Annual</button>'
     +'</div>'
     +'<div id="sem-content"></div>'
     +'</div>';
@@ -3275,7 +3273,7 @@ function rfSem(){
       +'<th>Subject</th>'
       +'<th style="text-align:center">Sem 1</th>'
       +'<th style="text-align:center">Sem 2</th>'
-      +'<th style="text-align:center">?? Annual</th>'
+      +'<th style="text-align:center">📅 Annual</th>'
       +'</tr></thead><tbody>'+rows+'</tbody></table></div>';
     return;
   }
@@ -3317,7 +3315,7 @@ function buildSemTch(){
   const cls=CU.classes||[];
   const ay=curAY();
   return'<div class="pg" id="semtch">'
-    +'<div class="pt">?? Semester Grades</div>'
+    +'<div class="pt">📈 Semester Grades</div>'
     +'<div class="ps">Enter semester grades per class</div>'
     +'<div class="sr" style="flex-wrap:wrap;margin-bottom:14px">'
     +'<label>Class:</label><select id="stcl" onchange="rfSemTch()">'+cls.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select>'
@@ -3325,7 +3323,7 @@ function buildSemTch(){
     +'<select id="stsem" onchange="rfSemTch()">'
     +'<option value="S1">Semester 1 (Sep�Dec)</option>'
     +'<option value="S2">Semester 2 (Jan�May)</option>'
-    +'<option value="ANN">?? Annual</option>'
+    +'<option value="ANN">📅 Annual</option>'
     +'</select>'
     +'</div>'
     +'<div id="semtch-content"></div>'
@@ -3344,7 +3342,7 @@ function rfSemTch(){
 
   el.innerHTML='<div class="cd">'
     +'<div class="cdh"><h3>'+cls+' � '+semLabel+'</h3>'
-    +'<button class="btn bp2" onclick="svSemTch()">? Save Semester Grades</button></div>'
+    +'<button class="btn bp2" onclick="svSemTch()">✅ Save Semester Grades</button></div>'
     +'<div style="overflow-x:auto"><table>'
     +'<thead><tr><th>Student</th>'+sjs.map(sj=>'<th style="text-align:center;min-width:120px">'+sj+'</th>').join('')+'</tr></thead>'
     +'<tbody>'
@@ -3428,7 +3426,7 @@ function buildProf(){
   // Get saved photo from localStorage
   const savedPhoto=localStorage.getItem('prof_photo_'+username)||'';
   return'<div class="pg" id="prof">'
-    +'<div class="pt">?? My Profile</div>'
+    +'<div class="pt">👤 My Profile</div>'
     +'<div class="ps">Personal information</div>'
     +'<div style="display:flex;gap:24px;flex-wrap:wrap;align-items:flex-start">'
     // Photo section
@@ -3438,8 +3436,8 @@ function buildProf(){
       :'<div id="prof-img-placeholder" style="font-size:36px;font-weight:700;color:var(--acc)">'+ini(name)+'</div>')
     +'</div>'
     +'<input type="file" id="prof-photo-inp" accept="image/*" style="display:none" onchange="onProfPhoto(this)">'
-    +'<button onclick="onProfPhotoClick()" class="btn bg2" style="font-size:11px">?? Change Photo</button>'
-    +(savedPhoto?'<br><button onclick="rmProfPhoto()" class="btn bd2" style="font-size:11px;margin-top:6px">?? Remove</button>':'')
+    +'<button onclick="onProfPhotoClick()" class="btn bg2" style="font-size:11px">📷 Change Photo</button>'
+    +(savedPhoto?'<br><button onclick="rmProfPhoto()" class="btn bd2" style="font-size:11px;margin-top:6px">🗑️ Remove</button>':'')
     +'</div>'
     // Info section
     +'<div style="flex:1;min-width:220px">'
@@ -3451,7 +3449,7 @@ function buildProf(){
     +'<label>Personal Code</label>'
     +'<div style="display:flex;align-items:center;gap:10px;margin-top:6px">'
     +'<div style="font-size:28px;font-weight:700;letter-spacing:6px;color:var(--acc);font-family:monospace">'+code+'</div>'
-    +'<button onclick="copyCode(this.getAttribute(\'data-code\'))" data-code="'+code+'" class="btn bg2" style="font-size:11px">?? Copy</button>'
+    +'<button onclick="copyCode(this.getAttribute(\'data-code\'))" data-code="'+code+'" class="btn bg2" style="font-size:11px">📋 Copy</button>'
     +'</div>'
     +'<div style="margin-top:14px;background:#fff;border-radius:8px;padding:14px;display:inline-block;text-align:center">'
     +'<div id="prof-qr"></div>'
@@ -3469,10 +3467,10 @@ function $$(id){return document.getElementById(id)}
 // -- ADMIN CHECK-IN (BARCODE SCAN) --
 function buildCheckin(){
   return'<div class="pg" id="checkin">'
-    +'<div class="pt">?? Check-in</div>'
+    +'<div class="pt">📷 Check-in</div>'
     +'<div class="ps">Scan the QR code from My Profile, or enter the code manually</div>'
     +'<div class="fc" style="max-width:460px">'
-    +'<h3>?? Camera Scanner</h3>'
+    +'<h3>📷 Camera Scanner</h3>'
     +'<div id="ci-cam-wrap" style="position:relative;background:#000;border-radius:var(--r2);overflow:hidden;aspect-ratio:4/3;margin-bottom:12px">'
     +'<video id="ci-video" style="width:100%;height:100%;object-fit:cover" playsinline muted></video>'
     +'<canvas id="ci-canvas" style="display:none"></canvas>'
@@ -3481,11 +3479,11 @@ function buildCheckin(){
     +'</div>'
     +'<div id="ci-cam-status" style="position:absolute;bottom:8px;left:0;right:0;text-align:center;color:#fff;font-size:11px;background:rgba(0,0,0,.5);padding:4px">Camera off</div>'
     +'</div>'
-    +'<button class="btn bp2" id="ci-cam-btn" onclick="toggleScanner()" style="width:100%;margin-bottom:14px">?? Start Camera</button>'
+    +'<button class="btn bp2" id="ci-cam-btn" onclick="toggleScanner()" style="width:100%;margin-bottom:14px">📷 Start Camera</button>'
     +'<div style="display:flex;align-items:center;gap:8px;margin:10px 0;color:var(--txt3);font-size:11px"><div style="flex:1;height:1px;background:var(--bdr)"></div>OR ENTER MANUALLY<div style="flex:1;height:1px;background:var(--bdr)"></div></div>'
     +'<div style="display:flex;gap:8px">'
     +'<input id="ci-code" placeholder="123456" maxlength="6" inputmode="numeric" style="flex:1;padding:12px 14px;font-size:20px;letter-spacing:4px;text-align:center;font-family:monospace;background:var(--surf2);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);outline:none" onkeydown="if(event.key===\'Enter\')doCheckin()">'
-    +'<button class="btn bg2" onclick="doCheckin()" style="padding:12px 20px">?? Check</button>'
+    +'<button class="btn bg2" onclick="doCheckin()" style="padding:12px 20px">✅ Check</button>'
     +'</div>'
     +'</div>'
     +'<div id="ci-result"></div>'
@@ -3499,7 +3497,7 @@ async function toggleScanner(){
   const status=$('ci-cam-status');
   if(_ciScanning){stopScanner();return;}
   if(typeof jsQR==='undefined'){
-    status.textContent='? Scanner library failed to load � use manual entry';
+    status.textContent='⚠️ Scanner library failed to load � use manual entry';
     status.style.background='rgba(220,38,38,.7)';
     return;
   }
@@ -3509,12 +3507,12 @@ async function toggleScanner(){
     video.srcObject=_ciStream;
     await video.play();
     _ciScanning=true;
-    btn.textContent='? Stop Camera';
+    btn.textContent='⏹️ Stop Camera';
     status.textContent='Scanning for QR code...';
     status.style.background='rgba(0,0,0,.5)';
     scanLoop();
   }catch(e){
-    status.textContent='? Camera error: '+e.message;
+    status.textContent='❌ Camera error: '+e.message;
     status.style.background='rgba(220,38,38,.7)';
   }
 }
@@ -3523,7 +3521,7 @@ function stopScanner(){
   _ciScanning=false;
   if(_ciRAF)cancelAnimationFrame(_ciRAF);
   if(_ciStream){_ciStream.getTracks().forEach(t=>t.stop());_ciStream=null;}
-  const btn=$('ci-cam-btn');if(btn)btn.textContent='?? Start Camera';
+  const btn=$('ci-cam-btn');if(btn)btn.textContent='📷 Start Camera';
   const status=$('ci-cam-status');if(status){status.textContent='Camera off';status.style.background='rgba(0,0,0,.5)';}
 }
 
@@ -3564,7 +3562,7 @@ function doCheckin(){
   const found=findUserByCode(code);
   if(!found){
     res.innerHTML='<div class="cd" style="padding:24px;text-align:center">'
-      +'<div style="font-size:36px;margin-bottom:10px">?</div>'
+      +'<div style="font-size:36px;margin-bottom:10px">❌</div>'
       +'<div style="font-size:15px;font-weight:600;color:var(--red)">Code not found</div>'
       +'<div style="font-size:12px;color:var(--txt2);margin-top:4px">No user matches this code</div>'
       +'</div>';
@@ -3597,14 +3595,14 @@ function doCheckin(){
     +'</div>'
     +'<div style="text-align:center;flex-shrink:0">'
     +(isValid
-      ?'<div style="background:var(--grn-lt);color:var(--grn);padding:10px 18px;border-radius:var(--r2);font-weight:700;font-size:14px">? VALID</div>'
-      :'<div style="background:var(--red-lt);color:var(--red);padding:10px 18px;border-radius:var(--r2);font-weight:700;font-size:14px">? EXPIRED</div>')
+      ?'<div style="background:var(--grn-lt);color:var(--grn);padding:10px 18px;border-radius:var(--r2);font-weight:700;font-size:14px">✅ VALID</div>'
+      :'<div style="background:var(--red-lt);color:var(--red);padding:10px 18px;border-radius:var(--r2);font-weight:700;font-size:14px">❌ EXPIRED</div>')
     +'<div style="font-size:11px;color:var(--txt3);margin-top:6px">Valid until '+validUntil+'</div>'
     +'</div>'
     +'</div>'
     +(isValid
-      ?'<div style="margin-top:18px;text-align:center"><button class="btn bp2" style="padding:11px 28px;font-size:14px" onclick="confirmEntry(\''+esc(user.name)+'\')">? Allow Entry</button></div>'
-      :'<div style="margin-top:18px;text-align:center;color:var(--red);font-size:13px">?? This code is no longer valid for the current academic year</div>')
+      ?'<div style="margin-top:18px;text-align:center"><button class="btn bp2" style="padding:11px 28px;font-size:14px" onclick="confirmEntry(\''+esc(user.name)+'\')">✅ Allow Entry</button></div>'
+      :'<div style="margin-top:18px;text-align:center;color:var(--red);font-size:13px">⚠️ This code is no longer valid for the current academic year</div>')
     +'</div>';
   $('ci-code').value='';
   $('ci-code').focus();
@@ -3616,7 +3614,7 @@ function confirmEntry(name){
   if(res){
     const banner=document.createElement('div');
     banner.style="background:var(--grn-lt);color:var(--grn);padding:12px 18px;border-radius:var(--r2);margin-top:10px;text-align:center;font-weight:600;font-size:13px";
-    banner.textContent='? '+name+' has entered the school � '+new Date().toLocaleTimeString();
+    banner.textContent='✅ '+name+' has entered the school � '+new Date().toLocaleTimeString();
     res.appendChild(banner);
   }
 }
@@ -3659,7 +3657,7 @@ function confirmNewYear(){
     const[y1,y2]=ay.split('-').map(Number);
     return (y1+1)+'-'+(y2+1);
   })();
-  const msg='?? NEW ACADEMIC YEAR\n\n'
+  const msg='🎉 NEW ACADEMIC YEAR\n\n'
     +'This will:\n'
     +'� Delete ALL lesson grades (daily grades)\n'
     +'� Delete ALL semester grades\n'
@@ -3696,11 +3694,11 @@ async function startNewYear(nextAY){
   try{
     await Promise.all([svSchool(),svGrades(),svAtt(),svSched()]);
     hLoad();
-    alert('? Done! Academic year '+nextAY+' started.\nAll grades, attendance and schedules cleared.\nTeachers, students and classes are kept.');
+    alert('✅ Done! Academic year '+nextAY+' started.\nAll grades, attendance and schedules cleared.\nTeachers, students and classes are kept.');
     showPg('adash');
   }catch(e){
     hLoad();
-    alert('? Error: '+e.message);
+    alert('❌ Error: '+e.message);
   }
 }
 
@@ -3711,7 +3709,7 @@ async function startNewYear(nextAY){
   if(DB.maintenance){
     const le=$('le');
     if(le)le.innerHTML='<div style="text-align:center;padding:8px 0">'
-      +'<span style="font-size:16px">??</span> '
+      +'<span style="font-size:16px">🚧</span> '
       +'<span style="font-size:12px;color:var(--amb)">SchoolDesk is currently closed for maintenance</span>'
       +'</div>';
   }
@@ -3722,7 +3720,7 @@ async function startNewYear(nextAY){
 
 <!-- SPLASH SCREEN -->
 <div id="splash" style="position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#06241d 0%,#0d8c6d 45%,#0e7490 100%);">
-  <div id="splash-icon" style="font-size:70px;margin-bottom:20px;opacity:0;transform:scale(0.5);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1)">??</div>
+  <div id="splash-icon" style="font-size:70px;margin-bottom:20px;opacity:0;transform:scale(0.5);transition:all 0.6s cubic-bezier(0.34,1.56,0.64,1)">🏫</div>
   <div style="font-size:36px;font-weight:700;color:#fff;letter-spacing:2px;height:46px;overflow:hidden">
     <span id="splash-text" style="display:inline-block"></span><span id="splash-cursor" style="color:rgba(255,255,255,0.7);animation:blink 0.7s infinite">|</span>
   </div>
