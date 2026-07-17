@@ -332,6 +332,7 @@ tr:hover td{background:var(--acc-lt2)}
 [data-theme=dark] .ba{background:rgba(227,122,108,.18);color:#f3b3a9}
 [data-theme=dark] .bl{background:var(--amb-lt);color:#f3c197}
 @keyframes badgePop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
+@keyframes updPulse{0%,100%{box-shadow:0 3px 10px rgba(240,183,62,.4),inset 0 1px 0 rgba(255,255,255,.4)}50%{box-shadow:0 3px 18px rgba(240,183,62,.75),inset 0 1px 0 rgba(255,255,255,.5)}}
 
 /* -- AVATAR -- */
 .av{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
@@ -557,9 +558,11 @@ const BS='school';
 const BG='grades';
 const BA='attendance';
 const BC='schedule';
+const BU='updates';
+const BUH='update_html';
 const AP='SchoolAdmin2026';
 
-let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={};
+let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={},UPD={};
 let CU=null,sCls=null,sDate='',sSubj=null,sLes=1,cRole='teacher';
 
 const $=id=>document.getElementById(id);
@@ -654,15 +657,17 @@ async function bSet(id,data){
 async function loadAll(){
   sLoad('Loading...');
   try{
-    const[s,g,a,schedData]=await Promise.all([
+    const[s,g,a,schedData,upd]=await Promise.all([
       bGet(BS).catch(()=>null),
       bGet(BG).catch(()=>null),
       bGet(BA).catch(()=>null),
-      bGet(BC).catch(()=>null)
+      bGet(BC).catch(()=>null),
+      bGet(BU).catch(()=>null)
     ]);
     if(s&&s.users){DB=s;PE=s.pending||{};}
     if(g){GR=g.grades||{};LI=g.lessonInfo||{};MSGS=g.messages||{};CALLS=g.calls||{};window._tp=g.thematic||{};}
     if(a&&typeof a==='object'&&!a.type)AT=a;
+    if(upd&&typeof upd==='object')UPD=upd;
     if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData)){
       SC=schedData;
       // Migrate any week keys that aren't actual Mondays (from older buggy partial-week logic)
@@ -690,6 +695,113 @@ async function loadAll(){
     (DB.classes[cls]||[]).forEach(st=>{if(!GR[cls][st])GR[cls][st]={}});
   });
   hLoad();
+}
+async function svUpdates(){
+  try{
+    const cur=(await bGet(BU))||{};
+    // Merge our local UPD state onto the freshest copy so we don't clobber
+    // another admin's concurrent edit or another user's adoption check-in.
+    const merged={...cur,...UPD,adoption:{...(cur.adoption||{}),...(UPD.adoption||{})}};
+    UPD=merged;
+    await bSet(BU,merged);
+  }catch(e){console.error('svUpdates error:',e);throw e;}
+}
+// Records this user's install check-in without risking clobbering a newer version
+// an admin may have published in the meantime (fetches freshest metadata first,
+// only merges the adoption entry on top of it).
+async function svCheckIn(username,entry){
+  const cur=(await bGet(BU))||{};
+  cur.adoption={...(cur.adoption||{}),[username]:entry};
+  UPD=cur;
+  await bSet(BU,cur);
+}
+
+// ── SOFTWARE UPDATE SYSTEM ──
+// Each browser/device remembers, per logged-in username, which version code it has
+// installed (i.e. last reloaded the page after an admin-published update). Admin
+// publishes new versions from the Admin panel; everyone sees a persistent sidebar
+// pill + a bell notification until they install. Installing records a check-in in
+// Firestore (so the admin can see who's on the latest version) and reloads the page
+// with a cache-busting query so the freshest deployed file is actually fetched.
+function getInstalledVersionCode(){
+  if(!CU)return 0;
+  const raw=localStorage.getItem('sd_ver_'+CU.username);
+  return raw?parseInt(raw):0;
+}
+function setInstalledVersionCode(vc){
+  if(!CU)return;
+  localStorage.setItem('sd_ver_'+CU.username,String(vc));
+}
+function hasPendingUpdate(){
+  return !!(CU&&UPD&&UPD.versionCode&&UPD.versionCode>getInstalledVersionCode());
+}
+function checkAppUpdate(){
+  if(!CU)return;
+  renderUpdateBanner();
+  if(hasPendingUpdate()){
+    addNotif('🚀','Նոր տարբերակ հասանելի է՝ v'+esc2(UPD.version||''),UPD.title||'Սեղմեք՝ մանրամասների համար',showUpdateModal);
+  }
+}
+function renderUpdateBanner(){
+  const old=document.getElementById('upd-banner');
+  if(old)old.remove();
+  if(!hasPendingUpdate())return;
+  const sbf=document.querySelector('.sbf');
+  if(!sbf)return;
+  const b=document.createElement('button');
+  b.id='upd-banner';
+  b.className='btn';
+  b.style.cssText='width:100%;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#241a02;font-weight:700;box-shadow:0 3px 10px rgba(240,183,62,.4),inset 0 1px 0 rgba(255,255,255,.4);animation:updPulse 2s ease-in-out infinite';
+  b.textContent='🚀 Թարմացում հասանելի է · v'+(UPD.version||'');
+  b.onclick=showUpdateModal;
+  sbf.insertBefore(b,sbf.firstChild);
+}
+function showUpdateModal(){
+  if(!UPD||!UPD.versionCode){
+    mkModal('<h2 style="font-size:16px;font-weight:700;margin-bottom:10px">🚀 Ծրագրի թարմացումներ</h2><p style="color:var(--txt3);font-size:13px">Դեռ ոչ մի թարմացում հրապարակված չէ։</p>');
+    return;
+  }
+  const isLatest=!hasPendingUpdate();
+  const warn=(UPD.breakingChanges&&!isLatest)?'<div style="background:var(--red-lt);border:1px solid var(--red);border-radius:var(--r2);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--red)">⚠️ Առանց այս թարմացումը տեղադրելու՝ ծրագրի որոշ ֆունկցիաներ կդադարեն ճիշտ աշխատել։</div>':'';
+  const img=UPD.imageUrl?'<img src="'+UPD.imageUrl+'" style="width:100%;border-radius:var(--r2);margin-bottom:14px;display:block">':'';
+  const dateStr=UPD.publishedAt?new Date(UPD.publishedAt).toLocaleDateString('hy-AM'):'';
+  mkModal(
+    img
+    +'<h2 style="font-size:18px;font-weight:800;margin-bottom:4px">'+esc2(UPD.title||('Տարբերակ '+UPD.version))+'</h2>'
+    +'<div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Տարբերակ '+esc2(UPD.version||'')+(dateStr?' · '+dateStr:'')+'</div>'
+    +'<div style="white-space:pre-wrap;font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px">'+esc2(UPD.description||'')+'</div>'
+    +warn
+    +(isLatest
+      ?'<div style="background:var(--grn-lt);color:#15803d;border-radius:var(--r2);padding:11px 16px;text-align:center;font-weight:700;font-size:13px">✅ Դուք արդեն թարմացրել եք վերջին տարբերակին</div>'
+      :'<button class="btn bp2" style="width:100%;padding:12px;font-size:14px" onclick="installUpdate()">📥 Տեղադրել հիմա</button>')
+  );
+}
+async function installUpdate(){
+  if(!CU||!UPD.versionCode)return;
+  sLoad('Ներբեռնվում է նոր տարբերակը...');
+  const vc=UPD.versionCode,ver=UPD.version;
+  try{
+    await svCheckIn(CU.username,{versionCode:vc,version:ver,name:CU.name,role:CU.role,updatedAt:Date.now()});
+  }catch(e){
+    hLoad();alert('❌ Չհաջողվեց գրանցել թարմացումը. '+e.message);return;
+  }
+  setInstalledVersionCode(vc);
+  // If the admin attached the actual updated .html file, fetch it and swap it in for
+  // real — this is what makes the update change actual functionality, not just the
+  // version number. Falls back to a plain reload if no file was attached (metadata-only
+  // announcement) or if the fetch fails for any reason.
+  if(UPD.hasFile){
+    try{
+      const htmlDoc=await bGet(BUH);
+      if(htmlDoc&&htmlDoc.html&&htmlDoc.versionCode>=vc){
+        const blob=new Blob([htmlDoc.html],{type:'text/html;charset=utf-8'});
+        const url=URL.createObjectURL(blob);
+        location.href=url;
+        return;
+      }
+    }catch(e){console.error('installUpdate fetch error:',e);}
+  }
+  location.href=location.pathname+'?v='+Date.now();
 }
 async function svSchool(){
   try{
@@ -1022,6 +1134,13 @@ function startNotifWatcher(){
 
 async function checkForNewNotifs(){
   if(!CU)return;
+  try{
+    const freshUpd=(await bGet(BU))||{};
+    if(freshUpd&&freshUpd.versionCode&&freshUpd.versionCode>(UPD.versionCode||0)){
+      UPD=freshUpd;
+      checkAppUpdate();
+    }
+  }catch(e){}
   try{
     const rec=(await bGet(BG))||{};
     const freshMsgs=rec.messages||{};
@@ -1426,6 +1545,7 @@ function logout(){
   if(typeof stopScanner==='function')stopScanner();
   if(_callWatchTimer){clearInterval(_callWatchTimer);_callWatchTimer=null;}
   if(_hangupWatchTimer){clearInterval(_hangupWatchTimer);_hangupWatchTimer=null;}
+  if(_notifWatchTimer){clearInterval(_notifWatchTimer);_notifWatchTimer=null;}
   teardownCall();
   CU=null;$('app').classList.add('h');
   $('aw').classList.add('h');$('home').classList.remove('h');
@@ -1443,6 +1563,8 @@ function startApp(){
   sSubj=subjs()[0]||null;sDate=tod();sLes=1;
   buildNav();
   startIncomingCallWatcher();
+  startNotifWatcher();
+  checkAppUpdate();
 }
 
 function showPg(id){
@@ -1454,6 +1576,7 @@ function showPg(id){
     'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
     'apend':()=>{const o=$('apend');if(o){o.outerHTML=buildAPend()};updPC()},
     'checkin':()=>{if(typeof stopScanner==='function')stopScanner();const o=$('checkin');if(o){o.outerHTML=buildCheckin()}},
+    'supd':()=>{const o=$('supd');if(o){o.outerHTML=buildAdminUpdates()}},
     'hr':()=>{const o=$('hr');if(o){o.outerHTML=buildHR()}},
     'stu':()=>{const o=$('stu');if(o){o.outerHTML=buildStu()}},
     'asc':()=>{const o=$('asc');if(o){o.outerHTML=buildASc()};setTimeout(()=>{onScMo()},50)},
@@ -1485,9 +1608,10 @@ function buildNav(){
       +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>'
       +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">🔍 Check-in (Barcode)</div>'
       +'<div class="sbs">System</div>'
+      +'<div class="ni" onclick="showPg(\'supd\')" data-p="supd">🚀 Ծրագրի թարմացումներ</div>'
       +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">🟢 School Open</div>'
       +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">🎓 New Academic Year</div>';
-    mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin();
+    mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin()+buildAdminUpdates();
     updPC();updMaintNi();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
     const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
@@ -3692,6 +3816,130 @@ function confirmEntry(name){
     banner.textContent='✓ '+name+' has entered the school — '+new Date().toLocaleTimeString();
     res.appendChild(banner);
   }
+}
+
+// ── ADMIN: SOFTWARE UPDATES ──
+// Lets the admin publish a new version (number, Armenian changelog, screenshot,
+// and an optional "breaking changes" flag) to every Journal/Diary/Family account.
+// Everyone sees a pulsing sidebar pill + a bell notification until they press
+// Install, which logs their check-in (so admin can see who's updated and who
+// hasn't) and reloads the page to fetch the freshest deployed file.
+function buildAdminUpdates(){
+  const allUsers=Object.entries(DB.users||{}).filter(([k,u])=>u.role==='teacher'||u.role==='student'||u.role==='parent');
+  const adoption=UPD.adoption||{};
+  const curVC=UPD.versionCode||0;
+  const nextVC=curVC+1;
+  const history=(UPD.history||[]).slice().reverse();
+  const upToDate=allUsers.filter(([k])=>adoption[k]&&adoption[k].versionCode>=curVC).length;
+  return'<div class="pg" id="supd">'
+    +'<div class="pt">🚀 Ծրագրի թարմացումներ</div>'
+    +'<div class="ps">Հրապարակեք նոր տարբերակ, և հետևեք, թե ով է տեղադրել այն</div>'
+    +(curVC?'<div class="srow" style="grid-template-columns:repeat(3,1fr)">'
+      +'<div class="sc"><div class="sl">Ընթացիկ տարբերակ</div><div class="sv" style="font-size:24px">v'+esc2(UPD.version||'')+'</div></div>'
+      +'<div class="sc c-grn"><div class="sl">Թարմացրել են</div><div class="sv">'+upToDate+' / '+allUsers.length+'</div></div>'
+      +'<div class="sc c-amb"><div class="sl">Չեն թարմացրել</div><div class="sv">'+(allUsers.length-upToDate)+'</div></div>'
+      +'</div>':'')
+    +'<div class="fc"><h3>📦 Հրապարակել նոր տարբերակ</h3>'
+    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Երբ հրապարակեք, ամեն Journal/Diary/Family հաշվի մոտ կհայտնվի ծանուցում և կողային կոճակ, մինչև որ նրանք սեղմեն «Տեղադրել հիմա»։</p>'
+    +'<div class="fr"><div class="ff"><label>Տարբերակի համար (օր. 2.1.0)</label><input id="upd-ver" placeholder="'+ (UPD.version?( (parseFloat(UPD.version)||0).toFixed(1) ):'1.0.0') +'"></div>'
+    +'<div class="ff"><label>Ներքին կոդ (ավտոմատ)</label><input id="upd-vc" value="'+nextVC+'" readonly style="opacity:.6"></div></div>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Վերնագիր</label><input id="upd-title" placeholder="Օր. Ավելացվել է Զանգերի ֆունկցիան"></div>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Նկարագրություն (ինչ է փոխվել)</label><textarea id="upd-desc" placeholder="Գրեք հայերեն՝ ինչ նոր ֆունկցիաներ, ուղղումներ, փոփոխություններ կան..." style="width:100%;min-height:110px;padding:10px 12px;background:var(--surf3);backdrop-filter:var(--blur-lt);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Նկար (նկարահանում կամ պատկեր)</label>'
+    +'<input type="file" id="upd-img-inp" accept="image/*" style="display:none" onchange="onUpdImage(this)">'
+    +'<button class="btn bg2" onclick="document.getElementById(\'upd-img-inp\').click()">📷 Ընտրել նկար</button>'
+    +'<div id="upd-img-prev" style="margin-top:10px"></div></div>'
+    +'<div class="ff" style="margin-bottom:14px;padding:14px;background:var(--acc-lt2);border:1.5px dashed var(--acc);border-radius:var(--r2)">'
+    +'<label style="color:var(--acc)">💾 Ծրագրի նոր .html ֆայլը (պարտադիր՝ որ իրական թարմացում լինի)</label>'
+    +'<div style="font-size:11px;color:var(--txt3);margin:4px 0 8px">Սա այն ֆայլն է, որը փոխարինելու է ընթացիկ կոդը, երբ մարդիկ սեղմեն «Տեղադրել հիմա»։ Առանց սրա՝ միայն ծանուցումը կհրապարակվի, բայց ոչինչ իրականում չի փոխվի։</div>'
+    +'<input type="file" id="upd-html-inp" accept=".html,text/html" style="display:none" onchange="onUpdHtml(this)">'
+    +'<button class="btn bp2" onclick="document.getElementById(\'upd-html-inp\').click()">📄 Ընտրել նոր .html ֆայլը</button>'
+    +'<div id="upd-html-prev" style="margin-top:8px;font-size:12px;color:var(--txt2)"></div></div>'
+    +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2);margin-bottom:16px;cursor:pointer">'
+    +'<input type="checkbox" id="upd-breaking" style="width:16px;height:16px;cursor:pointer">'
+    +'⚠️ Այս թարմացումը կրիտիկական է (առանց տեղադրելու՝ որոշ ֆունկցիաներ կդադարեն աշխատել)</label>'
+    +'<button class="btn bp2" style="padding:11px 26px;font-size:14px" onclick="publishUpdate()">🚀 Հրապարակել բոլորի համար</button>'
+    +'</div>'
+    +'<div class="cd"><div class="cdh"><h3>Ո՞վ է տեղադրել v'+esc2(UPD.version||'—')+'</h3></div>'
+    +(allUsers.length?'<table><thead><tr><th>Անուն</th><th>Դեր</th><th>Կարգավիճակ</th><th>Ամսաթիվ</th></tr></thead><tbody>'
+      +allUsers.map(([k,u])=>{
+        const a=adoption[k];
+        const done=a&&a.versionCode>=curVC;
+        return'<tr><td><div class="tf"><div class="av avb">'+ini(u.name)+'</div>'+esc2(u.name)+'</div></td>'
+          +'<td style="font-size:12px">'+cap(u.role)+'</td>'
+          +'<td>'+(done?'<span class="badge bp">✅ Թարմացված</span>':'<span class="badge ba">⏳ Սպասվում է</span>')+'</td>'
+          +'<td style="font-size:12px;color:var(--txt2)">'+(a?new Date(a.updatedAt).toLocaleDateString('hy-AM'):'—')+'</td></tr>';
+      }).join('')+'</tbody></table>'
+      :'<p style="color:var(--txt3);padding:16px">Դեռ օգտատերեր չկան։</p>')
+    +'</div>'
+    +(history.length?'<div class="cd"><div class="cdh"><h3>📜 Թարմացումների պատմություն</h3></div>'
+      +'<table><thead><tr><th>Տարբերակ</th><th>Վերնագիր</th><th>Ամսաթիվ</th></tr></thead><tbody>'
+      +history.map(h=>'<tr><td><b>v'+esc2(h.version||'')+'</b></td><td style="font-size:12px">'+esc2(h.title||'')+'</td><td style="font-size:12px;color:var(--txt2)">'+(h.publishedAt?new Date(h.publishedAt).toLocaleDateString('hy-AM'):'')+'</td></tr>').join('')
+      +'</tbody></table></div>':'')
+    +'</div>';
+}
+let _updImgData='';
+let _updHtmlData='';
+function onUpdImage(inp){
+  const file=inp.files[0];if(!file)return;
+  if(file.size>1500000){alert('❌ Նկարը շատ մեծ է (առավելագույնը ~1.5MB)։ Խնդրում ենք ընտրել ավելի փոքր նկար։');inp.value='';return;}
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _updImgData=e.target.result;
+    const prev=$('upd-img-prev');
+    if(prev)prev.innerHTML='<img src="'+_updImgData+'" style="max-width:220px;border-radius:var(--r2);display:block">';
+  };
+  reader.readAsDataURL(file);
+}
+function onUpdHtml(inp){
+  const file=inp.files[0];if(!file)return;
+  const prev=$('upd-html-prev');
+  // Firestore documents cap out at ~1MiB total; leave headroom for the field name
+  // and any future growth, and warn well before that hard limit.
+  if(file.size>950000){
+    alert('❌ Ֆայլը շատ մեծ է ('+Math.round(file.size/1024)+'KB)։ Firestore-ի սահմանաչափը մոտ 1MB է մեկ ֆայլի համար։');
+    inp.value='';_updHtmlData='';if(prev)prev.textContent='';return;
+  }
+  const reader=new FileReader();
+  reader.onload=e=>{
+    _updHtmlData=e.target.result;
+    if(prev)prev.innerHTML='✅ Ընտրված է. <b>'+esc2(file.name)+'</b> ('+Math.round(file.size/1024)+'KB)';
+  };
+  reader.readAsText(file,'utf-8');
+}
+async function publishUpdate(){
+  const version=$('upd-ver')?.value.trim();
+  const title=$('upd-title')?.value.trim();
+  const desc=$('upd-desc')?.value.trim();
+  const breaking=$('upd-breaking')?.checked||false;
+  if(!version||!title){alert('Խնդրում ենք լրացնել տարբերակի համարը և վերնագիրը');return;}
+  if(!_updHtmlData){
+    if(!confirm('Դուք չեք ընտրել նոր .html ֆայլ։ Առանց դրա՝ միայն ծանուցումը կհրապարակվի, բայց ոչինչ իրականում չի փոխվի, երբ մարդիկ սեղմեն «Տեղադրել»։ Շարունակե՞լ միայն ծանուցումով։'))return;
+  }else if(!confirm('Հրապարակե՞լ v'+version+' տարբերակը բոլորի համար։ Բոլոր Journal/Diary/Family հաշիվները կտեսնեն ծանուցումը, և տեղադրելիս իրենց կոդը կփոխարինվի ձեր վերբեռնած ֆայլով։'))return;
+  const nextVC=(UPD.versionCode||0)+1;
+  const prevHistory=UPD.history||[];
+  if(UPD.versionCode){
+    prevHistory.push({version:UPD.version,versionCode:UPD.versionCode,title:UPD.title,description:UPD.description,publishedAt:UPD.publishedAt});
+  }
+  UPD={
+    version,versionCode:nextVC,title,description:desc,
+    imageUrl:_updImgData||UPD.imageUrl||'',
+    breakingChanges:breaking,
+    hasFile:!!_updHtmlData,
+    publishedAt:Date.now(),
+    adoption:UPD.adoption||{},
+    history:prevHistory
+  };
+  sLoad('Հրապարակվում է...');
+  try{
+    await svUpdates();
+    if(_updHtmlData){
+      await bSet(BUH,{versionCode:nextVC,html:_updHtmlData});
+    }
+  }catch(e){hLoad();alert('❌ Չհաջողվեց հրապարակել. '+e.message);return;}
+  hLoad();flash();
+  _updImgData='';_updHtmlData='';
+  showPg('supd');
 }
 
 function onProfPhotoClick(){
