@@ -82,13 +82,14 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--txt);min-he
 }
 .h{display:none!important}
 body::before{
-  content:'';position:fixed;inset:0;z-index:-1;
+  content:'';position:fixed;inset:-10%;z-index:-1;
   background:
     radial-gradient(circle at 8% 12%,rgba(124,139,255,.55) 0%,transparent 42%),
     radial-gradient(circle at 88% 8%,rgba(255,110,196,.45) 0%,transparent 40%),
     radial-gradient(circle at 78% 82%,rgba(80,200,255,.45) 0%,transparent 45%),
     radial-gradient(circle at 15% 88%,rgba(160,120,255,.4) 0%,transparent 42%),
     var(--bg);
+  animation:meshDrift 26s ease-in-out infinite alternate;
 }
 [data-theme=dark] body::before{
   background:
@@ -98,6 +99,12 @@ body::before{
     radial-gradient(circle at 15% 88%,rgba(110,80,220,.3) 0%,transparent 42%),
     var(--bg);
 }
+@keyframes meshDrift{
+  0%{transform:translate(0,0) scale(1)}
+  50%{transform:translate(-2%,1.5%) scale(1.04)}
+  100%{transform:translate(2%,-1.5%) scale(1.02)}
+}
+@media(prefers-reduced-motion:reduce){body::before{animation:none}}
 
 /* -- AUTH -- */
 .aw{
@@ -261,9 +268,26 @@ body::before{
 @media(max-width:720px){
   #app{flex-direction:column}
   .mh{display:flex}
-  .sb{position:fixed;top:0;left:-240px;height:100vh;z-index:99;transition:left .3s var(--ease);width:228px}
-  .sb.op{left:0}
-  .ov.op{display:block}
+  /* On phones the sidebar becomes a fixed bottom taskbar instead of a left rail */
+  .sb{
+    width:100%;height:auto;max-height:76px;
+    position:fixed;left:0;right:0;bottom:0;top:auto;
+    flex-direction:row;align-items:stretch;
+    border-right:none;border-top:1px solid rgba(255,255,255,.18);
+    overflow-x:auto;overflow-y:hidden;z-index:80;
+    box-shadow:0 -6px 20px rgba(10,10,30,.25);
+  }
+  .sbh{flex-shrink:0;padding:6px 12px;border-bottom:none;border-right:1px solid rgba(255,255,255,.16);display:flex;flex-direction:column;justify-content:center;min-width:90px}
+  .sbh .brand{font-size:12px;justify-content:flex-start;gap:6px}
+  .sbh .un{display:none}
+  .sbn{flex:1;display:flex;flex-direction:row;align-items:stretch;padding:0;overflow-x:auto;overflow-y:hidden;min-width:0}
+  .sbs{display:none}
+  .ni{flex-shrink:0;white-space:nowrap;font-size:11px;padding:7px 10px;margin:0 3px;align-self:center}
+  .ni:hover{transform:translateY(-2px)}
+  .ni.on::before{height:3px;width:60%;left:20%;top:auto;bottom:1px}
+  .sbf{flex-shrink:0;padding:6px 10px;border-top:none;border-left:1px solid rgba(255,255,255,.16);display:flex;align-items:center;gap:6px}
+  .bout{width:auto;padding:7px 12px;white-space:nowrap}
+  .mn{padding-bottom:84px}
   .pg{padding:16px 14px}
   .srow{grid-template-columns:repeat(2,1fr)!important}
 }
@@ -314,6 +338,15 @@ th{
 td{padding:12px 16px;font-size:13px;border-bottom:1px solid var(--bdr);color:var(--txt)}
 tr:last-child td{border-bottom:none}
 tr:hover td{background:var(--acc-lt2)}
+tbody tr{transition:background-color .15s}
+tbody tr{animation:rowIn .35s var(--ease-out) both}
+tbody tr:nth-child(1){animation-delay:.02s}
+tbody tr:nth-child(2){animation-delay:.05s}
+tbody tr:nth-child(3){animation-delay:.08s}
+tbody tr:nth-child(4){animation-delay:.11s}
+tbody tr:nth-child(5){animation-delay:.14s}
+tbody tr:nth-child(n+6){animation-delay:.16s}
+@keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 
 /* -- BADGES -- */
 .badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;animation:badgePop .28s var(--ease-out)}
@@ -332,7 +365,22 @@ tr:hover td{background:var(--acc-lt2)}
 [data-theme=dark] .ba{background:rgba(227,122,108,.18);color:#f3b3a9}
 [data-theme=dark] .bl{background:var(--amb-lt);color:#f3c197}
 @keyframes badgePop{0%{transform:scale(.6);opacity:0}70%{transform:scale(1.08);opacity:1}100%{transform:scale(1)}}
-@keyframes updPulse{0%,100%{box-shadow:0 3px 10px rgba(240,183,62,.4),inset 0 1px 0 rgba(255,255,255,.4)}50%{box-shadow:0 3px 18px rgba(240,183,62,.75),inset 0 1px 0 rgba(255,255,255,.5)}}
+.bell-shake{animation:bellShake .5s ease}
+@keyframes bellShake{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(11deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(5deg)}75%{transform:rotate(-3deg)}}
+.ad-card{
+  display:flex;align-items:center;gap:14px;padding:12px 16px;margin-bottom:20px;cursor:pointer;
+  background:linear-gradient(120deg,rgba(77,93,240,.16),rgba(255,110,196,.14));
+  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--bdr2);border-radius:var(--r3);
+  box-shadow:var(--sh),inset 0 1px 0 var(--glass-hi);
+  animation:heroIn .4s var(--ease-out) both;transition:transform .2s var(--ease);
+}
+.ad-card:hover{transform:translateY(-2px)}
+@keyframes heroIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+.ad-card-img{width:64px;height:44px;object-fit:cover;border-radius:var(--r2);flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15)}
+.ad-card-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.ad-card-tx b{font-size:13px;color:var(--txt)}
+.ad-card-tx span{font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em}
 
 /* -- AVATAR -- */
 .av{width:34px;height:34px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
@@ -523,7 +571,7 @@ code{display:block;font-size:11px;background:var(--acc-lt);padding:11px 14px;bor
       <button class="bout" onclick="logout()">< Sign Out</button>
     </div>
   </div>
-  <div id="notif-panel" class="h" style="position:fixed;top:60px;right:16px;width:320px;max-height:420px;overflow-y:auto;background:var(--surf);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--bdr);border-radius:var(--r3);box-shadow:var(--sh3);z-index:300">
+  <div id="notif-panel" class="h" style="position:fixed;bottom:92px;left:16px;width:320px;max-width:calc(100vw - 32px);max-height:420px;overflow-y:auto;background:var(--surf);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--bdr);border-radius:var(--r3);box-shadow:var(--sh3);z-index:300">
     <div style="padding:12px 16px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center">
       <h3 style="font-size:13px;font-weight:700">🔔 Notifications</h3>
       <button onclick="markAllNotifsRead()" style="font-size:11px;background:none;border:none;color:var(--acc);cursor:pointer">Mark all read</button>
@@ -558,11 +606,9 @@ const BS='school';
 const BG='grades';
 const BA='attendance';
 const BC='schedule';
-const BU='updates';
-const BUH='update_html';
 const AP='SchoolAdmin2026';
 
-let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={},UPD={};
+let DB={users:{},classes:{}},SC={},GR={},LI={},AT={},PE={},MSGS={},CALLS={};
 let CU=null,sCls=null,sDate='',sSubj=null,sLes=1,cRole='teacher';
 
 const $=id=>document.getElementById(id);
@@ -657,17 +703,15 @@ async function bSet(id,data){
 async function loadAll(){
   sLoad('Loading...');
   try{
-    const[s,g,a,schedData,upd]=await Promise.all([
+    const[s,g,a,schedData]=await Promise.all([
       bGet(BS).catch(()=>null),
       bGet(BG).catch(()=>null),
       bGet(BA).catch(()=>null),
-      bGet(BC).catch(()=>null),
-      bGet(BU).catch(()=>null)
+      bGet(BC).catch(()=>null)
     ]);
     if(s&&s.users){DB=s;PE=s.pending||{};}
     if(g){GR=g.grades||{};LI=g.lessonInfo||{};MSGS=g.messages||{};CALLS=g.calls||{};window._tp=g.thematic||{};}
     if(a&&typeof a==='object'&&!a.type)AT=a;
-    if(upd&&typeof upd==='object')UPD=upd;
     if(schedData&&typeof schedData==='object'&&!Array.isArray(schedData)){
       SC=schedData;
       // Migrate any week keys that aren't actual Mondays (from older buggy partial-week logic)
@@ -695,113 +739,6 @@ async function loadAll(){
     (DB.classes[cls]||[]).forEach(st=>{if(!GR[cls][st])GR[cls][st]={}});
   });
   hLoad();
-}
-async function svUpdates(){
-  try{
-    const cur=(await bGet(BU))||{};
-    // Merge our local UPD state onto the freshest copy so we don't clobber
-    // another admin's concurrent edit or another user's adoption check-in.
-    const merged={...cur,...UPD,adoption:{...(cur.adoption||{}),...(UPD.adoption||{})}};
-    UPD=merged;
-    await bSet(BU,merged);
-  }catch(e){console.error('svUpdates error:',e);throw e;}
-}
-// Records this user's install check-in without risking clobbering a newer version
-// an admin may have published in the meantime (fetches freshest metadata first,
-// only merges the adoption entry on top of it).
-async function svCheckIn(username,entry){
-  const cur=(await bGet(BU))||{};
-  cur.adoption={...(cur.adoption||{}),[username]:entry};
-  UPD=cur;
-  await bSet(BU,cur);
-}
-
-// ── SOFTWARE UPDATE SYSTEM ──
-// Each browser/device remembers, per logged-in username, which version code it has
-// installed (i.e. last reloaded the page after an admin-published update). Admin
-// publishes new versions from the Admin panel; everyone sees a persistent sidebar
-// pill + a bell notification until they install. Installing records a check-in in
-// Firestore (so the admin can see who's on the latest version) and reloads the page
-// with a cache-busting query so the freshest deployed file is actually fetched.
-function getInstalledVersionCode(){
-  if(!CU)return 0;
-  const raw=localStorage.getItem('sd_ver_'+CU.username);
-  return raw?parseInt(raw):0;
-}
-function setInstalledVersionCode(vc){
-  if(!CU)return;
-  localStorage.setItem('sd_ver_'+CU.username,String(vc));
-}
-function hasPendingUpdate(){
-  return !!(CU&&UPD&&UPD.versionCode&&UPD.versionCode>getInstalledVersionCode());
-}
-function checkAppUpdate(){
-  if(!CU)return;
-  renderUpdateBanner();
-  if(hasPendingUpdate()){
-    addNotif('🚀','Նոր տարբերակ հասանելի է՝ v'+esc2(UPD.version||''),UPD.title||'Սեղմեք՝ մանրամասների համար',showUpdateModal);
-  }
-}
-function renderUpdateBanner(){
-  const old=document.getElementById('upd-banner');
-  if(old)old.remove();
-  if(!hasPendingUpdate())return;
-  const sbf=document.querySelector('.sbf');
-  if(!sbf)return;
-  const b=document.createElement('button');
-  b.id='upd-banner';
-  b.className='btn';
-  b.style.cssText='width:100%;margin-bottom:8px;background:linear-gradient(135deg,var(--gold),var(--gold3));color:#241a02;font-weight:700;box-shadow:0 3px 10px rgba(240,183,62,.4),inset 0 1px 0 rgba(255,255,255,.4);animation:updPulse 2s ease-in-out infinite';
-  b.textContent='🚀 Թարմացում հասանելի է · v'+(UPD.version||'');
-  b.onclick=showUpdateModal;
-  sbf.insertBefore(b,sbf.firstChild);
-}
-function showUpdateModal(){
-  if(!UPD||!UPD.versionCode){
-    mkModal('<h2 style="font-size:16px;font-weight:700;margin-bottom:10px">🚀 Ծրագրի թարմացումներ</h2><p style="color:var(--txt3);font-size:13px">Դեռ ոչ մի թարմացում հրապարակված չէ։</p>');
-    return;
-  }
-  const isLatest=!hasPendingUpdate();
-  const warn=(UPD.breakingChanges&&!isLatest)?'<div style="background:var(--red-lt);border:1px solid var(--red);border-radius:var(--r2);padding:10px 14px;margin-bottom:14px;font-size:13px;color:var(--red)">⚠️ Առանց այս թարմացումը տեղադրելու՝ ծրագրի որոշ ֆունկցիաներ կդադարեն ճիշտ աշխատել։</div>':'';
-  const img=UPD.imageUrl?'<img src="'+UPD.imageUrl+'" style="width:100%;border-radius:var(--r2);margin-bottom:14px;display:block">':'';
-  const dateStr=UPD.publishedAt?new Date(UPD.publishedAt).toLocaleDateString('hy-AM'):'';
-  mkModal(
-    img
-    +'<h2 style="font-size:18px;font-weight:800;margin-bottom:4px">'+esc2(UPD.title||('Տարբերակ '+UPD.version))+'</h2>'
-    +'<div style="font-size:12px;color:var(--txt3);margin-bottom:14px">Տարբերակ '+esc2(UPD.version||'')+(dateStr?' · '+dateStr:'')+'</div>'
-    +'<div style="white-space:pre-wrap;font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:16px">'+esc2(UPD.description||'')+'</div>'
-    +warn
-    +(isLatest
-      ?'<div style="background:var(--grn-lt);color:#15803d;border-radius:var(--r2);padding:11px 16px;text-align:center;font-weight:700;font-size:13px">✅ Դուք արդեն թարմացրել եք վերջին տարբերակին</div>'
-      :'<button class="btn bp2" style="width:100%;padding:12px;font-size:14px" onclick="installUpdate()">📥 Տեղադրել հիմա</button>')
-  );
-}
-async function installUpdate(){
-  if(!CU||!UPD.versionCode)return;
-  sLoad('Ներբեռնվում է նոր տարբերակը...');
-  const vc=UPD.versionCode,ver=UPD.version;
-  try{
-    await svCheckIn(CU.username,{versionCode:vc,version:ver,name:CU.name,role:CU.role,updatedAt:Date.now()});
-  }catch(e){
-    hLoad();alert('❌ Չհաջողվեց գրանցել թարմացումը. '+e.message);return;
-  }
-  setInstalledVersionCode(vc);
-  // If the admin attached the actual updated .html file, fetch it and swap it in for
-  // real — this is what makes the update change actual functionality, not just the
-  // version number. Falls back to a plain reload if no file was attached (metadata-only
-  // announcement) or if the fetch fails for any reason.
-  if(UPD.hasFile){
-    try{
-      const htmlDoc=await bGet(BUH);
-      if(htmlDoc&&htmlDoc.html&&htmlDoc.versionCode>=vc){
-        const blob=new Blob([htmlDoc.html],{type:'text/html;charset=utf-8'});
-        const url=URL.createObjectURL(blob);
-        location.href=url;
-        return;
-      }
-    }catch(e){console.error('installUpdate fetch error:',e);}
-  }
-  location.href=location.pathname+'?v='+Date.now();
 }
 async function svSchool(){
   try{
@@ -1134,13 +1071,6 @@ function startNotifWatcher(){
 
 async function checkForNewNotifs(){
   if(!CU)return;
-  try{
-    const freshUpd=(await bGet(BU))||{};
-    if(freshUpd&&freshUpd.versionCode&&freshUpd.versionCode>(UPD.versionCode||0)){
-      UPD=freshUpd;
-      checkAppUpdate();
-    }
-  }catch(e){}
   try{
     const rec=(await bGet(BG))||{};
     const freshMsgs=rec.messages||{};
@@ -1564,7 +1494,7 @@ function startApp(){
   buildNav();
   startIncomingCallWatcher();
   startNotifWatcher();
-  checkAppUpdate();
+  loadAds();
 }
 
 function showPg(id){
@@ -1576,7 +1506,7 @@ function showPg(id){
     'adash':()=>{const o=$('adash');if(o){o.outerHTML=buildADash()}},
     'apend':()=>{const o=$('apend');if(o){o.outerHTML=buildAPend()};updPC()},
     'checkin':()=>{if(typeof stopScanner==='function')stopScanner();const o=$('checkin');if(o){o.outerHTML=buildCheckin()}},
-    'supd':()=>{const o=$('supd');if(o){o.outerHTML=buildAdminUpdates()}},
+    'sads':()=>{const o=$('sads');if(o){o.outerHTML=buildAdminAds()}},
     'hr':()=>{const o=$('hr');if(o){o.outerHTML=buildHR()}},
     'stu':()=>{const o=$('stu');if(o){o.outerHTML=buildStu()}},
     'asc':()=>{const o=$('asc');if(o){o.outerHTML=buildASc()};setTimeout(()=>{onScMo()},50)},
@@ -1593,6 +1523,7 @@ function showPg(id){
   if(rb[id])rb[id]();
   const pg=$(id);if(pg)pg.classList.add('on');
   document.querySelectorAll('[data-p="'+id+'"]').forEach(n=>n.classList.add('on'));
+  renderPageAds(pg);
 }
 
 function buildNav(){
@@ -1608,10 +1539,10 @@ function buildNav(){
       +'<div class="ni" onclick="showPg(\'apend\')" data-p="apend">⏳ Pending <span class="pb" id="pc"></span></div>'
       +'<div class="ni" onclick="showPg(\'checkin\')" data-p="checkin">🔍 Check-in (Barcode)</div>'
       +'<div class="sbs">System</div>'
-      +'<div class="ni" onclick="showPg(\'supd\')" data-p="supd">🚀 Ծրագրի թարմացումներ</div>'
+      +'<div class="ni" onclick="showPg(\'sads\')" data-p="sads">📢 Գովազդներ</div>'
       +'<div class="ni" id="maint-ni" onclick="toggleMaint()" style="color:var(--grn)">🟢 School Open</div>'
       +'<div class="ni" onclick="confirmNewYear()" style="color:#ffd54f">🎓 New Academic Year</div>';
-    mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin()+buildAdminUpdates();
+    mn.innerHTML=buildADash()+buildATch()+buildAStu()+buildACls()+buildASc()+buildAPend()+buildCheckin()+buildAdminAds();
     updPC();updMaintNi();showPg('adash');setTimeout(()=>onScMo(),100);
   }else if(CU.role==='teacher'){
     const hr=CU.homeroom?'<div class="ni" onclick="showPg(\'hr\')" data-p="hr">🏠 Homeroom ('+CU.homeroom+')</div>':'';
@@ -3818,129 +3749,132 @@ function confirmEntry(name){
   }
 }
 
-// ── ADMIN: SOFTWARE UPDATES ──
-// Lets the admin publish a new version (number, Armenian changelog, screenshot,
-// and an optional "breaking changes" flag) to every Journal/Diary/Family account.
-// Everyone sees a pulsing sidebar pill + a bell notification until they press
-// Install, which logs their check-in (so admin can see who's updated and who
-// hasn't) and reloads the page to fetch the freshest deployed file.
-function buildAdminUpdates(){
-  const allUsers=Object.entries(DB.users||{}).filter(([k,u])=>u.role==='teacher'||u.role==='student'||u.role==='parent');
-  const adoption=UPD.adoption||{};
-  const curVC=UPD.versionCode||0;
-  const nextVC=curVC+1;
-  const history=(UPD.history||[]).slice().reverse();
-  const upToDate=allUsers.filter(([k])=>adoption[k]&&adoption[k].versionCode>=curVC).length;
-  return'<div class="pg" id="supd">'
-    +'<div class="pt">🚀 Ծրագրի թարմացումներ</div>'
-    +'<div class="ps">Հրապարակեք նոր տարբերակ, և հետևեք, թե ով է տեղադրել այն</div>'
-    +(curVC?'<div class="srow" style="grid-template-columns:repeat(3,1fr)">'
-      +'<div class="sc"><div class="sl">Ընթացիկ տարբերակ</div><div class="sv" style="font-size:24px">v'+esc2(UPD.version||'')+'</div></div>'
-      +'<div class="sc c-grn"><div class="sl">Թարմացրել են</div><div class="sv">'+upToDate+' / '+allUsers.length+'</div></div>'
-      +'<div class="sc c-amb"><div class="sl">Չեն թարմացրել</div><div class="sv">'+(allUsers.length-upToDate)+'</div></div>'
-      +'</div>':'')
-    +'<div class="fc"><h3>📦 Հրապարակել նոր տարբերակ</h3>'
-    +'<p style="font-size:12px;color:var(--txt2);margin-bottom:14px">Երբ հրապարակեք, ամեն Journal/Diary/Family հաշվի մոտ կհայտնվի ծանուցում և կողային կոճակ, մինչև որ նրանք սեղմեն «Տեղադրել հիմա»։</p>'
-    +'<div class="fr"><div class="ff"><label>Տարբերակի համար (օր. 2.1.0)</label><input id="upd-ver" placeholder="'+ (UPD.version?( (parseFloat(UPD.version)||0).toFixed(1) ):'1.0.0') +'"></div>'
-    +'<div class="ff"><label>Ներքին կոդ (ավտոմատ)</label><input id="upd-vc" value="'+nextVC+'" readonly style="opacity:.6"></div></div>'
-    +'<div class="ff" style="margin-bottom:14px"><label>Վերնագիր</label><input id="upd-title" placeholder="Օր. Ավելացվել է Զանգերի ֆունկցիան"></div>'
-    +'<div class="ff" style="margin-bottom:14px"><label>Նկարագրություն (ինչ է փոխվել)</label><textarea id="upd-desc" placeholder="Գրեք հայերեն՝ ինչ նոր ֆունկցիաներ, ուղղումներ, փոփոխություններ կան..." style="width:100%;min-height:110px;padding:10px 12px;background:var(--surf3);backdrop-filter:var(--blur-lt);border:1.5px solid var(--bdr);border-radius:var(--r2);color:var(--txt);font-size:13px;font-family:inherit;outline:none;resize:vertical"></textarea></div>'
-    +'<div class="ff" style="margin-bottom:14px"><label>Նկար (նկարահանում կամ պատկեր)</label>'
-    +'<input type="file" id="upd-img-inp" accept="image/*" style="display:none" onchange="onUpdImage(this)">'
-    +'<button class="btn bg2" onclick="document.getElementById(\'upd-img-inp\').click()">📷 Ընտրել նկար</button>'
-    +'<div id="upd-img-prev" style="margin-top:10px"></div></div>'
-    +'<div class="ff" style="margin-bottom:14px;padding:14px;background:var(--acc-lt2);border:1.5px dashed var(--acc);border-radius:var(--r2)">'
-    +'<label style="color:var(--acc)">💾 Ծրագրի նոր .html ֆայլը (պարտադիր՝ որ իրական թարմացում լինի)</label>'
-    +'<div style="font-size:11px;color:var(--txt3);margin:4px 0 8px">Սա այն ֆայլն է, որը փոխարինելու է ընթացիկ կոդը, երբ մարդիկ սեղմեն «Տեղադրել հիմա»։ Առանց սրա՝ միայն ծանուցումը կհրապարակվի, բայց ոչինչ իրականում չի փոխվի։</div>'
-    +'<input type="file" id="upd-html-inp" accept=".html,text/html" style="display:none" onchange="onUpdHtml(this)">'
-    +'<button class="btn bp2" onclick="document.getElementById(\'upd-html-inp\').click()">📄 Ընտրել նոր .html ֆայլը</button>'
-    +'<div id="upd-html-prev" style="margin-top:8px;font-size:12px;color:var(--txt2)"></div></div>'
-    +'<label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--txt2);margin-bottom:16px;cursor:pointer">'
-    +'<input type="checkbox" id="upd-breaking" style="width:16px;height:16px;cursor:pointer">'
-    +'⚠️ Այս թարմացումը կրիտիկական է (առանց տեղադրելու՝ որոշ ֆունկցիաներ կդադարեն աշխատել)</label>'
-    +'<button class="btn bp2" style="padding:11px 26px;font-size:14px" onclick="publishUpdate()">🚀 Հրապարակել բոլորի համար</button>'
+// -- ADS SYSTEM --
+// Ads live in their own Firestore collection (one document per ad) so each ad's
+// image is independently size-capped and adding/removing ads never risks hitting
+// a shared document's size limit (this is what caused the old update system's bug).
+let ADS=[];
+async function adsList(){
+  try{
+    const snap=await fsdb.collection('schooldesk_ads').orderBy('createdAt','desc').get();
+    return snap.docs.map(d=>({id:d.id,...d.data()}));
+  }catch(e){console.error('adsList error:',e);return[];}
+}
+async function adsAdd(data){
+  await fsdb.collection('schooldesk_ads').add(fsClean(data));
+}
+async function adsUpdate(id,data){
+  await fsdb.collection('schooldesk_ads').doc(id).update(fsClean(data));
+}
+async function adsDelete(id){
+  await fsdb.collection('schooldesk_ads').doc(id).delete();
+}
+async function loadAds(){
+  ADS=await adsList();
+  renderPageAds(document.querySelector('.pg.on'));
+}
+// Pages where a small ad card is shown — the "different places on the site" the
+// admin asked for: teacher/admin dashboards, student diary, family child picker.
+const AD_PAGES=['dash','adash','di','fam-select'];
+function renderPageAds(pg){
+  if(!pg)return;
+  const old=pg.querySelector('.ad-card');if(old)old.remove();
+  if(!AD_PAGES.includes(pg.id))return;
+  const active=(ADS||[]).filter(a=>a.active);
+  if(!active.length)return;
+  const ad=active[Math.floor(Math.random()*active.length)];
+  const card=document.createElement('div');
+  card.className='ad-card';
+  card.onclick=()=>window.open(ad.link,'_blank');
+  card.innerHTML=(ad.image?'<img src="'+ad.image+'" class="ad-card-img">':'')
+    +'<div class="ad-card-tx">'
+    +(ad.title?'<b>'+esc2(ad.title)+'</b>':'')
+    +'<span>Գովազդ · սեղմեք մանրամասների համար</span>'
+    +'</div>';
+  pg.insertBefore(card,pg.firstChild);
+}
+function buildAdminAds(){
+  const ads=ADS||[];
+  return'<div class="pg" id="sads">'
+    +'<div class="pt">📢 Գովազդներ</div>'
+    +'<div class="ps">Ավելացրեք գովազդներ նկարով և հղումով, որոնք կերևան կայքի տարբեր էջերում (Dashboard, Diary, Family)</div>'
+    +'<div class="fc"><h3>➕ Ավելացնել նոր գովազդ</h3>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Վերնագիր (ոչ պարտադիր)</label><input id="ad-title" placeholder="Օր. Ամառային դասընթացներ"></div>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Հղում (սեղմելիս կբացվի)</label><input id="ad-link" placeholder="https://..."></div>'
+    +'<div class="ff" style="margin-bottom:14px"><label>Նկար</label>'
+    +'<input type="file" id="ad-img-inp" accept="image/*" style="display:none" onchange="onAdImage(this)">'
+    +'<button class="btn bg2" onclick="document.getElementById(\'ad-img-inp\').click()">📷 Ընտրել նկար</button>'
+    +'<div id="ad-img-prev" style="margin-top:10px"></div></div>'
+    +'<button class="btn bp2" style="padding:11px 26px;font-size:14px" onclick="publishAd()">📢 Հրապարակել գովազդը</button>'
     +'</div>'
-    +'<div class="cd"><div class="cdh"><h3>Ո՞վ է տեղադրել v'+esc2(UPD.version||'—')+'</h3></div>'
-    +(allUsers.length?'<table><thead><tr><th>Անուն</th><th>Դեր</th><th>Կարգավիճակ</th><th>Ամսաթիվ</th></tr></thead><tbody>'
-      +allUsers.map(([k,u])=>{
-        const a=adoption[k];
-        const done=a&&a.versionCode>=curVC;
-        return'<tr><td><div class="tf"><div class="av avb">'+ini(u.name)+'</div>'+esc2(u.name)+'</div></td>'
-          +'<td style="font-size:12px">'+cap(u.role)+'</td>'
-          +'<td>'+(done?'<span class="badge bp">✅ Թարմացված</span>':'<span class="badge ba">⏳ Սպասվում է</span>')+'</td>'
-          +'<td style="font-size:12px;color:var(--txt2)">'+(a?new Date(a.updatedAt).toLocaleDateString('hy-AM'):'—')+'</td></tr>';
-      }).join('')+'</tbody></table>'
-      :'<p style="color:var(--txt3);padding:16px">Դեռ օգտատերեր չկան։</p>')
+    +'<div class="cd"><div class="cdh"><h3>Բոլոր գովազդները ('+ads.length+')</h3></div>'
+    +(ads.length?'<table><thead><tr><th>Նկար</th><th>Վերնագիր</th><th>Հղում</th><th>Կարգավիճակ</th><th></th></tr></thead><tbody>'
+      +ads.map(a=>'<tr>'
+        +'<td>'+(a.image?'<img src="'+a.image+'" style="width:56px;height:36px;object-fit:cover;border-radius:6px">':'—')+'</td>'
+        +'<td style="font-size:12px">'+esc2(a.title||'—')+'</td>'
+        +'<td style="font-size:12px;color:var(--txt2);max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc2(a.link||'')+'</td>'
+        +'<td>'+(a.active?'<span class="badge bp">✅ Ակտիվ</span>':'<span class="badge ba">⏸ Անջատված</span>')+'</td>'
+        +'<td style="display:flex;gap:4px">'
+        +'<button class="btn bg2" onclick="toggleAd(\''+a.id+'\','+(!a.active)+')">'+(a.active?'Անջատել':'Միացնել')+'</button>'
+        +'<button class="btn bd2" onclick="delAd(\''+a.id+'\')">Ջնջել</button>'
+        +'</td></tr>'
+      ).join('')+'</tbody></table>'
+      :'<p style="color:var(--txt3);padding:16px">Դեռ գովազդներ չկան։</p>')
     +'</div>'
-    +(history.length?'<div class="cd"><div class="cdh"><h3>📜 Թարմացումների պատմություն</h3></div>'
-      +'<table><thead><tr><th>Տարբերակ</th><th>Վերնագիր</th><th>Ամսաթիվ</th></tr></thead><tbody>'
-      +history.map(h=>'<tr><td><b>v'+esc2(h.version||'')+'</b></td><td style="font-size:12px">'+esc2(h.title||'')+'</td><td style="font-size:12px;color:var(--txt2)">'+(h.publishedAt?new Date(h.publishedAt).toLocaleDateString('hy-AM'):'')+'</td></tr>').join('')
-      +'</tbody></table></div>':'')
     +'</div>';
 }
-let _updImgData='';
-let _updHtmlData='';
-function onUpdImage(inp){
+let _adImgData='';
+function onAdImage(inp){
   const file=inp.files[0];if(!file)return;
-  if(file.size>1500000){alert('❌ Նկարը շատ մեծ է (առավելագույնը ~1.5MB)։ Խնդրում ենք ընտրել ավելի փոքր նկար։');inp.value='';return;}
   const reader=new FileReader();
   reader.onload=e=>{
-    _updImgData=e.target.result;
-    const prev=$('upd-img-prev');
-    if(prev)prev.innerHTML='<img src="'+_updImgData+'" style="max-width:220px;border-radius:var(--r2);display:block">';
+    const dataUrl=e.target.result;
+    if(dataUrl.length>950000){
+      alert('❌ Նկարը շատ մեծ է ('+Math.round(dataUrl.length/1024)+'KB)։ Փորձեք ավելի փոքր նկար (մինչև ~600KB ֆայլ)։');
+      inp.value='';_adImgData='';
+      const prev=$('ad-img-prev');if(prev)prev.innerHTML='';
+      return;
+    }
+    _adImgData=dataUrl;
+    const prev=$('ad-img-prev');
+    if(prev)prev.innerHTML='<img src="'+_adImgData+'" style="max-width:220px;border-radius:var(--r2);display:block">';
   };
   reader.readAsDataURL(file);
 }
-function onUpdHtml(inp){
-  const file=inp.files[0];if(!file)return;
-  const prev=$('upd-html-prev');
-  // Firestore documents cap out at ~1MiB total; leave headroom for the field name
-  // and any future growth, and warn well before that hard limit.
-  if(file.size>950000){
-    alert('❌ Ֆայլը շատ մեծ է ('+Math.round(file.size/1024)+'KB)։ Firestore-ի սահմանաչափը մոտ 1MB է մեկ ֆայլի համար։');
-    inp.value='';_updHtmlData='';if(prev)prev.textContent='';return;
-  }
-  const reader=new FileReader();
-  reader.onload=e=>{
-    _updHtmlData=e.target.result;
-    if(prev)prev.innerHTML='✅ Ընտրված է. <b>'+esc2(file.name)+'</b> ('+Math.round(file.size/1024)+'KB)';
-  };
-  reader.readAsText(file,'utf-8');
-}
-async function publishUpdate(){
-  const version=$('upd-ver')?.value.trim();
-  const title=$('upd-title')?.value.trim();
-  const desc=$('upd-desc')?.value.trim();
-  const breaking=$('upd-breaking')?.checked||false;
-  if(!version||!title){alert('Խնդրում ենք լրացնել տարբերակի համարը և վերնագիրը');return;}
-  if(!_updHtmlData){
-    if(!confirm('Դուք չեք ընտրել նոր .html ֆայլ։ Առանց դրա՝ միայն ծանուցումը կհրապարակվի, բայց ոչինչ իրականում չի փոխվի, երբ մարդիկ սեղմեն «Տեղադրել»։ Շարունակե՞լ միայն ծանուցումով։'))return;
-  }else if(!confirm('Հրապարակե՞լ v'+version+' տարբերակը բոլորի համար։ Բոլոր Journal/Diary/Family հաշիվները կտեսնեն ծանուցումը, և տեղադրելիս իրենց կոդը կփոխարինվի ձեր վերբեռնած ֆայլով։'))return;
-  const nextVC=(UPD.versionCode||0)+1;
-  const prevHistory=UPD.history||[];
-  if(UPD.versionCode){
-    prevHistory.push({version:UPD.version,versionCode:UPD.versionCode,title:UPD.title,description:UPD.description,publishedAt:UPD.publishedAt});
-  }
-  UPD={
-    version,versionCode:nextVC,title,description:desc,
-    imageUrl:_updImgData||UPD.imageUrl||'',
-    breakingChanges:breaking,
-    hasFile:!!_updHtmlData,
-    publishedAt:Date.now(),
-    adoption:UPD.adoption||{},
-    history:prevHistory
-  };
+async function publishAd(){
+  const title=$('ad-title')?.value.trim();
+  const link=$('ad-link')?.value.trim();
+  if(!link){alert('Խնդրում ենք լրացնել հղումը');return;}
+  if(!_adImgData){alert('Խնդրում ենք ընտրել նկար');return;}
   sLoad('Հրապարակվում է...');
   try{
-    await svUpdates();
-    if(_updHtmlData){
-      await bSet(BUH,{versionCode:nextVC,html:_updHtmlData});
-    }
+    await adsAdd({title,link,image:_adImgData,active:true,createdAt:Date.now()});
+    ADS=await adsList();
   }catch(e){hLoad();alert('❌ Չհաջողվեց հրապարակել. '+e.message);return;}
   hLoad();flash();
-  _updImgData='';_updHtmlData='';
-  showPg('supd');
+  _adImgData='';
+  showPg('sads');
 }
+async function toggleAd(id,active){
+  sLoad('Պահպանվում է...');
+  try{
+    await adsUpdate(id,{active});
+    ADS=await adsList();
+  }catch(e){hLoad();alert('❌ Չհաջողվեց. '+e.message);return;}
+  hLoad();flash();
+  showPg('sads');
+}
+async function delAd(id){
+  if(!confirm('Ջնջե՞լ այս գովազդը'))return;
+  sLoad('Ջնջվում է...');
+  try{
+    await adsDelete(id);
+    ADS=await adsList();
+  }catch(e){hLoad();alert('❌ Չհաջողվեց. '+e.message);return;}
+  hLoad();flash();
+  showPg('sads');
+}
+
 
 function onProfPhotoClick(){
   var el=document.getElementById('prof-photo-inp');
